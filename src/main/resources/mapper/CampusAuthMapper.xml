@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingyuan.secondhand.mapper.CampusAuthMapper">
+
+    <select id="pageAuthWithDetails" resultType="com.qingyuan.secondhand.vo.AuthPageVO">
+        SELECT
+            ca.id,
+            ca.user_id AS userId,
+            u.nick_name AS nickName,
+            u.avatar_url AS avatarUrl,
+            ca.college_id AS collegeId,
+            c.name AS collegeName,
+            ca.student_no AS studentNo,
+            ca.class_name AS className,
+            ca.cert_image AS certImage,
+            ca.status,
+            ca.reject_reason AS rejectReason,
+            ca.review_time AS reviewTime,
+            ca.create_time AS createTime
+        FROM campus_auth ca
+        LEFT JOIN user u ON ca.user_id = u.id
+        LEFT JOIN college c ON ca.college_id = c.id
+        <where>
+            <if test="status != null">
+                AND ca.status = #{status}
+            </if>
+            <if test="collegeId != null">
+                AND ca.college_id = #{collegeId}
+            </if>
+            <if test="id != null">
+                AND ca.id = #{id}
+            </if>
+        </where>
+        ORDER BY ca.create_time DESC
+    </select>
+
+</mapper>

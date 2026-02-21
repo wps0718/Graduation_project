@@ -1,0 +1,44 @@
+package com.qingyuan.secondhand.controller.mini;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.qingyuan.secondhand.common.result.Result;
+import com.qingyuan.secondhand.service.NotificationService;
+import com.qingyuan.secondhand.vo.NotificationVO;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/mini/notification")
+@RequiredArgsConstructor
+public class MiniNotificationController {
+
+    private final NotificationService notificationService;
+
+    @GetMapping("/list")
+    public Result<IPage<NotificationVO>> list(@RequestParam(defaultValue = "1") Integer page,
+                                              @RequestParam(defaultValue = "10") Integer pageSize,
+                                              @RequestParam(required = false) Integer category) {
+        return Result.success(notificationService.getNotificationList(page, pageSize, category));
+    }
+
+    @PostMapping("/read")
+    public Result<Void> read(@RequestParam Long id) {
+        notificationService.markAsRead(id);
+        return Result.success();
+    }
+
+    @PostMapping("/read-all")
+    public Result<Void> readAll() {
+        notificationService.markAllAsRead();
+        return Result.success();
+    }
+
+    @GetMapping("/unread-count")
+    public Result<Long> unreadCount() {
+        return Result.success(notificationService.getUnreadCount());
+    }
+}

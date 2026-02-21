@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingyuan.secondhand.mapper.FavoriteMapper">
+
+    <select id="getFavoriteList" resultType="com.qingyuan.secondhand.vo.FavoriteListVO">
+        SELECT
+            f.id AS favoriteId,
+            f.product_id AS productId,
+            f.create_time AS favoriteTime,
+            p.title,
+            p.price,
+            p.images AS coverImage,
+            p.status,
+            p.condition_level AS conditionLevel,
+            c.name AS campusName,
+            u.id AS sellerId,
+            u.nick_name AS sellerNickName
+        FROM favorite f
+        LEFT JOIN product p ON f.product_id = p.id
+        LEFT JOIN campus c ON p.campus_id = c.id
+        LEFT JOIN user u ON p.user_id = u.id
+        WHERE f.user_id = #{userId}
+        ORDER BY f.create_time DESC
+    </select>
+
+</mapper>

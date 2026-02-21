@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingyuan.secondhand.mapper.ReportMapper">
+
+    <select id="getReportPage" resultType="com.qingyuan.secondhand.vo.ReportPageVO">
+        SELECT
+            r.id,
+            r.target_type AS targetType,
+            r.reason_type AS reasonType,
+            r.description,
+            r.status,
+            r.create_time AS createTime,
+            r.reporter_id AS reporterId,
+            reporter.nick_name AS reporterNickName,
+            reporter.avatar_url AS reporterAvatarUrl,
+            r.target_id AS targetId
+            <trim prefix="," suffixOverrides=",">
+                <if test="targetType == null or targetType == 1">
+                    p.title AS productTitle,
+                    p.images AS productCoverImageJson,
+                    p.user_id AS productUserId,
+                    seller.nick_name AS productUserNickName,
+                </if>
+                <if test="targetType == null or targetType == 2">
+                    target_user.nick_name AS targetUserNickName,
+                    target_user.avatar_url AS targetUserAvatarUrl,
+                </if>
+            </trim>
+        FROM report r
+        LEFT JOIN user reporter ON r.reporter_id = reporter.id
+        <if test="targetType == null or targetType == 1">
+            LEFT JOIN product p ON r.target_id = p.id AND r.target_type = 1
+            LEFT JOIN user seller ON p.user_id = seller.id
+        </if>
+        <if test="targetType == null or targetType == 2">
+            LEFT JOIN user target_user ON r.target_id = target_user.id AND r.target_type = 2
+        </if>
+        WHERE 1=1
+        <if test="status != null">
+            AND r.status = #{status}
+        </if>
+        <if test="targetType != null">
+            AND r.target_type = #{targetType}
+        </if>
+        ORDER BY r.create_time DESC
+    </select>
+
+    <select id="getReportDetailById" resultType="com.qingyuan.secondhand.vo.ReportDetailVO">
+        SELECT
+            r.id,
+            r.target_type AS targetType,
+            r.reason_type AS reasonType,
+            r.description,
+            r.evidence AS evidenceJson,
+            r.status,
+            r.handle_result AS handleResult,
+            r.handle_time AS handleTime,
+            r.create_time AS createTime,
+            r.reporter_id AS reporterId,
+            reporter.nick_name AS reporterNickName,
+            reporter.avatar_url AS reporterAvatarUrl,
+            reporter.phone AS reporterPhone,
+            r.target_id AS targetId,
+            p.title AS productTitle,
+            p.description AS productDescription,
+            p.price AS productPrice,
+            p.images AS productImagesJson,
+            p.status AS productStatus,
+            p.user_id AS productUserId,
+            seller.nick_name AS productUserNickName,
+            seller.phone AS productUserPhone,
+            target_user.nick_name AS targetUserNickName,
+            target_user.avatar_url AS targetUserAvatarUrl,
+            target_user.phone AS targetUserPhone,
+            target_user.status AS targetUserStatus,
+            target_user.auth_status AS targetUserAuthStatus,
+            r.handler_id AS handlerId,
+            handler.username AS handlerName
+        FROM report r
+        LEFT JOIN user reporter ON r.reporter_id = reporter.id
+        LEFT JOIN product p ON r.target_id = p.id AND r.target_type = 1
+        LEFT JOIN user seller ON p.user_id = seller.id
+        LEFT JOIN user target_user ON r.target_id = target_user.id AND r.target_type = 2
+        LEFT JOIN employee handler ON r.handler_id = handler.id
+        WHERE r.id = #{id}
+    </select>
+</mapper>

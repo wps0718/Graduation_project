@@ -1,0 +1,65 @@
+:root {
+  /* 主色 */
+  --primary-color: #4A90D9;
+  --primary-light: #6BA3E0;
+  --primary-dark: #3A7BC8;
+  --primary-bg: #EBF3FB;
+  
+  /* 功能色 */
+  --success-color: #52C41A;
+  --warning-color: #FAAD14;
+  --danger-color: #FF4D4F;
+  --info-color: #909399;
+  
+  /* 价格色 */
+  --price-color: #FF4D4F;
+  
+  /* 文字色 */
+  --text-primary: #333333;
+  --text-regular: #666666;
+  --text-secondary: #999999;
+  --text-placeholder: #CCCCCC;
+  --text-white: #FFFFFF;
+  
+  /* 背景色 */
+  --bg-page: #F5F5F5;
+  --bg-white: #FFFFFF;
+  --bg-grey: #F8F8F8;
+  --bg-mask: rgba(0, 0, 0, 0.5);
+  
+  /* 边框色 */
+  --border-color: #EEEEEE;
+  --border-light: #F5F5F5;
+  
+  /* 字号 */
+  --font-xl: 36rpx;
+  --font-lg: 32rpx;
+  --font-md: 28rpx;
+  --font-sm: 24rpx;
+  --font-xs: 20rpx;
+  
+  /* 间距 */
+  --spacing-xs: 8rpx;
+  --spacing-sm: 16rpx;
+  --spacing-md: 24rpx;
+  --spacing-lg: 32rpx;
+  --spacing-xl: 48rpx;
+  
+  /* 圆角 */
+  --radius-sm: 8rpx;
+  --radius-md: 12rpx;
+  --radius-lg: 16rpx;
+  --radius-round: 999rpx;
+
+  --login-primary: #0046C8;
+  --login-border: #E2E8F0;
+  --login-muted-bg: #F1F5F9;
+  --login-gradient-start: #F1F5F9;
+  --login-gradient-end: #E2E8F0;
+  --login-text-strong: #0F172A;
+  --login-text-muted: #64748B;
+  --login-text-placeholder: #7E87A4;
+  --login-text-hint: #94A3B8;
+  --login-surface: #F8FAFC;
+}
+

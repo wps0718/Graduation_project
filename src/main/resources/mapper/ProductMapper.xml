@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingyuan.secondhand.mapper.ProductMapper">
+
+    <select id="getProductDetailById" resultType="com.qingyuan.secondhand.vo.ProductDetailVO">
+        SELECT
+            p.id,
+            p.title,
+            p.description,
+            p.price,
+            p.original_price AS originalPrice,
+            p.condition_level AS conditionLevel,
+            p.images AS imagesJson,
+            p.view_count AS viewCount,
+            p.favorite_count AS favoriteCount,
+            p.status,
+            p.create_time AS createTime,
+            p.meeting_point_text AS meetingPointText,
+            c.name AS categoryName,
+            ca.name AS campusName,
+            mp.name AS meetingPointName,
+            u.id AS sellerId,
+            u.nick_name AS sellerNickName,
+            u.avatar_url AS sellerAvatarUrl,
+            u.score AS sellerScore,
+            u.auth_status AS sellerAuthStatus
+        FROM product p
+        LEFT JOIN category c ON p.category_id = c.id
+        LEFT JOIN campus ca ON p.campus_id = ca.id
+        LEFT JOIN meeting_point mp ON p.meeting_point_id = mp.id
+        LEFT JOIN user u ON p.user_id = u.id
+        WHERE p.id = #{productId} AND p.is_deleted = 0
+    </select>
+
+    <select id="getProductList" resultType="com.qingyuan.secondhand.vo.ProductListVO">
+        SELECT
+            p.id,
+            p.title,
+            p.price,
+            p.condition_level AS conditionLevel,
+            p.view_count AS viewCount,
+            p.favorite_count AS favoriteCount,
+            p.create_time AS createTime,
+            p.images AS coverImage,
+            ca.name AS campusName,
+            u.id AS sellerId,
+            u.nick_name AS sellerNickName,
+            u.avatar_url AS sellerAvatarUrl
+        FROM product p
+        LEFT JOIN campus ca ON p.campus_id = ca.id
+        LEFT JOIN user u ON p.user_id = u.id
+        WHERE p.status = 1 AND p.is_deleted = 0
+        <if test="campusId != null">
+            AND p.campus_id = #{campusId}
+        </if>
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (p.title LIKE CONCAT('%', #{keyword}, '%')
+            OR p.description LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="minPrice != null">
+            AND p.price &gt;= #{minPrice}
+        </if>
+        <if test="maxPrice != null">
+            AND p.price &lt;= #{maxPrice}
+        </if>
+        <choose>
+            <when test="sortBy == 'price_asc'">
+                ORDER BY p.price ASC, p.create_time DESC
+            </when>
+            <when test="sortBy == 'price_desc'">
+                ORDER BY p.price DESC, p.create_time DESC
+            </when>
+            <otherwise>
+                ORDER BY p.create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getMyProductList" resultType="com.qingyuan.secondhand.vo.ProductListVO">
+        SELECT
+            p.id,
+            p.title,
+            p.price,
+            p.condition_level AS conditionLevel,
+            p.view_count AS viewCount,
+            p.favorite_count AS favoriteCount,
+            p.create_time AS createTime,
+            p.images AS coverImage,
+            ca.name AS campusName,
+            u.id AS sellerId,
+            u.nick_name AS sellerNickName,
+            u.avatar_url AS sellerAvatarUrl
+        FROM product p
+        LEFT JOIN campus ca ON p.campus_id = ca.id
+        LEFT JOIN user u ON p.user_id = u.id
+        WHERE p.user_id = #{userId} AND p.is_deleted = 0
+        <if test="status != null">
+            AND p.status = #{status}
+        </if>
+        ORDER BY p.create_time DESC
+    </select>
+
+    <select id="getAdminProductPage" resultType="com.qingyuan.secondhand.vo.AdminProductPageVO">
+        SELECT
+            p.id,
+            p.title,
+            p.price,
+            p.condition_level AS conditionLevel,
+            p.view_count AS viewCount,
+            p.favorite_count AS favoriteCount,
+            p.status,
+            p.create_time AS createTime,
+            p.images AS coverImage,
+            c.name AS categoryName,
+            ca.name AS campusName,
+            u.id AS sellerId,
+            u.nick_name AS sellerNickName,
+            u.avatar_url AS sellerAvatarUrl
+        FROM product p
+        LEFT JOIN category c ON p.category_id = c.id
+        LEFT JOIN campus ca ON p.campus_id = ca.id
+        LEFT JOIN user u ON p.user_id = u.id
+        WHERE p.is_deleted = 0
+        <if test="status != null">
+            AND p.status = #{status}
+        </if>
+        ORDER BY p.create_time DESC
+    </select>
+</mapper>

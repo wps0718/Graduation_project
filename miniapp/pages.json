@@ -1,0 +1,207 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "轻院二手"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/login/sms-login",
+			"style": {
+				"navigationBarTitleText": "短信验证",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/search/search",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "搜索"
+			}
+		},
+		{
+			"path": "pages/product/detail/detail",
+			"style": {
+				"navigationBarTitleText": "商品详情"
+			}
+		},
+		{
+			"path": "pages/product/publish/publish",
+			"style": {
+				"navigationBarTitleText": "发布商品",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/product/my-list/my-list",
+			"style": {
+				"navigationBarTitleText": "我发布的"
+			}
+		},
+		{
+			"path": "pages/product/edit/edit",
+			"style": {
+				"navigationBarTitleText": "编辑商品"
+			}
+		},
+		{
+			"path": "pages/chat/list/list",
+			"style": {
+				"navigationBarTitleText": "消息"
+			}
+		},
+		{
+			"path": "pages/chat/detail/detail",
+			"style": {
+				"navigationBarTitleText": "聊天详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/order/list/list",
+			"style": {
+				"navigationBarTitleText": "交易记录",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/order/detail/detail",
+			"style": {
+				"navigationBarTitleText": "订单详情"
+			}
+		},
+		{
+			"path": "pages/user/user",
+			"style": {
+				"navigationBarTitleText": "个人中心"
+			}
+		},
+		{
+			"path": "pages/auth/auth",
+			"style": {
+				"navigationBarTitleText": "校园认证"
+			}
+		},
+		{
+			"path": "pages/favorite/favorite",
+			"style": {
+				"navigationBarTitleText": "我的收藏"
+			}
+		},
+		{
+			"path": "pages/footprint/footprint",
+			"style": {
+				"navigationBarTitleText": "足迹"
+			}
+		},
+		{
+			"path": "pages/notification/notification",
+			"style": {
+				"navigationBarTitleText": "消息中心",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/review/review",
+			"style": {
+				"navigationBarTitleText": "评价"
+			}
+		},
+		{
+			"path": "pages/report/report",
+			"style": {
+				"navigationBarTitleText": "举报"
+			}
+		},
+		{
+			"path": "pages/seller/profile",
+			"style": {
+				"navigationBarTitleText": "卖家主页",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/settings/settings",
+			"style": {
+				"navigationBarTitleText": "设置"
+			}
+		},
+		{
+			"path": "pages/settings/edit-profile",
+			"style": {
+				"navigationBarTitleText": "编辑资料"
+			}
+		},
+		{
+			"path": "pages/settings/about",
+			"style": {
+				"navigationBarTitleText": "关于我们"
+			}
+		},
+		{
+			"path": "pages/agreement/agreement",
+			"style": {
+				"navigationBarTitleText": "用户协议"
+			}
+		},
+		{
+			"path": "pages/privacy/privacy",
+			"style": {
+				"navigationBarTitleText": "隐私政策"
+			}
+		},
+		{
+			"path": "pages/help/help",
+			"style": {
+				"navigationBarTitleText": "客服与帮助"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "轻院二手",
+		"navigationBarBackgroundColor": "#4A90D9",
+		"backgroundColor": "#F5F5F5",
+    "enablePullDownRefresh": false
+	},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#4A90D9",
+		"borderStyle": "black",
+		"backgroundColor": "#FFFFFF",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"iconPath": "static/tabbar/home.png",
+				"selectedIconPath": "static/tabbar/home-active.png",
+				"text": "首页"
+			},
+			{
+				"pagePath": "pages/product/publish/publish",
+				"iconPath": "static/tabbar/add.png",
+				"selectedIconPath": "static/tabbar/add-active.png",
+				"text": "发布"
+			},
+			{
+				"pagePath": "pages/chat/list/list",
+				"iconPath": "static/tabbar/chat.png",
+				"selectedIconPath": "static/tabbar/chat-active.png",
+				"text": "消息"
+			},
+			{
+				"pagePath": "pages/user/user",
+				"iconPath": "static/tabbar/user.png",
+				"selectedIconPath": "static/tabbar/user-active.png",
+				"text": "我的"
+			}
+		]
+	}
+}

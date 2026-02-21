@@ -1,0 +1,34 @@
+.DS_Store
+
+# Java / Maven
+target/
+*.class
+*.log
+.classpath
+.project
+.settings/
+
+# IntelliJ
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Node / Vite
+node_modules/
+dist/
+.env
+.env.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# uni-app
+unpackage/
+
+# AI 协作信号文件
+.ready-for-review
+.review-passed
+.review-rejected

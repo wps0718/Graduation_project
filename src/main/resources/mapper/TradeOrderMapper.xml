@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingyuan.secondhand.mapper.TradeOrderMapper">
+
+    <resultMap id="OrderListVOMap" type="com.qingyuan.secondhand.vo.OrderListVO">
+        <id column="id" property="id"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="price" property="price"/>
+        <result column="status" property="status"/>
+        <result column="expire_time" property="expireTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="product_id" property="productId"/>
+        <result column="product_title" property="productTitle"/>
+        <result column="product_cover_image" property="productCoverImage"/>
+        <result column="other_user_id" property="otherUserId"/>
+        <result column="other_user_nick_name" property="otherUserNickName"/>
+        <result column="other_user_avatar" property="otherUserAvatar"/>
+    </resultMap>
+
+    <resultMap id="AdminOrderPageVOMap" type="com.qingyuan.secondhand.vo.AdminOrderPageVO">
+        <id column="id" property="id"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="price" property="price"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="product_id" property="productId"/>
+        <result column="product_title" property="productTitle"/>
+        <result column="product_cover_image" property="productCoverImage"/>
+        <result column="campus_name" property="campusName"/>
+        <result column="buyer_id" property="buyerId"/>
+        <result column="buyer_nick_name" property="buyerNickName"/>
+        <result column="buyer_phone" property="buyerPhone"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="seller_nick_name" property="sellerNickName"/>
+        <result column="seller_phone" property="sellerPhone"/>
+    </resultMap>
+
+    <select id="getOrderList" resultMap="OrderListVOMap">
+        SELECT
+            o.id,
+            o.order_no,
+            o.price,
+            o.status,
+            o.expire_time,
+            o.create_time,
+            o.product_id,
+            p.title AS product_title,
+            JSON_EXTRACT(p.images, '$[0]') AS product_cover_image,
+            <if test="role == 'buyer'">
+                o.seller_id AS other_user_id,
+                u.nick_name AS other_user_nick_name,
+                u.avatar_url AS other_user_avatar
+            </if>
+            <if test="role == 'seller'">
+                o.buyer_id AS other_user_id,
+                u.nick_name AS other_user_nick_name,
+                u.avatar_url AS other_user_avatar
+            </if>
+        FROM trade_order o
+        LEFT JOIN product p ON o.product_id = p.id
+        <if test="role == 'buyer'">
+            LEFT JOIN user u ON o.seller_id = u.id
+        </if>
+        <if test="role == 'seller'">
+            LEFT JOIN user u ON o.buyer_id = u.id
+        </if>
+        <where>
+            <if test="role == 'buyer'">
+                o.buyer_id = #{userId} AND o.is_deleted_buyer = 0
+            </if>
+            <if test="role == 'seller'">
+                o.seller_id = #{userId} AND o.is_deleted_seller = 0
+            </if>
+            <if test="status != null">
+                AND o.status = #{status}
+            </if>
+        </where>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="getAdminOrderPage" resultMap="AdminOrderPageVOMap">
+        SELECT
+            o.id,
+            o.order_no,
+            o.price,
+            o.status,
+            o.create_time,
+            o.product_id,
+            p.title AS product_title,
+            p.images AS product_cover_image,
+            c.name AS campus_name,
+            o.buyer_id,
+            ub.nick_name AS buyer_nick_name,
+            ub.phone AS buyer_phone,
+            o.seller_id,
+            us.nick_name AS seller_nick_name,
+            us.phone AS seller_phone
+        FROM trade_order o
+        LEFT JOIN product p ON o.product_id = p.id
+        LEFT JOIN campus c ON o.campus_id = c.id
+        LEFT JOIN user ub ON o.buyer_id = ub.id
+        LEFT JOIN user us ON o.seller_id = us.id
+        <where>
+            <if test="status != null">
+                AND o.status = #{status}
+            </if>
+        </where>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="getOrderDetail" resultType="com.qingyuan.secondhand.vo.OrderDetailVO">
+        SELECT
+            o.id,
+            o.order_no,
+            o.price,
+            c.name AS campus_name,
+            o.meeting_point,
+            o.status,
+            o.cancel_reason,
+            o.cancel_by,
+            o.expire_time,
+            o.confirm_deadline,
+            o.complete_time,
+            o.create_time,
+            o.product_id,
+            p.title AS product_title,
+            p.description AS product_description,
+            p.images AS product_images_json,
+            p.status AS product_status,
+            o.buyer_id,
+            ub.nick_name AS buyer_nick_name,
+            ub.avatar_url AS buyer_avatar,
+            ub.phone AS buyer_phone,
+            o.seller_id,
+            us.nick_name AS seller_nick_name,
+            us.avatar_url AS seller_avatar,
+            us.phone AS seller_phone
+        FROM trade_order o
+        LEFT JOIN product p ON o.product_id = p.id
+        LEFT JOIN campus c ON o.campus_id = c.id
+        LEFT JOIN user ub ON o.buyer_id = ub.id
+        LEFT JOIN user us ON o.seller_id = us.id
+        WHERE o.id = #{id}
+    </select>
+</mapper>

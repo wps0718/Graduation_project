@@ -1,0 +1,879 @@
+{
+  "project": "二手交易平台",
+  "tech_stack": "Spring Boot 3.x + MyBatis-Plus + MySQL + Redis",
+  "package": "com.qingyuan.secondhand",
+  "executor_ide": "Trae（国际版）",
+  "supervisor_ide": "Kiro",
+  "total_features": 23,
+  "features": [
+    {
+      "id": "F01",
+      "name": "微信登录",
+      "module": "MODULE-USER",
+      "scope": "mini",
+      "description": "小程序端用户通过微信授权码登录，自动注册新用户并返回JWT Token",
+      "interfaces": [
+        "POST /mini/user/wx-login"
+      ],
+      "files_to_create": [
+        "dto/WxLoginDTO.java",
+        "vo/LoginVO.java",
+        "entity/User.java",
+        "mapper/UserMapper.java",
+        "service/UserService.java",
+        "service/impl/UserServiceImpl.java",
+        "controller/mini/MiniUserController.java",
+        "config/WxConfig.java"
+      ],
+      "dependencies": [],
+      "acceptance_criteria": [
+        "使用code调用微信API获取openId和session_key",
+        "首次登录自动创建用户记录（默认昵称'微信用户'、默认头像）",
+        "已有用户登录时更新session_key和last_login_time",
+        "返回有效的JWT Token和用户基本信息（LoginVO）",
+        "账号被封禁时抛出BusinessException",
+        "账号注销中时返回特殊标识让前端提示恢复",
+        "重复登录不会创建重复用户（openId唯一）",
+        "WxConfig从application.yml读取appId和appSecret",
+        "微信API调用使用RestTemplate",
+        "编写Service层单元测试，覆盖正常登录、新用户注册、封禁、注销中四种场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F02",
+      "name": "手机号密码登录",
+      "module": "MODULE-USER",
+      "scope": "mini",
+      "description": "小程序端用户通过手机号和密码登录，包含密码错误次数限制和账号锁定机制",
+      "interfaces": [
+        "POST /mini/user/login"
+      ],
+      "files_to_create": [
+        "dto/AccountLoginDTO.java"
+      ],
+      "dependencies": ["F01"],
+      "acceptance_criteria": [
+        "根据phone查询用户，不存在则抛出'账号不存在'异常",
+        "使用BCryptPasswordEncoder验证密码",
+        "密码错误时Redis记录失败次数（key: login:fail:{phone}），5次后锁定15分钟",
+        "锁定期间尝试登录抛出'账号已锁定，请15分钟后重试'异常",
+        "密码正确时清除Redis失败计数",
+        "登录成功更新last_login_time并生成JWT Token",
+        "检查封禁状态和注销状态",
+        "编写Service层单元测试，覆盖正常登录、密码错误、锁定、封禁场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F03",
+      "name": "短信验证码登录",
+      "module": "MODULE-USER",
+      "scope": "mini",
+      "description": "发送短信验证码和通过验证码登录，包含频率限制和每日上限",
+      "interfaces": [
+        "POST /mini/user/sms/send",
+        "POST /mini/user/sms-login"
+      ],
+      "files_to_create": [
+        "dto/SmsSendDTO.java",
+        "dto/SmsLoginDTO.java"
+      ],
+      "dependencies": ["F01"],
+      "acceptance_criteria": [
+        "校验手机号格式（正则匹配11位手机号）",
+        "60秒内不允许重复发送（Redis key: sms:limit:{phone}，TTL=60s）",
+        "每日发送上限10次（Redis key: sms:daily:{phone}，TTL=24h）",
+        "生成6位随机数字验证码，存Redis（key: sms:code:{phone}，TTL=5分钟）",
+        "V1.0版本短信发送使用log.info打印日志而非实际发送",
+        "验证码过期时抛出'验证码已过期'异常",
+        "验证码不匹配时抛出'验证码错误'异常",
+        "验证通过后删除Redis中的验证码（防止重复使用）",
+        "手机号对应用户不存在时自动创建新用户",
+        "编写Service层单元测试，覆盖发送频率限制、每日上限、验证码正确/错误/过期、新用户自动注册场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F04",
+      "name": "用户信息管理",
+      "module": "MODULE-USER",
+      "scope": "mini",
+      "description": "获取当前用户信息、更新个人资料、获取统计数据",
+      "interfaces": [
+        "GET /mini/user/info",
+        "POST /mini/user/update",
+        "GET /mini/user/stats"
+      ],
+      "files_to_create": [
+        "dto/UserUpdateDTO.java",
+        "vo/UserInfoVO.java",
+        "vo/UserStatsVO.java"
+      ],
+      "dependencies": ["F01"],
+      "acceptance_criteria": [
+        "从UserContext获取当前userId查询用户信息",
+        "关联查询校区名称（campus表）",
+        "手机号脱敏处理（如138****8888），脱敏方法写在common/util工具类中",
+        "返回UserInfoVO包含id、nickName、avatarUrl、phone(脱敏)、gender、campusId、campusName、authStatus、score、status",
+        "更新用户信息时校验参数（nickName非空等）",
+        "更新成功后清除用户信息Redis缓存",
+        "统计数据优先查Redis缓存（key: user:stats:{userId}，TTL=10分钟）",
+        "缓存不存在时查询数据库：在售商品数、成交数、收藏数",
+        "编写Service层单元测试，覆盖信息查询、更新、统计缓存命中和未命中场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F05",
+      "name": "卖家主页与账号管理",
+      "module": "MODULE-USER",
+      "scope": "mini",
+      "description": "查看卖家主页信息，以及账号注销申请和恢复功能",
+      "interfaces": [
+        "GET /mini/user/profile/{id}",
+        "POST /mini/user/deactivate",
+        "POST /mini/user/restore"
+      ],
+      "files_to_create": [
+        "vo/UserProfileVO.java"
+      ],
+      "dependencies": ["F01", "F04"],
+      "acceptance_criteria": [
+        "卖家主页返回用户信息、在售商品列表（分页，status=1，is_deleted=0）、在售数和成交数",
+        "UserProfileVO包含id、nickName、avatarUrl、authStatus、score、onSaleCount、soldCount、products分页数据",
+        "注销申请时检查是否有进行中的订单（status=1），有则抛异常",
+        "注销时更新status=2并设置deactivate_time，下架所有在售商品",
+        "恢复账号时检查status是否为2（注销中），更新status=1并清空deactivate_time",
+        "编写Service层单元测试，覆盖卖家主页查询、注销（有/无进行中订单）、恢复场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F06",
+      "name": "校园认证-小程序端",
+      "module": "MODULE-AUTH",
+      "scope": "mini",
+      "description": "小程序端提交校园认证和查询认证状态",
+      "interfaces": [
+        "POST /mini/auth/submit",
+        "GET /mini/auth/status",
+        "GET /mini/college/list"
+      ],
+      "files_to_create": [
+        "dto/AuthSubmitDTO.java",
+        "vo/AuthStatusVO.java",
+        "vo/CollegeVO.java",
+        "entity/CampusAuth.java",
+        "entity/College.java",
+        "mapper/CampusAuthMapper.java",
+        "mapper/CollegeMapper.java",
+        "service/CampusAuthService.java",
+        "service/impl/CampusAuthServiceImpl.java",
+        "service/CollegeService.java",
+        "service/impl/CollegeServiceImpl.java",
+        "controller/mini/MiniAuthController.java",
+        "controller/mini/MiniCollegeController.java"
+      ],
+      "dependencies": ["F01"],
+      "acceptance_criteria": [
+        "审核中状态不允许重复提交认证",
+        "同一学号不能被两个账号认证（学号唯一性校验）",
+        "已驳回的认证可以重新提交（更新已有记录而非新建）",
+        "提交认证后更新用户表auth_status=1（审核中）",
+        "认证状态查询返回AuthStatusVO包含status、collegeName、studentNo、className、certImage、rejectReason、reviewTime",
+        "学院列表查询status=1的学院，按sort排序，优先走Redis缓存",
+        "编写Service层单元测试，覆盖首次提交、重复提交、驳回后重新提交、学号重复场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F07",
+      "name": "校园认证-管理端审核",
+      "module": "MODULE-AUTH",
+      "scope": "admin",
+      "description": "管理端审核校园认证申请，包含通过和驳回操作",
+      "interfaces": [
+        "GET /admin/auth/page",
+        "GET /admin/auth/detail/{id}",
+        "POST /admin/auth/approve",
+        "POST /admin/auth/reject"
+      ],
+      "files_to_create": [
+        "vo/AuthPageVO.java",
+        "controller/admin/AdminAuthController.java"
+      ],
+      "dependencies": ["F06"],
+      "acceptance_criteria": [
+        "分页查询认证记录，支持按status和collegeId筛选",
+        "分页结果关联用户信息（nickName、avatarUrl）和学院名称",
+        "认证通过时更新认证status=1、用户auth_status=2",
+        "认证驳回时更新认证status=2、用户auth_status=3，记录rejectReason",
+        "审核操作后发送站内通知（调用NotificationService.send，此阶段可先预留方法调用，通知模块未开发时先注释或打桩）",
+        "编写Service层单元测试，覆盖通过和驳回场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F08",
+      "name": "分类模块",
+      "module": "MODULE-CATEGORY",
+      "scope": "mini+admin",
+      "description": "商品分类的增删改查，小程序端查询带Redis缓存",
+      "interfaces": [
+        "GET /mini/category/list",
+        "GET /admin/category/page",
+        "GET /admin/category/list",
+        "POST /admin/category/add",
+        "POST /admin/category/update",
+        "POST /admin/category/delete"
+      ],
+      "files_to_create": [
+        "entity/Category.java",
+        "mapper/CategoryMapper.java",
+        "service/CategoryService.java",
+        "service/impl/CategoryServiceImpl.java",
+        "dto/CategoryDTO.java",
+        "vo/CategoryVO.java",
+        "controller/mini/MiniCategoryController.java",
+        "controller/admin/AdminCategoryController.java"
+      ],
+      "dependencies": [],
+      "acceptance_criteria": [
+        "小程序端分类列表为公开接口（无需登录），Redis缓存1小时",
+        "管理端分页查询支持按名称搜索",
+        "管理端全部列表接口不分页",
+        "添加和更新分类后清除Redis缓存",
+        "删除分类前检查是否有商品使用该分类，有则抛异常禁止删除",
+        "编写Service层单元测试，覆盖缓存命中/未命中、删除有商品引用的分类场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F09",
+      "name": "校区与面交地点模块",
+      "module": "MODULE-CAMPUS",
+      "scope": "mini+admin",
+      "description": "校区和面交地点的管理，小程序端查询带Redis缓存",
+      "interfaces": [
+        "GET /mini/campus/list",
+        "GET /mini/campus/meeting-points/{campusId}",
+        "GET /admin/campus/list",
+        "POST /admin/campus/add",
+        "POST /admin/campus/update",
+        "GET /admin/campus/meeting-point/list/{campusId}",
+        "POST /admin/campus/meeting-point/add",
+        "POST /admin/campus/meeting-point/update",
+        "POST /admin/campus/meeting-point/delete"
+      ],
+      "files_to_create": [
+        "entity/Campus.java",
+        "entity/MeetingPoint.java",
+        "mapper/CampusMapper.java",
+        "mapper/MeetingPointMapper.java",
+        "service/CampusService.java",
+        "service/impl/CampusServiceImpl.java",
+        "service/MeetingPointService.java",
+        "service/impl/MeetingPointServiceImpl.java",
+        "dto/CampusDTO.java",
+        "dto/MeetingPointDTO.java",
+        "vo/CampusVO.java",
+        "vo/MeetingPointVO.java",
+        "controller/mini/MiniCampusController.java",
+        "controller/admin/AdminCampusController.java"
+      ],
+      "dependencies": [],
+      "acceptance_criteria": [
+        "小程序端校区列表为公开接口，Redis缓存",
+        "面交地点按campusId查询",
+        "管理端支持校区和面交地点的增删改查",
+        "删除面交地点前无特殊限制",
+        "编写Service层单元测试"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F10",
+      "name": "学院管理模块",
+      "module": "MODULE-COLLEGE",
+      "scope": "admin",
+      "description": "管理端学院的增删改查",
+      "interfaces": [
+        "GET /admin/college/list",
+        "POST /admin/college/add",
+        "POST /admin/college/update",
+        "POST /admin/college/delete"
+      ],
+      "files_to_create": [
+        "dto/CollegeDTO.java",
+        "controller/admin/AdminCollegeController.java"
+      ],
+      "dependencies": ["F06"],
+      "acceptance_criteria": [
+        "学院列表查询返回所有学院",
+        "删除学院前检查是否有认证记录使用该学院，有则抛异常禁止删除",
+        "添加/更新学院后清除学院列表Redis缓存",
+        "编写Service层单元测试，覆盖删除有认证引用的学院场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F11",
+      "name": "商品发布与编辑",
+      "module": "MODULE-PRODUCT",
+      "scope": "mini",
+      "description": "小程序端商品发布、编辑、修改价格功能",
+      "interfaces": [
+        "POST /mini/product/publish",
+        "POST /mini/product/update",
+        "POST /mini/product/update-price"
+      ],
+      "files_to_create": [
+        "entity/Product.java",
+        "mapper/ProductMapper.java",
+        "service/ProductService.java",
+        "service/impl/ProductServiceImpl.java",
+        "dto/ProductPublishDTO.java",
+        "dto/ProductUpdateDTO.java",
+        "controller/mini/MiniProductController.java"
+      ],
+      "dependencies": ["F01", "F08", "F09"],
+      "acceptance_criteria": [
+        "参数校验：标题1-50字、价格>0、图片1-9张、描述1-500字",
+        "发布商品默认status=0（待审核）、is_deleted=0",
+        "auto_off_time设置为当前时间+90天",
+        "images字段存储为JSON数组字符串",
+        "编辑商品时校验是否是自己的商品",
+        "编辑后状态重置为待审核(0)，清空reject_reason，重新设置auto_off_time",
+        "修改价格时校验是否是自己的商品，直接更新价格（不需要重新审核）",
+        "编写Service层单元测试，覆盖正常发布、参数校验失败、编辑非自己商品场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F12",
+      "name": "商品查询与浏览",
+      "module": "MODULE-PRODUCT",
+      "scope": "mini",
+      "description": "商品详情、列表查询（含多条件筛选和排序）、我的发布列表",
+      "interfaces": [
+        "GET /mini/product/detail/{id}",
+        "GET /mini/product/list",
+        "GET /mini/product/my-list"
+      ],
+      "files_to_create": [
+        "vo/ProductDetailVO.java",
+        "vo/ProductListVO.java",
+        "resources/mapper/ProductMapper.xml"
+      ],
+      "dependencies": ["F11"],
+      "acceptance_criteria": [
+        "商品详情关联查询卖家信息、分类名、校区名、面交地点名",
+        "已登录用户查看详情时返回isFavorited、isOwner、hasActiveOrder",
+        "浏览量+1使用Redis去重（key: product:view:{productId}:{userId}，TTL=24h）",
+        "浏览量异步更新数据库（@Async）",
+        "商品列表只查status=1(在售)且is_deleted=0",
+        "支持campusId、categoryId、keyword、minPrice、maxPrice多条件组合筛选",
+        "支持sortBy排序：latest/price_asc/price_desc",
+        "关键词搜索模糊匹配title和description",
+        "每条商品关联卖家基本信息",
+        "有keyword时异步记录搜索关键词（search_keyword表search_count+1）",
+        "我的发布列表查询user_id=当前用户且is_deleted=0，支持按status筛选",
+        "商品列表查询使用MyBatis XML编写关联查询",
+        "编写Service层单元测试和Controller层MockMvc测试"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F13",
+      "name": "商品状态管理",
+      "module": "MODULE-PRODUCT",
+      "scope": "mini+admin",
+      "description": "商品上下架、删除（小程序端），审核通过/驳回、强制下架、批量审核（管理端）",
+      "interfaces": [
+        "POST /mini/product/off-shelf",
+        "POST /mini/product/on-shelf",
+        "POST /mini/product/delete",
+        "GET /admin/product/page",
+        "GET /admin/product/detail/{id}",
+        "POST /admin/product/approve",
+        "POST /admin/product/reject",
+        "POST /admin/product/batch-approve",
+        "POST /admin/product/force-off"
+      ],
+      "files_to_create": [
+        "vo/AdminProductPageVO.java",
+        "controller/admin/AdminProductController.java"
+      ],
+      "dependencies": ["F11", "F12"],
+      "acceptance_criteria": [
+        "下架时校验是自己的商品，检查无进行中订单，status→2",
+        "重新上架时校验是自己的商品，status→0（重新审核）",
+        "删除时校验是自己的商品，检查无进行中订单，is_deleted→1（逻辑删除）",
+        "管理端商品分页支持status筛选",
+        "审核通过：status→1，发送站内通知（预留NotificationService调用）",
+        "审核驳回：status→4，记录reject_reason，发送站内通知",
+        "批量审核通过：接收商品ID列表，批量更新status→1",
+        "强制下架：status→2，发送站内通知",
+        "编写Service层单元测试，覆盖各种状态流转和权限校验场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F14",
+      "name": "收藏模块",
+      "module": "MODULE-FAVORITE",
+      "scope": "mini",
+      "description": "商品收藏、取消收藏、收藏列表和收藏状态查询",
+      "interfaces": [
+        "POST /mini/favorite/add",
+        "POST /mini/favorite/cancel",
+        "GET /mini/favorite/list",
+        "GET /mini/favorite/check/{productId}"
+      ],
+      "files_to_create": [
+        "entity/Favorite.java",
+        "mapper/FavoriteMapper.java",
+        "service/FavoriteService.java",
+        "service/impl/FavoriteServiceImpl.java",
+        "dto/FavoriteDTO.java",
+        "vo/FavoriteListVO.java",
+        "controller/mini/MiniFavoriteController.java"
+      ],
+      "dependencies": ["F01", "F11"],
+      "acceptance_criteria": [
+        "收藏时校验商品存在且未被收藏过",
+        "收藏成功后product.favorite_count+1",
+        "收藏成功后通知卖家（预留NotificationService调用）",
+        "取消收藏后product.favorite_count-1",
+        "收藏列表关联商品信息（含商品状态），按收藏时间倒序分页",
+        "查询当前用户是否收藏指定商品，返回isFavorited布尔值",
+        "同一用户对同一商品不能重复收藏",
+        "编写Service层单元测试，覆盖收藏、重复收藏、取消收藏、列表查询场景"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F15",
+      "name": "订单创建与查询",
+      "module": "MODULE-ORDER",
+      "scope": "mini",
+      "description": "创建订单（含分布式锁防并发）、订单列表和订单详情",
+      "interfaces": [
+        "POST /mini/order/create",
+        "GET /mini/order/list",
+        "GET /mini/order/detail/{id}"
+      ],
+      "files_to_create": [
+        "entity/TradeOrder.java",
+        "mapper/TradeOrderMapper.java",
+        "service/TradeOrderService.java",
+        "service/impl/TradeOrderServiceImpl.java",
+        "dto/OrderCreateDTO.java",
+        "vo/OrderCreateVO.java",
+        "vo/OrderListVO.java",
+        "vo/OrderDetailVO.java",
+        "common/util/OrderNoUtil.java",
+        "controller/mini/MiniOrderController.java",
+        "resources/mapper/TradeOrderMapper.xml"
+      ],
+      "dependencies": ["F01", "F11"],
+      "acceptance_criteria": [
+        "校验商品存在且在售（status=1）",
+        "校验不能购买自己的商品",
+        "使用Redis分布式锁（key: product:lock:{productId}，30s）防止并发下单",
+        "校验该商品无进行中的订单（status=1）",
+        "订单号格式：TD + yyyyMMddHHmmss + 4位随机数（OrderNoUtil工具类）",
+        "创建订单status=1，expire_time=当前时间+72h",
+        "创建成功后发送通知给卖家（预留NotificationService调用）",
+        "返回OrderCreateVO包含orderId、orderNo、expireTime",
+        "订单列表支持按role(buyer/seller)和status筛选",
+        "buyer角色查询buyer_id=当前用户且is_deleted_buyer=0",
+        "seller角色查询seller_id=当前用户且is_deleted_seller=0",
+        "列表关联商品信息和对方用户信息，按create_time倒序",
+        "订单详情校验当前用户是买家或卖家，返回完整订单+商品+双方用户信息",
+        "订单列表和详情使用MyBatis XML编写关联查询",
+        "编写Service层单元测试，覆盖正常下单、购买自己商品、并发下单、商品已有订单场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F16",
+      "name": "订单状态管理",
+      "module": "MODULE-ORDER",
+      "scope": "mini+admin",
+      "description": "确认收货、取消订单、删除订单，以及管理端订单查看",
+      "interfaces": [
+        "POST /mini/order/confirm",
+        "POST /mini/order/cancel",
+        "POST /mini/order/delete",
+        "GET /admin/order/page",
+        "GET /admin/order/detail/{id}"
+      ],
+      "files_to_create": [
+        "dto/OrderCancelDTO.java",
+        "vo/AdminOrderPageVO.java",
+        "controller/admin/AdminOrderController.java"
+      ],
+      "dependencies": ["F15"],
+      "acceptance_criteria": [
+        "确认收货：校验当前用户是买家且status=1",
+        "确认收货后status→3(已完成)，设置complete_time",
+        "确认收货后商品status→3(已售出)，通知卖家",
+        "取消订单：校验当前用户是买家或卖家且status=1",
+        "取消后status→5(已取消)，记录cancel_by=当前userId",
+        "取消后商品status恢复→1(在售)，通知对方",
+        "删除订单：校验status=4或5（已评价或已取消才能删除）",
+        "根据当前用户角色设置is_deleted_buyer=1或is_deleted_seller=1（逻辑删除）",
+        "管理端订单分页查询和详情查看",
+        "编写Service层单元测试，覆盖确认收货、取消（买家/卖家）、删除（状态限制）场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F17",
+      "name": "评价模块",
+      "module": "MODULE-REVIEW",
+      "scope": "mini",
+      "description": "订单完成后双方互评，包含评价窗口期和自动好评机制的评分计算",
+      "interfaces": [
+        "POST /mini/review/submit",
+        "GET /mini/review/detail/{orderId}"
+      ],
+      "files_to_create": [
+        "entity/Review.java",
+        "mapper/ReviewMapper.java",
+        "service/ReviewService.java",
+        "service/impl/ReviewServiceImpl.java",
+        "dto/ReviewSubmitDTO.java",
+        "vo/ReviewDetailVO.java",
+        "controller/mini/MiniReviewController.java"
+      ],
+      "dependencies": ["F01", "F15", "F16"],
+      "acceptance_criteria": [
+        "校验当前用户是该订单的买家或卖家",
+        "校验订单status=3(已完成)或status=4(已评价但自己未评)",
+        "校验该用户未评价过该订单（防重复评价）",
+        "校验评价窗口期（complete_time + 7天内）",
+        "评分字段scoreDesc、scoreAttitude、scoreExperience范围1-5",
+        "content可选，最大200字",
+        "双方都评价后订单status→4(已评价)",
+        "评价后重新计算被评价人综合评分：(scoreDesc+scoreAttitude+scoreExperience)/3.0的所有评价平均值，保留一位小数",
+        "无评价的用户默认评分5.0",
+        "评价后通知对方（预留NotificationService调用）",
+        "查看评价：status=3时只返回自己的评价，status=4时返回双方评价",
+        "编写Service层单元测试，覆盖正常评价、重复评价、超过窗口期、双方都评价后状态变更、评分计算场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F18",
+      "name": "举报模块",
+      "module": "MODULE-REPORT",
+      "scope": "mini+admin",
+      "description": "提交举报和管理端处理举报（下架/警告/封禁/忽略）",
+      "interfaces": [
+        "POST /mini/report/submit",
+        "GET /admin/report/page",
+        "GET /admin/report/detail/{id}",
+        "POST /admin/report/handle"
+      ],
+      "files_to_create": [
+        "entity/Report.java",
+        "mapper/ReportMapper.java",
+        "service/ReportService.java",
+        "service/impl/ReportServiceImpl.java",
+        "dto/ReportSubmitDTO.java",
+        "dto/ReportHandleDTO.java",
+        "vo/ReportPageVO.java",
+        "vo/ReportDetailVO.java",
+        "controller/mini/MiniReportController.java",
+        "controller/admin/AdminReportController.java"
+      ],
+      "dependencies": ["F01", "F11"],
+      "acceptance_criteria": [
+        "不能举报自己",
+        "同一用户对同一目标只能举报一次",
+        "举报记录status=0(待处理)",
+        "targetType支持1(商品)和2(用户)",
+        "reasonType支持1-5（具体类型）",
+        "管理端举报分页关联被举报商品/用户信息",
+        "处理action=off_shelf：商品强制下架+通知卖家",
+        "处理action=warn：通知被举报用户",
+        "处理action=ban：用户封禁+在售商品下架+进行中订单取消+通知用户",
+        "处理action=ignore：仅更新举报状态",
+        "编写Service层单元测试，覆盖举报自己、重复举报、各种处理action场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F19",
+      "name": "消息通知模块",
+      "module": "MODULE-NOTIFICATION",
+      "scope": "mini",
+      "description": "站内通知的查询、已读标记和未读计数，以及提供异步send方法供其他模块调用",
+      "interfaces": [
+        "GET /mini/notification/list",
+        "POST /mini/notification/read",
+        "POST /mini/notification/read-all",
+        "GET /mini/notification/unread-count"
+      ],
+      "files_to_create": [
+        "entity/Notification.java",
+        "mapper/NotificationMapper.java",
+        "service/NotificationService.java",
+        "service/impl/NotificationServiceImpl.java",
+        "vo/NotificationVO.java",
+        "controller/mini/MiniNotificationController.java"
+      ],
+      "dependencies": ["F01"],
+      "acceptance_criteria": [
+        "通知列表支持分页和按category筛选",
+        "标记单条通知已读",
+        "批量标记所有通知已读",
+        "返回未读通知数量",
+        "提供send(userId, type, title, content, relatedId, relatedType, category)方法",
+        "send方法使用@Async异步执行，避免阻塞主业务",
+        "启动类需添加@EnableAsync注解",
+        "编写Service层单元测试，覆盖列表查询、已读标记、未读计数、send方法场景"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F20",
+      "name": "回填通知调用",
+      "module": "MODULE-NOTIFICATION",
+      "scope": "mini+admin",
+      "description": "将NotificationService.send调用回填到已完成的业务模块中",
+      "interfaces": [],
+      "files_to_create": [],
+      "files_to_modify": [
+        "service/impl/CampusAuthServiceImpl.java — 认证通过/驳回通知",
+        "service/impl/ProductServiceImpl.java — 商品审核通过/驳回/强制下架通知",
+        "service/impl/FavoriteServiceImpl.java — 被收藏通知",
+        "service/impl/TradeOrderServiceImpl.java — 订单创建/确认/取消通知",
+        "service/impl/ReviewServiceImpl.java — 收到评价通知",
+        "service/impl/ReportServiceImpl.java — 举报处理通知"
+      ],
+      "dependencies": ["F07", "F13", "F14", "F16", "F17", "F18", "F19"],
+      "acceptance_criteria": [
+        "认证通过时通知用户'您的校园认证已通过'",
+        "认证驳回时通知用户'您的校园认证被驳回'并附驳回原因",
+        "商品审核通过时通知卖家",
+        "商品审核驳回时通知卖家并附驳回原因",
+        "商品被强制下架时通知卖家",
+        "商品被收藏时通知卖家",
+        "订单创建时通知卖家",
+        "订单确认收货时通知卖家",
+        "订单取消时通知对方",
+        "收到评价时通知对方",
+        "举报处理后通知相关用户",
+        "所有通知调用均为异步（@Async），不影响主业务响应时间",
+        "编写集成测试验证通知调用是否正确触发"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F21",
+      "name": "Banner与搜索热词",
+      "module": "MODULE-BANNER + MODULE-SEARCH",
+      "scope": "mini+admin",
+      "description": "Banner轮播图管理和搜索热词查询",
+      "interfaces": [
+        "GET /mini/banner/list",
+        "GET /admin/banner/page",
+        "POST /admin/banner/add",
+        "POST /admin/banner/update",
+        "POST /admin/banner/delete",
+        "GET /mini/search/hot-keywords"
+      ],
+      "files_to_create": [
+        "entity/Banner.java",
+        "entity/SearchKeyword.java",
+        "mapper/BannerMapper.java",
+        "mapper/SearchKeywordMapper.java",
+        "service/BannerService.java",
+        "service/impl/BannerServiceImpl.java",
+        "service/SearchKeywordService.java",
+        "service/impl/SearchKeywordServiceImpl.java",
+        "dto/BannerDTO.java",
+        "vo/BannerVO.java",
+        "vo/HotKeywordVO.java",
+        "controller/mini/MiniBannerController.java",
+        "controller/mini/MiniSearchController.java",
+        "controller/admin/AdminBannerController.java"
+      ],
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Banner列表按campusId查询，Redis缓存30分钟",
+        "管理端Banner增删改查，添加/更新/删除后清除Redis缓存",
+        "热搜词查询is_hot=1或search_count最高的前10个，Redis缓存1小时",
+        "编写Service层单元测试"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F22",
+      "name": "公告模块",
+      "module": "MODULE-NOTICE",
+      "scope": "admin",
+      "description": "管理端公告的增删改查，发布公告时异步推送站内通知给所有用户",
+      "interfaces": [
+        "GET /admin/notice/page",
+        "POST /admin/notice/add",
+        "POST /admin/notice/update",
+        "POST /admin/notice/delete"
+      ],
+      "files_to_create": [
+        "entity/Notice.java",
+        "mapper/NoticeMapper.java",
+        "service/NoticeService.java",
+        "service/impl/NoticeServiceImpl.java",
+        "dto/NoticeDTO.java",
+        "vo/NoticeVO.java",
+        "controller/admin/AdminNoticeController.java"
+      ],
+      "dependencies": ["F19"],
+      "acceptance_criteria": [
+        "公告增删改查基本功能正常",
+        "发布公告时异步批量插入notification记录给所有正常状态用户",
+        "批量插入分批处理，每批1000条，避免单次插入数据量过大",
+        "编写Service层单元测试"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F23",
+      "name": "员工管理模块",
+      "module": "MODULE-EMPLOYEE",
+      "scope": "admin",
+      "description": "管理端员工登录、信息查看和员工管理",
+      "interfaces": [
+        "POST /admin/employee/login",
+        "GET /admin/employee/info",
+        "GET /admin/employee/page",
+        "POST /admin/employee/add",
+        "POST /admin/employee/update",
+        "POST /admin/employee/reset-password"
+      ],
+      "files_to_create": [
+        "entity/Employee.java",
+        "mapper/EmployeeMapper.java",
+        "service/EmployeeService.java",
+        "service/impl/EmployeeServiceImpl.java",
+        "dto/EmployeeLoginDTO.java",
+        "dto/EmployeeDTO.java",
+        "vo/EmployeeLoginVO.java",
+        "vo/EmployeeVO.java",
+        "controller/admin/AdminEmployeeController.java"
+      ],
+      "dependencies": [],
+      "acceptance_criteria": [
+        "员工登录使用BCrypt验证密码并生成管理端JWT Token",
+        "管理端JWT Token与小程序端Token区分（建议使用不同的签名密钥或token前缀）",
+        "获取当前登录员工信息",
+        "员工分页查询",
+        "添加员工仅超级管理员可操作，默认密码为123456的BCrypt加密值",
+        "重置密码将密码恢复为123456的BCrypt加密值",
+        "编写Service层单元测试，覆盖登录成功/失败、权限校验场景"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F24",
+      "name": "数据统计模块",
+      "module": "MODULE-STATS",
+      "scope": "admin",
+      "description": "管理后台数据概览、趋势分析、校区统计和分类统计",
+      "interfaces": [
+        "GET /admin/stats/overview",
+        "GET /admin/stats/trend",
+        "GET /admin/stats/campus",
+        "GET /admin/stats/category"
+      ],
+      "files_to_create": [
+        "vo/StatsOverviewVO.java",
+        "vo/StatsTrendVO.java",
+        "vo/StatsCampusVO.java",
+        "vo/StatsCategoryVO.java",
+        "service/StatsService.java",
+        "service/impl/StatsServiceImpl.java",
+        "controller/admin/AdminStatsController.java"
+      ],
+      "dependencies": ["F01", "F11", "F15"],
+      "acceptance_criteria": [
+        "overview返回今日数据（新增用户/新增商品/成交量/GMV）+累计数据+待处理事项（待审核商品数/待处理认证数/待处理举报数）",
+        "trend返回近N天趋势数据（新增用户/新增商品/成交量/GMV），支持days参数，默认7天",
+        "campus返回按校区统计的商品数/交易数/用户数",
+        "category返回按分类统计的商品数/交易数",
+        "所有统计使用SQL聚合查询，不使用Redis缓存",
+        "编写Service层单元测试，验证SQL查询返回的数据结构正确"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F25",
+      "name": "定时任务",
+      "module": "MODULE-TASK",
+      "scope": "system",
+      "description": "订单超时取消、自动确认收货、自动好评、商品自动下架、注销账号清理",
+      "interfaces": [],
+      "files_to_create": [
+        "task/OrderExpireTask.java",
+        "task/OrderAutoConfirmTask.java",
+        "task/ReviewAutoTask.java",
+        "task/ProductAutoOffTask.java",
+        "task/UserDeactivateTask.java"
+      ],
+      "dependencies": ["F01", "F05", "F11", "F15", "F16", "F17"],
+      "acceptance_criteria": [
+        "启动类添加@EnableScheduling注解",
+        "application.yml中添加定时任务开关配置（task.enabled.xxx=true/false）",
+        "OrderExpireTask（每5分钟）：查询expire_time<NOW()且status=1的订单，批量取消，恢复商品在售状态，通知买卖双方",
+        "OrderAutoConfirmTask（每天凌晨2点）：查询create_time+7天<NOW()且status=1的订单，自动确认收货，商品标记已售出，通知双方",
+        "ReviewAutoTask（每天凌晨3点）：查询status=3且complete_time+7天<NOW()的订单，为未评价方生成默认好评（5/5/5分，is_auto=1），订单status→4，重新计算综合评分",
+        "ProductAutoOffTask（每天凌晨4点）：查询auto_off_time<NOW()且status=1的商品，批量下架，通知卖家",
+        "UserDeactivateTask（每天凌晨5点）：查询status=2且deactivate_time+30天<NOW()的用户，清理个人信息但保留交易记录",
+        "每个定时任务包含完善的日志记录（开始时间、处理条数、结束时间）",
+        "单条记录处理失败不影响其他记录（try-catch在循环内部）",
+        "编写单元测试，验证各定时任务的业务逻辑正确性"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F26",
+      "name": "OpenIM集成",
+      "module": "MODULE-IM",
+      "scope": "mini",
+      "description": "集成OpenIM实现即时通讯，包括用户注册IM账号和获取IM Token",
+      "interfaces": [
+        "GET /mini/im/token"
+      ],
+      "files_to_create": [
+        "service/ImService.java",
+        "service/impl/ImServiceImpl.java",
+        "config/OpenImConfig.java",
+        "controller/mini/MiniImController.java",
+        "entity/ChatSession.java",
+        "mapper/ChatSessionMapper.java",
+        "service/ChatSessionService.java",
+        "service/impl/ChatSessionServiceImpl.java",
+        "dto/ChatSessionQueryDTO.java",
+        "vo/ChatSessionVO.java"
+      ],
+      "files_to_modify": [
+        "service/impl/UserServiceImpl.java — 用户注册/首次登录时调用ImService注册IM账号"
+      ],
+      "dependencies": ["F01"],
+      "acceptance_criteria": [
+        "OpenImConfig从application.yml读取OpenIM服务地址、adminToken等配置",
+        "用户注册/首次登录时自动调用OpenIM API注册IM用户（userId作为IM的userId）",
+        "GET /mini/im/token 接口调用OpenIM admin API获取用户UserToken并返回",
+        "OpenIM API调用失败时记录日志但不影响主业务流程（降级处理）",
+        "ImService中的OpenIM API调用使用RestTemplate",
+        "编写Service层单元测试，mock OpenIM API调用"
+      ],
+      "passes": false
+    }
+  ]
+}

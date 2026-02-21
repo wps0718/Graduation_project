@@ -1,0 +1,5 @@
+F15 订单创建与查询测试报告
+执行命令：mvn test -Dtest=TradeOrderServiceImplTest
+执行时间：2026-02-21 11:52
+测试结果：Tests run: 11, Failures: 0, Errors: 0, Skipped: 0
+构建结果：BUILD SUCCESS
