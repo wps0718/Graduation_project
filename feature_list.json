@@ -710,7 +710,7 @@
         "热搜词查询is_hot=1或search_count最高的前10个，Redis缓存1小时",
         "编写Service层单元测试"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F22",
