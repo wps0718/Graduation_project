@@ -10,6 +10,7 @@ import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.mapper.CampusAuthMapper;
 import com.qingyuan.secondhand.mapper.CollegeMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
+import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.AuthPageVO;
 import com.qingyuan.secondhand.vo.AuthStatusVO;
 import org.junit.jupiter.api.Assertions;
@@ -30,13 +31,14 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Mockito.when(campusAuthMapper.selectByUserId(1L)).thenReturn(null);
         Mockito.when(campusAuthMapper.selectByStudentNo("20260001")).thenReturn(null);
         Mockito.when(campusAuthMapper.insert(Mockito.any(CampusAuth.class))).thenReturn(1);
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         AuthSubmitDTO dto = new AuthSubmitDTO();
         dto.setCollegeId(10L);
         dto.setStudentNo("20260001");
@@ -77,6 +79,7 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         CampusAuth existing = new CampusAuth();
         existing.setId(1L);
@@ -84,7 +87,7 @@ class CampusAuthServiceImplTest {
         existing.setStatus(0);
         Mockito.when(campusAuthMapper.selectByUserId(2L)).thenReturn(existing);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         AuthSubmitDTO dto = new AuthSubmitDTO();
         dto.setCollegeId(10L);
         dto.setStudentNo("20260002");
@@ -109,6 +112,7 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         CampusAuth existing = new CampusAuth();
         existing.setId(2L);
@@ -116,7 +120,7 @@ class CampusAuthServiceImplTest {
         existing.setStatus(1);
         Mockito.when(campusAuthMapper.selectByUserId(3L)).thenReturn(existing);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         AuthSubmitDTO dto = new AuthSubmitDTO();
         dto.setCollegeId(10L);
         dto.setStudentNo("20260003");
@@ -141,6 +145,7 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         CampusAuth existing = new CampusAuth();
         existing.setId(3L);
@@ -158,7 +163,7 @@ class CampusAuthServiceImplTest {
         Mockito.when(campusAuthMapper.updateById(Mockito.any(CampusAuth.class))).thenReturn(1);
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         AuthSubmitDTO dto = new AuthSubmitDTO();
         dto.setCollegeId(11L);
         dto.setStudentNo("20260004");
@@ -193,6 +198,7 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Mockito.when(campusAuthMapper.selectByUserId(5L)).thenReturn(null);
 
@@ -202,7 +208,7 @@ class CampusAuthServiceImplTest {
         other.setStudentNo("20260005");
         Mockito.when(campusAuthMapper.selectByStudentNo("20260005")).thenReturn(other);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         AuthSubmitDTO dto = new AuthSubmitDTO();
         dto.setCollegeId(12L);
         dto.setStudentNo("20260005");
@@ -227,6 +233,7 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         CampusAuth auth = new CampusAuth();
         auth.setId(10L);
@@ -246,7 +253,7 @@ class CampusAuthServiceImplTest {
         college.setName("信息学院");
         Mockito.when(collegeMapper.selectById(100L)).thenReturn(college);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
 
         AuthStatusVO vo;
         try {
@@ -270,10 +277,11 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Mockito.when(campusAuthMapper.selectByUserId(7L)).thenReturn(null);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
 
         try {
             UserContext.setCurrentUserId(7L);
@@ -289,6 +297,7 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         AuthPageVO vo = new AuthPageVO();
         vo.setId(1L);
@@ -300,16 +309,16 @@ class CampusAuthServiceImplTest {
         pageResult.setRecords(Collections.singletonList(vo));
         pageResult.setTotal(1);
 
-        Mockito.when(campusAuthMapper.pageAuthWithDetails(Mockito.any(Page.class), Mockito.isNull(), Mockito.isNull(), Mockito.isNull()))
+        Mockito.when(campusAuthMapper.pageAuthWithDetails(Mockito.<Page<AuthPageVO>>any(), Mockito.isNull(), Mockito.isNull(), Mockito.isNull()))
                 .thenReturn(pageResult);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         Page<AuthPageVO> result = service.pageAuth(1, 10, null, null);
 
         Assertions.assertEquals(1, result.getTotal());
         Assertions.assertEquals(1, result.getRecords().size());
         Assertions.assertEquals(1L, result.getRecords().get(0).getId());
-        Mockito.verify(campusAuthMapper).pageAuthWithDetails(Mockito.any(Page.class), Mockito.isNull(), Mockito.isNull(), Mockito.isNull());
+        Mockito.verify(campusAuthMapper).pageAuthWithDetails(Mockito.<Page<AuthPageVO>>any(), Mockito.isNull(), Mockito.isNull(), Mockito.isNull());
     }
 
     @Test
@@ -317,18 +326,19 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Page<AuthPageVO> pageResult = new Page<>(1, 10);
         pageResult.setRecords(Collections.emptyList());
 
-        Mockito.when(campusAuthMapper.pageAuthWithDetails(Mockito.any(Page.class), Mockito.eq(0), Mockito.isNull(), Mockito.isNull()))
+        Mockito.when(campusAuthMapper.pageAuthWithDetails(Mockito.<Page<AuthPageVO>>any(), Mockito.eq(0), Mockito.isNull(), Mockito.isNull()))
                 .thenReturn(pageResult);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         Page<AuthPageVO> result = service.pageAuth(1, 10, 0, null);
 
         Assertions.assertEquals(0, result.getRecords().size());
-        Mockito.verify(campusAuthMapper).pageAuthWithDetails(Mockito.any(Page.class), Mockito.eq(0), Mockito.isNull(), Mockito.isNull());
+        Mockito.verify(campusAuthMapper).pageAuthWithDetails(Mockito.<Page<AuthPageVO>>any(), Mockito.eq(0), Mockito.isNull(), Mockito.isNull());
     }
 
     @Test
@@ -336,18 +346,19 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Page<AuthPageVO> pageResult = new Page<>(1, 10);
         pageResult.setRecords(Collections.emptyList());
 
-        Mockito.when(campusAuthMapper.pageAuthWithDetails(Mockito.any(Page.class), Mockito.isNull(), Mockito.eq(2L), Mockito.isNull()))
+        Mockito.when(campusAuthMapper.pageAuthWithDetails(Mockito.<Page<AuthPageVO>>any(), Mockito.isNull(), Mockito.eq(2L), Mockito.isNull()))
                 .thenReturn(pageResult);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         Page<AuthPageVO> result = service.pageAuth(1, 10, null, 2L);
 
         Assertions.assertEquals(0, result.getRecords().size());
-        Mockito.verify(campusAuthMapper).pageAuthWithDetails(Mockito.any(Page.class), Mockito.isNull(), Mockito.eq(2L), Mockito.isNull());
+        Mockito.verify(campusAuthMapper).pageAuthWithDetails(Mockito.<Page<AuthPageVO>>any(), Mockito.isNull(), Mockito.eq(2L), Mockito.isNull());
     }
 
     @Test
@@ -355,6 +366,7 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         AuthPageVO vo = new AuthPageVO();
         vo.setId(10L);
@@ -364,10 +376,10 @@ class CampusAuthServiceImplTest {
         Page<AuthPageVO> pageResult = new Page<>(1, 1);
         pageResult.setRecords(Collections.singletonList(vo));
 
-        Mockito.when(campusAuthMapper.pageAuthWithDetails(Mockito.any(Page.class), Mockito.isNull(), Mockito.isNull(), Mockito.eq(10L)))
+        Mockito.when(campusAuthMapper.pageAuthWithDetails(Mockito.<Page<AuthPageVO>>any(), Mockito.isNull(), Mockito.isNull(), Mockito.eq(10L)))
                 .thenReturn(pageResult);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         AuthPageVO result = service.getAuthDetail(10L);
 
         Assertions.assertEquals(10L, result.getId());
@@ -380,14 +392,15 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Page<AuthPageVO> pageResult = new Page<>(1, 1);
         pageResult.setRecords(Collections.emptyList());
 
-        Mockito.when(campusAuthMapper.pageAuthWithDetails(Mockito.any(Page.class), Mockito.isNull(), Mockito.isNull(), Mockito.eq(11L)))
+        Mockito.when(campusAuthMapper.pageAuthWithDetails(Mockito.<Page<AuthPageVO>>any(), Mockito.isNull(), Mockito.isNull(), Mockito.eq(11L)))
                 .thenReturn(pageResult);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.getAuthDetail(11L));
         Assertions.assertEquals("认证记录不存在", ex.getMsg());
     }
@@ -397,6 +410,7 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         CampusAuth auth = new CampusAuth();
         auth.setId(1L);
@@ -406,7 +420,7 @@ class CampusAuthServiceImplTest {
         Mockito.when(campusAuthMapper.updateById(Mockito.any(CampusAuth.class))).thenReturn(1);
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         try {
             UserContext.setCurrentUserId(99L);
             service.approveAuth(1L);
@@ -435,6 +449,7 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         CampusAuth auth = new CampusAuth();
         auth.setId(2L);
@@ -442,7 +457,7 @@ class CampusAuthServiceImplTest {
         auth.setStatus(1);
         Mockito.when(campusAuthMapper.selectById(2L)).thenReturn(auth);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.approveAuth(2L));
         Assertions.assertEquals("该认证已审核", ex.getMsg());
     }
@@ -452,6 +467,7 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         CampusAuth auth = new CampusAuth();
         auth.setId(3L);
@@ -461,7 +477,7 @@ class CampusAuthServiceImplTest {
         Mockito.when(campusAuthMapper.updateById(Mockito.any(CampusAuth.class))).thenReturn(1);
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         try {
             UserContext.setCurrentUserId(100L);
             service.rejectAuth(3L, "材料不清晰");
@@ -491,6 +507,7 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         CampusAuth auth = new CampusAuth();
         auth.setId(4L);
@@ -498,7 +515,7 @@ class CampusAuthServiceImplTest {
         auth.setStatus(2);
         Mockito.when(campusAuthMapper.selectById(4L)).thenReturn(auth);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.rejectAuth(4L, "材料不清晰"));
         Assertions.assertEquals("该认证已审核", ex.getMsg());
     }
@@ -508,8 +525,9 @@ class CampusAuthServiceImplTest {
         CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
         CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
 
-        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper);
+        CampusAuthServiceImpl service = new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.rejectAuth(5L, " "));
         Assertions.assertEquals("驳回原因不能为空", ex.getMsg());
     }

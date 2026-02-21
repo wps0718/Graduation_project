@@ -1,9 +1,9 @@
 package com.qingyuan.secondhand.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.qingyuan.secondhand.entity.SearchKeyword;
+import com.qingyuan.secondhand.entity.Notice;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface SearchKeywordMapper extends BaseMapper<SearchKeyword> {
+public interface NoticeMapper extends BaseMapper<Notice> {
 }

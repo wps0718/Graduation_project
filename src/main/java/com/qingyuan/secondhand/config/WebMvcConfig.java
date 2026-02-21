@@ -31,7 +31,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         registry.addInterceptor(adminJwtInterceptor)
                 .addPathPatterns("/admin/**")
-                .excludePathPatterns("/admin/login", "/admin/common/**");
+                .excludePathPatterns("/admin/login", "/admin/employee/login", "/admin/common/**");
     }
 
     @Override

@@ -3577,6 +3577,42 @@ public class SecondhandApplication {
 - @Mock NotificationMapper notificationMapper
 - @InjectMocks NotificationServiceImpl notificationService
 
+---
+
+## Feature F21：Banner与搜索热词
+
+### 实施记录
+
+**[执行者] 2026-02-21 完成：**
+
+1. 新增与完善后端结构
+   - Banner 实体、DTO、VO、Mapper、Service、ServiceImpl
+   - SearchKeyword VO、Service、ServiceImpl（沿用现有实体与 Mapper）
+2. 新增接口
+   - 小程序端：/mini/banner/list、/mini/search/hot-keywords
+   - 管理端：/admin/banner/page、/admin/banner/add、/admin/banner/update、/admin/banner/delete
+3. Redis 缓存与常量
+   - Banner 列表缓存：banner:list:{campusId}，TTL 30 分钟
+   - 搜索热词缓存：search:hot:keywords，TTL 1 小时
+4. SQL 增量脚本
+   - sql/update/2026-02-21_f21_banner_search.sql
+
+### 测试记录
+
+执行命令：
+```bash
+mvn -Dtest=BannerServiceImplTest test 2>&1 | tee run-folder/F21-Banner与搜索热词/test_output.log
+mvn -Dtest=SearchKeywordServiceImplTest test 2>&1 | tee -a run-folder/F21-Banner与搜索热词/test_output.log
+mvn compile -q
+```
+
+测试结果：
+- BannerServiceImplTest：通过
+- SearchKeywordServiceImplTest：通过
+
+证据输出：
+- run-folder/F21-Banner与搜索热词/test_output.log
+
 **注意事项**：
 - 需要 mock UserContext 静态方法
 - 需要 mock notificationMapper 的查询和更新方法
@@ -4517,6 +4553,7 @@ notificationService.send(
 - 2026-02-21：补充测试上下文所需 Bean，避免加载 Controller
 - 2026-02-21：已通过 mvn test -Dtest=NotificationIntegrationTest（日志已保存）
 - 2026-02-21：已通过 mvn compile -q
+- 2026-02-21：修复 CampusAuthServiceImplTest 构造函数依赖与 Page 泛型告警，并通过单测
 
 ---
 
@@ -4738,3 +4775,1039 @@ notificationService.send(
 **审查人**：监督者（Kiro IDE）  
 **审查时间**：2026-02-21 20:45  
 **独立复跑**：✅ 通过（12/12 测试通过）
+
+---
+
+## Feature F21：Banner与搜索热词
+
+### 任务规划
+
+**[监督者] 2026-02-21 规划任务：**
+
+该功能包含两个子模块：Banner 轮播图管理（小程序端1个接口 + 管理端4个接口）和搜索热词查询（小程序端1个接口），涉及 Redis 缓存、按校区筛选、热词排序等核心逻辑。
+
+#### 依赖关系
+- 无前置依赖，独立模块
+
+#### 核心业务规则
+
+1. **Banner 小程序端查询**：
+   - 按 campusId 查询（campus_id=NULL 表示全校区展示）
+   - 只查询 status=1（上架）且在有效期内的 Banner
+   - 有效期判断：start_time <= NOW() <= end_time（NULL 表示不限制）
+   - 按 sort 升序排列
+   - Redis 缓存 30 分钟，key 格式：banner:list:{campusId}
+
+2. **Banner 管理端 CRUD**：
+   - 分页查询：支持按 status 和 campusId 筛选
+   - 添加/更新/删除后清除所有 Banner 相关的 Redis 缓存
+
+3. **搜索热词查询**：
+   - 查询条件：(is_hot=1 OR 按 search_count 降序取前10) AND status=1
+   - 按 sort 升序排列（is_hot=1 的优先）
+   - Redis 缓存 1 小时，key 格式：search:hot:keywords
+
+---
+
+### 步骤 1：创建 Banner 实体类
+
+**文件**：`src/main/java/com/qingyuan/secondhand/entity/Banner.java`
+
+**字段定义**：
+```java
+@TableId(type = IdType.AUTO)
+private Long id;
+
+private String title;          // Banner标题，max64
+private String image;          // Banner图片URL，max255
+private Integer linkType;      // 跳转类型 1-商品详情 2-活动页 3-外部链接
+private String linkUrl;        // 跳转地址，max255
+private Long campusId;         // 展示校区ID（NULL表示全校区展示）
+private Integer sort;          // 排序号，默认0
+private Integer status;        // 状态 0-下架 1-上架，默认1
+private LocalDateTime startTime;  // 生效开始时间
+private LocalDateTime endTime;    // 生效结束时间
+
+@TableField(fill = FieldFill.INSERT)
+private LocalDateTime createTime;
+
+@TableField(fill = FieldFill.INSERT_UPDATE)
+private LocalDateTime updateTime;
+```
+
+**注解**：
+- @Data
+- @TableName("banner")
+- @TableId(type = IdType.AUTO)
+- @TableField(fill = FieldFill.INSERT / INSERT_UPDATE)
+
+---
+
+### 步骤 2：创建 SearchKeyword 实体类
+
+**文件**：`src/main/java/com/qingyuan/secondhand/entity/SearchKeyword.java`
+
+**字段定义**：
+```java
+@TableId(type = IdType.AUTO)
+private Long id;
+
+private String keyword;        // 关键词，max32，唯一
+private Integer searchCount;   // 搜索次数，默认0
+private Integer isHot;         // 是否热门推荐 0-否 1-是，默认0
+private Integer sort;          // 排序号，默认0
+private Integer status;        // 状态 0-禁用 1-启用，默认1
+
+@TableField(fill = FieldFill.INSERT)
+private LocalDateTime createTime;
+
+@TableField(fill = FieldFill.INSERT_UPDATE)
+private LocalDateTime updateTime;
+```
+
+**注解**：
+- @Data
+- @TableName("search_keyword")
+- @TableId(type = IdType.AUTO)
+- @TableField(fill = FieldFill.INSERT / INSERT_UPDATE)
+
+---
+### 步骤 3：创建 BannerDTO
+
+**文件**：`src/main/java/com/qingyuan/secondhand/dto/BannerDTO.java`
+
+**字段定义**：
+```java
+@NotBlank(message = "Banner标题不能为空")
+@Size(max = 64, message = "Banner标题不能超过64字")
+private String title;
+
+@NotBlank(message = "Banner图片不能为空")
+@Size(max = 255, message = "图片URL不能超过255字")
+private String image;
+
+private Integer linkType;      // 跳转类型 1-商品详情 2-活动页 3-外部链接
+
+@Size(max = 255, message = "跳转地址不能超过255字")
+private String linkUrl;
+
+private Long campusId;         // 展示校区ID（NULL表示全校区展示）
+
+@NotNull(message = "排序号不能为空")
+private Integer sort;
+
+@NotNull(message = "状态不能为空")
+private Integer status;        // 状态 0-下架 1-上架
+
+private LocalDateTime startTime;  // 生效开始时间
+private LocalDateTime endTime;    // 生效结束时间
+```
+
+**注解**：
+- @Data
+- 参数校验注解
+
+---
+
+### 步骤 4：创建 BannerVO
+
+**文件**：`src/main/java/com/qingyuan/secondhand/vo/BannerVO.java`
+
+**字段定义**：
+```java
+private Long id;
+private String title;
+private String image;
+private Integer linkType;
+private String linkUrl;
+private Long campusId;
+private Integer sort;
+private Integer status;
+private LocalDateTime startTime;
+private LocalDateTime endTime;
+private LocalDateTime createTime;
+```
+
+**注解**：
+- @Data
+
+---
+
+### 步骤 5：创建 HotKeywordVO
+
+**文件**：`src/main/java/com/qingyuan/secondhand/vo/HotKeywordVO.java`
+
+**字段定义**：
+```java
+private Long id;
+private String keyword;
+private Integer searchCount;
+private Integer isHot;
+private Integer sort;
+```
+
+**注解**：
+- @Data
+
+---
+
+### 步骤 6：创建 BannerMapper 接口
+
+**文件**：`src/main/java/com/qingyuan/secondhand/mapper/BannerMapper.java`
+
+**接口定义**：
+```java
+public interface BannerMapper extends BaseMapper<Banner> {
+}
+```
+
+**注解**：
+- @Mapper
+
+**说明**：
+- 继承 BaseMapper<Banner>
+- 简单 CRUD 使用 MyBatis-Plus 内置方法
+
+---
+
+### 步骤 7：创建 SearchKeywordMapper 接口
+
+**文件**：`src/main/java/com/qingyuan/secondhand/mapper/SearchKeywordMapper.java`
+
+**接口定义**：
+```java
+public interface SearchKeywordMapper extends BaseMapper<SearchKeyword> {
+}
+```
+
+**注解**：
+- @Mapper
+
+**说明**：
+- 继承 BaseMapper<SearchKeyword>
+- 简单 CRUD 使用 MyBatis-Plus 内置方法
+
+---
+### 步骤 8：在 BannerService 中定义方法签名
+
+**文件**：`src/main/java/com/qingyuan/secondhand/service/BannerService.java`
+
+**接口定义**：
+```java
+public interface BannerService extends IService<Banner> {
+    /**
+     * 小程序端：按校区查询 Banner 列表（带缓存）
+     */
+    List<BannerVO> getMiniBannerList(Long campusId);
+    
+    /**
+     * 管理端：Banner 分页查询
+     */
+    IPage<BannerVO> getAdminBannerPage(Integer page, Integer pageSize, Integer status, Long campusId);
+    
+    /**
+     * 管理端：添加 Banner
+     */
+    void addBanner(BannerDTO dto);
+    
+    /**
+     * 管理端：更新 Banner
+     */
+    void updateBanner(Long id, BannerDTO dto);
+    
+    /**
+     * 管理端：删除 Banner
+     */
+    void deleteBanner(Long id);
+}
+```
+
+**注解**：
+- 继承 IService<Banner>
+
+---
+
+### 步骤 9：实现 BannerServiceImpl
+
+**文件**：`src/main/java/com/qingyuan/secondhand/service/impl/BannerServiceImpl.java`
+
+**依赖注入**：
+```java
+@Autowired
+private BannerMapper bannerMapper;
+
+@Autowired
+private StringRedisTemplate redisTemplate;
+```
+
+**实现要点**：
+
+#### 9.1 getMiniBannerList - 小程序端查询 Banner 列表
+
+**业务逻辑**：
+1. 构建 Redis 缓存 key：`banner:list:{campusId}`
+2. 尝试从 Redis 获取缓存：`redisTemplate.opsForValue().get(key)`
+3. 缓存命中：反序列化 JSON 返回 List<BannerVO>
+4. 缓存未命中：
+   - 使用 LambdaQueryWrapper 查询：
+     ```java
+     LambdaQueryWrapper<Banner> wrapper = new LambdaQueryWrapper<>();
+     wrapper.eq(Banner::getStatus, 1)  // status=1（上架）
+            .and(w -> w.isNull(Banner::getCampusId)  // campus_id=NULL（全校区）
+                       .or()
+                       .eq(Banner::getCampusId, campusId))  // 或 campus_id=指定校区
+            .le(Banner::getStartTime, LocalDateTime.now())  // start_time <= NOW()（或为NULL）
+            .ge(Banner::getEndTime, LocalDateTime.now())    // end_time >= NOW()（或为NULL）
+            .orderByAsc(Banner::getSort);  // 按 sort 升序
+     ```
+   - 转换为 BannerVO 列表
+   - 存入 Redis，TTL=30分钟：`redisTemplate.opsForValue().set(key, JSON.toJSONString(list), 30, TimeUnit.MINUTES)`
+5. 返回 List<BannerVO>
+
+**注意事项**：
+- 有效期判断需要处理 startTime 和 endTime 为 NULL 的情况
+- 使用 FastJSON 或 Jackson 进行 JSON 序列化/反序列化
+
+---
+
+#### 9.2 getAdminBannerPage - 管理端分页查询
+
+**业务逻辑**：
+1. 创建 Page<Banner> 对象：`new Page<>(page, pageSize)`
+2. 使用 LambdaQueryWrapper 构建查询条件：
+   ```java
+   LambdaQueryWrapper<Banner> wrapper = new LambdaQueryWrapper<>();
+   if (status != null) {
+       wrapper.eq(Banner::getStatus, status);
+   }
+   if (campusId != null) {
+       wrapper.eq(Banner::getCampusId, campusId);
+   }
+   wrapper.orderByDesc(Banner::getCreateTime);  // 按创建时间倒序
+   ```
+3. 执行分页查询：`bannerMapper.selectPage(pageObj, wrapper)`
+4. 转换为 IPage<BannerVO>
+5. 返回分页结果
+
+**注意**：
+- 管理端无权限限制，可以查看所有 Banner
+- 支持按 status 和 campusId 筛选
+
+---
+
+#### 9.3 addBanner - 添加 Banner
+
+**业务逻辑**：
+1. 创建 Banner 实体：
+   ```java
+   Banner banner = new Banner();
+   banner.setTitle(dto.getTitle());
+   banner.setImage(dto.getImage());
+   banner.setLinkType(dto.getLinkType());
+   banner.setLinkUrl(dto.getLinkUrl());
+   banner.setCampusId(dto.getCampusId());
+   banner.setSort(dto.getSort());
+   banner.setStatus(dto.getStatus());
+   banner.setStartTime(dto.getStartTime());
+   banner.setEndTime(dto.getEndTime());
+   ```
+2. 插入数据库：`bannerMapper.insert(banner)`
+3. 清除所有 Banner 相关的 Redis 缓存：
+   ```java
+   Set<String> keys = redisTemplate.keys("banner:list:*");
+   if (keys != null && !keys.isEmpty()) {
+       redisTemplate.delete(keys);
+   }
+   ```
+
+**注意**：
+- createTime 和 updateTime 由 MetaObjectHandler 自动填充
+
+---
+
+#### 9.4 updateBanner - 更新 Banner
+
+**业务逻辑**：
+1. 查询 Banner 并校验存在：`bannerMapper.selectById(id)`
+2. 更新字段：
+   ```java
+   banner.setTitle(dto.getTitle());
+   banner.setImage(dto.getImage());
+   banner.setLinkType(dto.getLinkType());
+   banner.setLinkUrl(dto.getLinkUrl());
+   banner.setCampusId(dto.getCampusId());
+   banner.setSort(dto.getSort());
+   banner.setStatus(dto.getStatus());
+   banner.setStartTime(dto.getStartTime());
+   banner.setEndTime(dto.getEndTime());
+   ```
+3. 更新数据库：`bannerMapper.updateById(banner)`
+4. 清除所有 Banner 相关的 Redis 缓存
+
+**注意**：
+- Banner 不存在时抛出 BusinessException("Banner不存在")
+
+---
+
+#### 9.5 deleteBanner - 删除 Banner
+
+**业务逻辑**：
+1. 查询 Banner 并校验存在：`bannerMapper.selectById(id)`
+2. 删除数据库记录：`bannerMapper.deleteById(id)`
+3. 清除所有 Banner 相关的 Redis 缓存
+
+**注意**：
+- 物理删除，不是逻辑删除
+- Banner 不存在时抛出 BusinessException("Banner不存在")
+
+---
+### 步骤 10：在 SearchKeywordService 中定义方法签名
+
+**文件**：`src/main/java/com/qingyuan/secondhand/service/SearchKeywordService.java`
+
+**接口定义**：
+```java
+public interface SearchKeywordService extends IService<SearchKeyword> {
+    /**
+     * 小程序端：获取热搜词列表（带缓存）
+     */
+    List<HotKeywordVO> getHotKeywords();
+}
+```
+
+**注解**：
+- 继承 IService<SearchKeyword>
+
+---
+
+### 步骤 11：实现 SearchKeywordServiceImpl
+
+**文件**：`src/main/java/com/qingyuan/secondhand/service/impl/SearchKeywordServiceImpl.java`
+
+**依赖注入**：
+```java
+@Autowired
+private SearchKeywordMapper searchKeywordMapper;
+
+@Autowired
+private StringRedisTemplate redisTemplate;
+```
+
+**实现要点**：
+
+#### 11.1 getHotKeywords - 获取热搜词列表
+
+**业务逻辑**：
+1. 构建 Redis 缓存 key：`search:hot:keywords`
+2. 尝试从 Redis 获取缓存：`redisTemplate.opsForValue().get(key)`
+3. 缓存命中：反序列化 JSON 返回 List<HotKeywordVO>
+4. 缓存未命中：
+   - 查询 is_hot=1 的热门推荐词：
+     ```java
+     LambdaQueryWrapper<SearchKeyword> hotWrapper = new LambdaQueryWrapper<>();
+     hotWrapper.eq(SearchKeyword::getStatus, 1)
+               .eq(SearchKeyword::getIsHot, 1)
+               .orderByAsc(SearchKeyword::getSort);
+     List<SearchKeyword> hotList = searchKeywordMapper.selectList(hotWrapper);
+     ```
+   - 如果 hotList 不足 10 个，补充 search_count 最高的词：
+     ```java
+     if (hotList.size() < 10) {
+         int need = 10 - hotList.size();
+         LambdaQueryWrapper<SearchKeyword> countWrapper = new LambdaQueryWrapper<>();
+         countWrapper.eq(SearchKeyword::getStatus, 1)
+                     .eq(SearchKeyword::getIsHot, 0)
+                     .orderByDesc(SearchKeyword::getSearchCount)
+                     .last("LIMIT " + need);
+         List<SearchKeyword> countList = searchKeywordMapper.selectList(countWrapper);
+         hotList.addAll(countList);
+     }
+     ```
+   - 转换为 HotKeywordVO 列表
+   - 存入 Redis，TTL=1小时：`redisTemplate.opsForValue().set(key, JSON.toJSONString(list), 1, TimeUnit.HOURS)`
+5. 返回 List<HotKeywordVO>
+
+**注意事项**：
+- 优先返回 is_hot=1 的词（按 sort 排序）
+- 不足 10 个时补充 search_count 最高的词
+- 最多返回 10 个
+
+---
+
+### 步骤 12：创建 MiniBannerController
+
+**文件**：`src/main/java/com/qingyuan/secondhand/controller/mini/MiniBannerController.java`
+
+**注解**：
+- @RestController
+- @RequestMapping("/mini/banner")
+- @RequiredArgsConstructor
+
+**新增接口**：
+
+#### 12.1 获取 Banner 列表
+```java
+@GetMapping("/list")
+public Result<List<BannerVO>> getBannerList(@RequestParam Long campusId) {
+    List<BannerVO> list = bannerService.getMiniBannerList(campusId);
+    return Result.success(list);
+}
+```
+
+**参数说明**：
+- campusId：校区ID（必填）
+
+---
+
+### 步骤 13：创建 MiniSearchController
+
+**文件**：`src/main/java/com/qingyuan/secondhand/controller/mini/MiniSearchController.java`
+
+**注解**：
+- @RestController
+- @RequestMapping("/mini/search")
+- @RequiredArgsConstructor
+
+**新增接口**：
+
+#### 13.1 获取热搜词列表
+```java
+@GetMapping("/hot-keywords")
+public Result<List<HotKeywordVO>> getHotKeywords() {
+    List<HotKeywordVO> list = searchKeywordService.getHotKeywords();
+    return Result.success(list);
+}
+```
+
+**参数说明**：
+- 无参数
+
+---
+
+### 步骤 14：创建 AdminBannerController
+
+**文件**：`src/main/java/com/qingyuan/secondhand/controller/admin/AdminBannerController.java`
+
+**注解**：
+- @RestController
+- @RequestMapping("/admin/banner")
+- @RequiredArgsConstructor
+
+**新增接口**：
+
+#### 14.1 Banner 分页查询
+```java
+@GetMapping("/page")
+public Result<IPage<BannerVO>> getBannerPage(
+    @RequestParam(defaultValue = "1") Integer page,
+    @RequestParam(defaultValue = "10") Integer pageSize,
+    @RequestParam(required = false) Integer status,
+    @RequestParam(required = false) Long campusId
+) {
+    IPage<BannerVO> result = bannerService.getAdminBannerPage(page, pageSize, status, campusId);
+    return Result.success(result);
+}
+```
+
+#### 14.2 添加 Banner
+```java
+@PostMapping("/add")
+public Result<Void> addBanner(@Valid @RequestBody BannerDTO dto) {
+    bannerService.addBanner(dto);
+    return Result.success();
+}
+```
+
+#### 14.3 更新 Banner
+```java
+@PostMapping("/update")
+public Result<Void> updateBanner(
+    @RequestParam Long id,
+    @Valid @RequestBody BannerDTO dto
+) {
+    bannerService.updateBanner(id, dto);
+    return Result.success();
+}
+```
+
+#### 14.4 删除 Banner
+```java
+@PostMapping("/delete")
+public Result<Void> deleteBanner(@RequestParam Long id) {
+    bannerService.deleteBanner(id);
+    return Result.success();
+}
+```
+
+**参数说明**：
+- page：页码，默认 1
+- pageSize：每页数量，默认 10
+- status：状态筛选（可选）
+- campusId：校区筛选（可选）
+
+---
+### 步骤 15：编写单元测试
+
+**文件**：`src/test/java/com/qingyuan/secondhand/service/impl/BannerServiceImplTest.java`
+
+**测试场景**（共 8 个）：
+
+#### 15.1 testGetMiniBannerList_CacheHit - 缓存命中
+- Mock redisTemplate.opsForValue().get() 返回 JSON 字符串
+- 调用 getMiniBannerList(campusId)
+- 验证返回的 List<BannerVO> 正确
+- 验证 bannerMapper.selectList() 未被调用（缓存命中）
+
+#### 15.2 testGetMiniBannerList_CacheMiss - 缓存未命中
+- Mock redisTemplate.opsForValue().get() 返回 null
+- Mock bannerMapper.selectList() 返回 Banner 列表
+- 调用 getMiniBannerList(campusId)
+- 验证返回的 List<BannerVO> 正确
+- 验证 redisTemplate.opsForValue().set() 被调用（存入缓存）
+
+#### 15.3 testGetMiniBannerList_FilterByCampus - 按校区筛选
+- Mock bannerMapper.selectList() 返回包含全校区和指定校区的 Banner
+- 调用 getMiniBannerList(campusId)
+- 验证查询条件包含 campus_id=NULL OR campus_id=指定校区
+
+#### 15.4 testGetAdminBannerPage_Success - 管理端分页查询成功
+- Mock bannerMapper.selectPage() 返回分页结果
+- 调用 getAdminBannerPage(page, pageSize, status, campusId)
+- 验证返回的 IPage<BannerVO> 正确
+- 验证查询条件包含 status 和 campusId 筛选
+
+#### 15.5 testAddBanner_Success - 添加 Banner 成功
+- Mock bannerMapper.insert() 返回 1
+- Mock redisTemplate.keys() 返回缓存 key 集合
+- 调用 addBanner(dto)
+- 验证 bannerMapper.insert() 被调用
+- 验证 redisTemplate.delete() 被调用（清除缓存）
+
+#### 15.6 testUpdateBanner_Success - 更新 Banner 成功
+- Mock bannerMapper.selectById() 返回 Banner
+- Mock bannerMapper.updateById() 返回 1
+- 调用 updateBanner(id, dto)
+- 验证 bannerMapper.updateById() 被调用
+- 验证 redisTemplate.delete() 被调用（清除缓存）
+
+#### 15.7 testUpdateBanner_NotFound - 更新不存在的 Banner
+- Mock bannerMapper.selectById() 返回 null
+- 调用 updateBanner(id, dto)
+- 断言抛出 BusinessException("Banner不存在")
+
+#### 15.8 testDeleteBanner_Success - 删除 Banner 成功
+- Mock bannerMapper.selectById() 返回 Banner
+- Mock bannerMapper.deleteById() 返回 1
+- 调用 deleteBanner(id)
+- 验证 bannerMapper.deleteById() 被调用
+- 验证 redisTemplate.delete() 被调用（清除缓存）
+
+**Mock 对象**：
+- @Mock BannerMapper bannerMapper
+- @Mock StringRedisTemplate redisTemplate
+- @Mock ValueOperations<String, String> valueOperations
+- @InjectMocks BannerServiceImpl bannerService
+
+**注意事项**：
+- 需要 mock StringRedisTemplate 的 opsForValue() 方法
+- JSON 序列化/反序列化需要使用实际的工具类（FastJSON 或 Jackson）
+- 缓存 key 格式必须与实现一致
+
+---
+
+**文件**：`src/test/java/com/qingyuan/secondhand/service/impl/SearchKeywordServiceImplTest.java`
+
+**测试场景**（共 3 个）：
+
+#### 15.9 testGetHotKeywords_CacheHit - 缓存命中
+- Mock redisTemplate.opsForValue().get() 返回 JSON 字符串
+- 调用 getHotKeywords()
+- 验证返回的 List<HotKeywordVO> 正确
+- 验证 searchKeywordMapper.selectList() 未被调用
+
+#### 15.10 testGetHotKeywords_OnlyHot - 只有热门推荐词
+- Mock redisTemplate.opsForValue().get() 返回 null
+- Mock searchKeywordMapper.selectList() 第一次返回 10 个 is_hot=1 的词
+- 调用 getHotKeywords()
+- 验证返回 10 个词
+- 验证只调用了一次 selectList()（不需要补充）
+
+#### 15.11 testGetHotKeywords_HotAndCount - 热门词+高搜索词
+- Mock redisTemplate.opsForValue().get() 返回 null
+- Mock searchKeywordMapper.selectList() 第一次返回 5 个 is_hot=1 的词
+- Mock searchKeywordMapper.selectList() 第二次返回 5 个 search_count 最高的词
+- 调用 getHotKeywords()
+- 验证返回 10 个词（5个热门+5个高搜索）
+- 验证 selectList() 被调用两次
+
+**Mock 对象**：
+- @Mock SearchKeywordMapper searchKeywordMapper
+- @Mock StringRedisTemplate redisTemplate
+- @Mock ValueOperations<String, String> valueOperations
+- @InjectMocks SearchKeywordServiceImpl searchKeywordService
+
+---
+
+### 步骤 16：运行测试并生成证据包
+
+**操作**：
+1. 在终端运行：`mvn test -Dtest=BannerServiceImplTest,SearchKeywordServiceImplTest`
+2. 将输出保存到：`run-folder/F21-Banner与搜索热词/test_output.log`
+3. 创建 `run-folder/F21-Banner与搜索热词/run.sh`，内容：
+   ```bash
+   #!/bin/bash
+   mvn test -Dtest=BannerServiceImplTest,SearchKeywordServiceImplTest
+   ```
+4. 复制本任务规划到：`run-folder/F21-Banner与搜索热词/task.md`
+
+---
+
+### 步骤 17：创建审查信号文件
+
+**操作**：
+- 在项目根目录创建 `.ready-for-review` 文件
+- 文件内容：
+  ```
+  Feature: F21 Banner与搜索热词
+  Status: 待审查
+  Timestamp: [当前时间]
+  ```
+
+---
+## 关键业务规则
+
+1. **Banner 小程序端查询**：
+   - 按 campusId 查询（campus_id=NULL 表示全校区展示）
+   - 只查询 status=1（上架）且在有效期内的 Banner
+   - 有效期判断：start_time <= NOW() <= end_time（NULL 表示不限制）
+   - 按 sort 升序排列
+   - Redis 缓存 30 分钟
+
+2. **Banner 管理端 CRUD**：
+   - 分页查询：支持按 status 和 campusId 筛选
+   - 添加/更新/删除后清除所有 Banner 相关的 Redis 缓存
+
+3. **搜索热词查询**：
+   - 优先返回 is_hot=1 的热门推荐词（按 sort 排序）
+   - 不足 10 个时补充 search_count 最高的词
+   - 最多返回 10 个
+   - Redis 缓存 1 小时
+
+---
+
+## 数据库字段映射
+
+| 数据库字段 | Java 类型 | 说明 |
+|-----------|----------|------|
+| banner.id | Long | 主键，自增 |
+| banner.title | String | Banner标题，max64 |
+| banner.image | String | Banner图片URL，max255 |
+| banner.link_type | Integer | 跳转类型 1-商品详情 2-活动页 3-外部链接 |
+| banner.link_url | String | 跳转地址，max255 |
+| banner.campus_id | Long | 展示校区ID（NULL表示全校区） |
+| banner.sort | Integer | 排序号，默认0 |
+| banner.status | Integer | 状态 0-下架 1-上架 |
+| banner.start_time | LocalDateTime | 生效开始时间 |
+| banner.end_time | LocalDateTime | 生效结束时间 |
+| search_keyword.id | Long | 主键，自增 |
+| search_keyword.keyword | String | 关键词，max32，唯一 |
+| search_keyword.search_count | Integer | 搜索次数，默认0 |
+| search_keyword.is_hot | Integer | 是否热门推荐 0-否 1-是 |
+| search_keyword.sort | Integer | 排序号，默认0 |
+| search_keyword.status | Integer | 状态 0-禁用 1-启用 |
+
+---
+
+## 验收标准（来自 feature_list.json）
+
+- [ ] Banner列表按campusId查询，Redis缓存30分钟
+- [ ] 管理端Banner增删改查，添加/更新/删除后清除Redis缓存
+- [ ] 热搜词查询is_hot=1或search_count最高的前10个，Redis缓存1小时
+- [ ] 编写Service层单元测试
+
+---
+
+## 文件清单
+
+### 需要创建的文件
+1. `src/main/java/com/qingyuan/secondhand/entity/Banner.java`
+2. `src/main/java/com/qingyuan/secondhand/entity/SearchKeyword.java`
+3. `src/main/java/com/qingyuan/secondhand/mapper/BannerMapper.java`
+4. `src/main/java/com/qingyuan/secondhand/mapper/SearchKeywordMapper.java`
+5. `src/main/java/com/qingyuan/secondhand/service/BannerService.java`
+6. `src/main/java/com/qingyuan/secondhand/service/impl/BannerServiceImpl.java`
+7. `src/main/java/com/qingyuan/secondhand/service/SearchKeywordService.java`
+8. `src/main/java/com/qingyuan/secondhand/service/impl/SearchKeywordServiceImpl.java`
+9. `src/main/java/com/qingyuan/secondhand/dto/BannerDTO.java`
+10. `src/main/java/com/qingyuan/secondhand/vo/BannerVO.java`
+11. `src/main/java/com/qingyuan/secondhand/vo/HotKeywordVO.java`
+12. `src/main/java/com/qingyuan/secondhand/controller/mini/MiniBannerController.java`
+13. `src/main/java/com/qingyuan/secondhand/controller/mini/MiniSearchController.java`
+14. `src/main/java/com/qingyuan/secondhand/controller/admin/AdminBannerController.java`
+15. `src/test/java/com/qingyuan/secondhand/service/impl/BannerServiceImplTest.java`
+16. `src/test/java/com/qingyuan/secondhand/service/impl/SearchKeywordServiceImplTest.java`
+
+---
+
+## 技术要点
+
+### 1. Redis 缓存策略
+- Banner 列表缓存 key：`banner:list:{campusId}`，TTL=30分钟
+- 搜索热词缓存 key：`search:hot:keywords`，TTL=1小时
+- 增删改操作后清除所有相关缓存（使用 keys 模式匹配）
+
+### 2. 有效期判断
+- Banner 的 start_time 和 end_time 可能为 NULL
+- NULL 表示不限制该时间点
+- 查询条件需要处理 NULL 的情况
+
+### 3. 热搜词查询逻辑
+- 优先查询 is_hot=1 的词（按 sort 排序）
+- 不足 10 个时补充 search_count 最高的词
+- 两次查询结果合并，最多返回 10 个
+
+### 4. MyBatis-Plus 使用
+- 简单 CRUD 使用 MyBatis-Plus 内置方法
+- 条件查询使用 LambdaQueryWrapper
+- 分页查询使用 Page<T> + selectPage()
+
+### 5. JSON 序列化
+- Redis 缓存使用 JSON 字符串存储
+- 使用 FastJSON 或 Jackson 进行序列化/反序列化
+
+---
+
+## 注意事项
+
+1. **Banner 有效期判断必须处理 NULL 情况**
+2. **Redis 缓存 key 格式必须与规划一致**
+3. **增删改操作后必须清除所有相关缓存**
+4. **热搜词查询逻辑：优先 is_hot=1，不足补充 search_count 高的**
+5. **所有业务异常使用 BusinessException 抛出**
+6. **测试时需要 mock StringRedisTemplate 和 ValueOperations**
+7. **JSON 序列化/反序列化需要使用实际的工具类**
+8. **缓存清除使用 keys 模式匹配时注意性能（生产环境建议使用 scan）**
+9. **Controller 只做参数接收和 Service 调用**
+10. **所有接口返回 Result<T> 统一响应**
+
+---
+
+**规划完成时间**：2026-02-21
+**规划人**：监督者（Kiro IDE）
+
+---
+
+### 审查记录
+
+**[监督者] 2026-02-21 23:06: ✅ 功能「F21 Banner与搜索热词」验收通过。**
+
+#### 多维度审查结果
+
+##### 4.1 MyBatis-Plus 规范审查：✅
+- ✅ Banner 和 SearchKeyword Entity 使用了 `@TableName` 注解
+- ✅ 主键字段使用了 `@TableId(type = IdType.AUTO)`
+- ✅ `createTime`/`updateTime` 使用了 `@TableField(fill = FieldFill.INSERT)` / `INSERT_UPDATE`
+- ✅ BannerMapper 和 SearchKeywordMapper 继承了 `BaseMapper<Entity>`
+- ✅ 简单 CRUD 使用了 MyBatis-Plus 内置方法（selectList, selectPage, insert, updateById, deleteById）
+- ✅ BannerService 和 SearchKeywordService 继承了 `IService<Entity>`
+- ✅ BannerServiceImpl 和 SearchKeywordServiceImpl 继承了 `ServiceImpl<Mapper, Entity>`
+- ✅ 条件查询使用了 `LambdaQueryWrapper`（类型安全）
+- ✅ 分页查询使用了 `Page<T>` + MyBatis-Plus 分页插件
+
+##### 4.2 功能正确性审查：✅
+- ✅ MiniBannerController、MiniSearchController、AdminBannerController 只做参数接收和 Service 调用
+- ✅ Controller 路径前缀正确：`/mini/banner`、`/mini/search`、`/admin/banner`
+- ✅ Service 层逻辑正确实现了所有功能：
+  - `getMiniBannerList`: 按 campusId 查询（支持 NULL 全校区）+ status=1 + 有效期判断 + Redis 缓存 30 分钟
+  - `getAdminBannerPage`: 管理端分页查询 + 支持 status 和 campusId 筛选
+  - `addBanner`: 插入 Banner + 清除所有 Banner 缓存
+  - `updateBanner`: 更新 Banner + 清除所有 Banner 缓存
+  - `deleteBanner`: 删除 Banner + 清除所有 Banner 缓存
+  - `getHotKeywords`: 优先查询 is_hot=1 的词 + 不足 10 个补充 search_count 最高的词 + Redis 缓存 1 小时
+- ✅ BannerDTO 字段完整：title, image, linkType, linkUrl, campusId, sort, status, startTime, endTime
+- ✅ BannerVO 字段完整：id, title, image, linkType, linkUrl, campusId, sort, status, startTime, endTime, createTime
+- ✅ HotKeywordVO 字段完整：id, keyword, searchCount, isHot, sort
+- ✅ 所有接口返回 `Result<T>` 统一响应
+
+##### 4.3 安全性审查：✅
+- ✅ 无密码相关操作（不涉及）
+- ✅ 无 XML 文件（不涉及）
+- ✅ LambdaQueryWrapper 使用了类型安全的方式
+- ✅ 无敏感字段泄露
+
+##### 4.4 代码质量审查：✅
+- ✅ 分层合理：Controller → Service → Mapper
+- ✅ 命名规范：驼峰命名、语义清晰
+- ✅ 异常处理：Service 层抛出 `BusinessException`（Banner不存在、BannerID不能为空等）
+- ✅ 无多表操作（不需要 @Transactional）
+- ✅ 无 N+1 查询问题
+
+##### 4.5 测试审查（反作弊）：✅
+- ✅ 测试文件存在：`BannerServiceImplTest.java`（8 个测试）、`SearchKeywordServiceImplTest.java`（3 个测试）
+- ✅ 断言有实际意义：
+  - `testGetMiniBannerList_CacheHit`: 断言返回缓存数据、验证 Mapper 未被调用
+  - `testGetMiniBannerList_CacheMiss`: 断言返回数据库数据、验证缓存被设置（TTL=30分钟）
+  - `testGetMiniBannerList_FilterByCampus`: 断言查询条件包含 campus_id=NULL OR campus_id=指定校区
+  - `testGetAdminBannerPage_Success`: 断言分页结果正确
+  - `testAddBanner_Success`: 断言插入成功、缓存被清除
+  - `testUpdateBanner_Success`: 断言更新成功、缓存被清除
+  - `testUpdateBanner_NotFound`: 断言抛出 BusinessException("Banner不存在")
+  - `testDeleteBanner_Success`: 断言删除成功、缓存被清除
+  - `testGetHotKeywords_CacheHit`: 断言返回缓存数据
+  - `testGetHotKeywords_OnlyHot`: 断言只返回 is_hot=1 的词（10 个）
+  - `testGetHotKeywords_HotAndCount`: 断言返回 is_hot=1 的词 + search_count 最高的词（共 10 个）
+- ✅ Mock 配置正确：
+  - Mock BannerMapper、SearchKeywordMapper、StringRedisTemplate、ValueOperations、ObjectMapper
+  - 验证 selectList、selectPage、insert、updateById、deleteById 调用
+  - 验证 Redis 缓存设置和清除
+- ✅ 测试覆盖了所有 acceptance_criteria：
+  - Banner列表按campusId查询，Redis缓存30分钟 ✅
+  - 管理端Banner增删改查，添加/更新/删除后清除Redis缓存 ✅
+  - 热搜词查询is_hot=1或search_count最高的前10个，Redis缓存1小时 ✅
+
+##### 4.6 数据库一致性审查：✅
+- ✅ Banner Entity 字段与 SQL 建表语句一致
+- ✅ SearchKeyword Entity 字段与 SQL 建表语句一致
+- ✅ 字段类型映射正确：
+  - `title` → `String` (varchar64)
+  - `image` → `String` (varchar255)
+  - `linkType` → `Integer` (tinyint)
+  - `linkUrl` → `String` (varchar255)
+  - `campusId` → `Long` (bigint)
+  - `sort` → `Integer` (int)
+  - `status` → `Integer` (tinyint)
+  - `startTime` / `endTime` → `LocalDateTime` (datetime)
+  - `keyword` → `String` (varchar32)
+  - `searchCount` → `Integer` (int)
+  - `isHot` → `Integer` (tinyint)
+- ✅ 枚举值与 SQL 注释一致：
+  - `banner.link_type`: 1-商品详情 2-活动页 3-外部链接
+  - `banner.status`: 0-下架 1-上架
+  - `search_keyword.is_hot`: 0-否 1-是
+  - `search_keyword.status`: 0-禁用 1-启用
+
+##### 4.7 证据包审查：✅
+- ✅ `run-folder/F21-Banner与搜索热词/` 目录存在
+- ✅ `test_output.log` 包含 `BUILD SUCCESS`
+- ✅ 测试结果：BannerServiceImplTest (8/8 通过)、SearchKeywordServiceImplTest (3/3 通过)
+- ✅ `run.sh` 文件存在
+- ✅ `task.md` 文件存在
+
+##### 4.8 独立复跑验证：✅
+- ✅ 在 Kiro 终端执行：`mvn test -Dtest=BannerServiceImplTest`
+- ✅ 测试结果：`Tests run: 8, Failures: 0, Errors: 0, Skipped: 0`
+- ✅ 构建状态：`BUILD SUCCESS`
+- ✅ 执行时间：7.679s
+- ✅ 在 Kiro 终端执行：`mvn test -Dtest=SearchKeywordServiceImplTest`
+- ✅ 测试结果：`Tests run: 3, Failures: 0, Errors: 0, Skipped: 0`
+- ✅ 构建状态：`BUILD SUCCESS`
+- ✅ 执行时间：8.138s
+
+#### 验收标准逐项检查（来自 feature_list.json）
+
+1. ✅ Banner列表按campusId查询，Redis缓存30分钟
+   - `getMiniBannerList` 方法中正确实现：缓存 key=`banner:list:{campusId}`，TTL=30分钟
+   - 查询条件：`campus_id=NULL OR campus_id=指定校区`
+   
+2. ✅ 管理端Banner增删改查，添加/更新/删除后清除Redis缓存
+   - `addBanner`、`updateBanner`、`deleteBanner` 方法中正确调用 `clearBannerCache()`
+   - 缓存清除使用 `stringRedisTemplate.keys("banner:list:*")` 模式匹配
+   
+3. ✅ 热搜词查询is_hot=1或search_count最高的前10个，Redis缓存1小时
+   - `getHotKeywords` 方法中正确实现：
+     - 优先查询 `is_hot=1` 的词（按 sort 排序）
+     - 不足 10 个时补充 `search_count` 最高的词
+     - 缓存 key=`search:hot:keywords`，TTL=1小时
+   
+4. ✅ 编写Service层单元测试
+   - BannerServiceImplTest：8 个测试场景
+   - SearchKeywordServiceImplTest：3 个测试场景
+
+#### 特别说明
+
+1. **Redis 缓存策略**：
+   - Banner 列表缓存 key：`banner:list:{campusId}`，TTL=30分钟
+   - 搜索热词缓存 key：`search:hot:keywords`，TTL=1小时
+   - 增删改操作后清除所有相关缓存（使用 keys 模式匹配）
+
+2. **有效期判断**：
+   - Banner 的 `startTime` 和 `endTime` 可能为 NULL
+   - NULL 表示不限制该时间点
+   - 查询条件正确处理了 NULL 的情况：
+     ```java
+     .and(w -> w.isNull(Banner::getStartTime).or().le(Banner::getStartTime, now))
+     .and(w -> w.isNull(Banner::getEndTime).or().ge(Banner::getEndTime, now))
+     ```
+
+3. **热搜词查询逻辑**：
+   - 优先查询 `is_hot=1` 的词（按 sort 排序）
+   - 不足 10 个时补充 `search_count` 最高的词
+   - 两次查询结果合并，最多返回 10 个
+
+4. **代码亮点**：
+   - MyBatis-Plus 规范使用正确
+   - Redis 缓存策略合理
+   - 异常处理完善
+   - 测试覆盖全面
+
+#### 审查结论
+
+**✅ 通过验收**
+
+该功能代码质量优秀，完全符合项目规范和验收标准。业务逻辑正确，Redis 缓存策略合理，测试覆盖全面。
+
+---
+
+**审查人**：监督者（Kiro IDE）  
+**审查时间**：2026-02-21 23:06  
+**独立复跑**：✅ 通过（BannerServiceImplTest: 8/8, SearchKeywordServiceImplTest: 3/3）
+
+---
+
+
+---
+
+## [监督者] 2026-02-21 验收决策
+
+### ✅ 功能「F21 Banner与搜索热词」验收通过
+
+**验收结论**：
+- MyBatis-Plus 规范：✅
+- 功能正确性：✅
+- 安全性：✅
+- 代码质量：✅
+- 测试覆盖：✅
+- 数据库一致性：✅
+- 证据包：✅
+- 独立复跑：✅
+
+**已完成操作**：
+1. ✅ 更新 `feature_list.json` 中 F21 的 `passes` 字段为 `true`
+2. ✅ 创建 `.review-passed` 信号文件
+3. ✅ 删除 `.ready-for-review` 信号文件
+4. ✅ Git commit 提交更改（commit hash: 206575f）
+
+**验收摘要**：
+F21 功能包含 Banner 轮播图管理（5个接口）和搜索热词查询（1个接口），共创建 13 个文件，编写 11 个测试用例。所有代码符合 MyBatis-Plus 规范，Redis 缓存策略正确（Banner 30分钟、热词 1小时），测试覆盖全面且断言有效，独立复跑测试全部通过。
+
+**下一步**：
+执行者可继续开发下一个功能（F22 公告模块 或 F23 员工管理模块）。
+
+---
+
+## Feature F23：员工管理模块
+
+### 执行记录
+
+**[执行者] 2026-02-22：F23 员工管理模块继续执行**
+
+**已完成事项**：
+1. ✅ 运行单测：`mvn test -Dtest=EmployeeServiceImplTest`
+2. ✅ 编译检查：`mvn compile -q`
+3. ✅ 诊断检查：未发现阻断性错误
+
+**测试结果**：
+- `EmployeeServiceImplTest`：Tests run: 9, Failures: 0, Errors: 0, Skipped: 0
+
+**证据文件**：
+- `run-folder/F23-员工管理模块/test_output.log`

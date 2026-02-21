@@ -21,6 +21,7 @@ class JwtInterceptorTest {
     @AfterEach
     void tearDown() {
         UserContext.removeCurrentUserId();
+        UserContext.removeCurrentUserType();
     }
 
     @Test
@@ -42,7 +43,7 @@ class JwtInterceptorTest {
     void preHandleAllowsValidToken() {
         JwtUtil jwtUtil = buildJwtUtil();
         JwtInterceptor interceptor = new JwtInterceptor(jwtUtil);
-        String token = jwtUtil.createToken(1L, Collections.emptyMap());
+        String token = jwtUtil.createToken(1L, Collections.singletonMap("type", "mini"));
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer " + token);
         MockHttpServletResponse response = new MockHttpServletResponse();

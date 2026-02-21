@@ -10,16 +10,20 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("search_keyword")
-public class SearchKeyword {
+@TableName("banner")
+public class Banner {
 
     @TableId(type = IdType.AUTO)
     private Long id;
-    private String keyword;
-    private Integer searchCount;
-    private Integer isHot;
+    private String title;
+    private String image;
+    private Integer linkType;
+    private String linkUrl;
+    private Long campusId;
     private Integer sort;
     private Integer status;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

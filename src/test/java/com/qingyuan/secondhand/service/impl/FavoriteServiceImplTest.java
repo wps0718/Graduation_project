@@ -62,7 +62,15 @@ class FavoriteServiceImplTest {
         ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
         Mockito.verify(productMapper).updateById(productCaptor.capture());
         Assertions.assertEquals(6, productCaptor.getValue().getFavoriteCount());
-        Mockito.verify(notificationService).sendNotification(10002L, 6, "您的商品被收藏");
+        Mockito.verify(notificationService).send(
+                Mockito.eq(10002L),
+                Mockito.eq(6),
+                Mockito.eq("您的商品被收藏了"),
+                Mockito.anyString(),
+                Mockito.eq(1L),
+                Mockito.eq(1),
+                Mockito.eq(1)
+        );
     }
 
     @Test

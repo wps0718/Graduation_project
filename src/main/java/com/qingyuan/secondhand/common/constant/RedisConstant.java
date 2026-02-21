@@ -13,7 +13,7 @@ public class RedisConstant {
     public static final String COLLEGE_LIST = "college:list";
     public static final String MEETING_POINT_CAMPUS = "meeting_point:campus:";
     public static final String BANNER_LIST = "banner:list:";
-    public static final String SEARCH_HOT = "search:hot";
+    public static final String SEARCH_HOT = "search:hot:keywords";
     public static final String USER_STATS = "user:stats:";
     public static final String USER_INFO = "user:info:";
     public static final String LOGIN_FAIL = "login:fail:";

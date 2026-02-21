@@ -21,6 +21,7 @@ class AdminJwtInterceptorTest {
     @AfterEach
     void tearDown() {
         UserContext.removeCurrentUserId();
+        UserContext.removeCurrentUserType();
     }
 
     @Test
@@ -42,7 +43,7 @@ class AdminJwtInterceptorTest {
     void preHandleAllowsValidToken() {
         JwtUtil jwtUtil = buildJwtUtil();
         AdminJwtInterceptor interceptor = new AdminJwtInterceptor(jwtUtil);
-        String token = jwtUtil.createAdminToken(2L, Collections.emptyMap());
+        String token = jwtUtil.createAdminToken(2L, Collections.singletonMap("type", "admin"));
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer " + token);
         MockHttpServletResponse response = new MockHttpServletResponse();

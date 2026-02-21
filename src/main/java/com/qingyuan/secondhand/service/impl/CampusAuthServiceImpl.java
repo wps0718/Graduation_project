@@ -13,6 +13,7 @@ import com.qingyuan.secondhand.mapper.CampusAuthMapper;
 import com.qingyuan.secondhand.mapper.CollegeMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
 import com.qingyuan.secondhand.service.CampusAuthService;
+import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.AuthPageVO;
 import com.qingyuan.secondhand.vo.AuthStatusVO;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
     private final CampusAuthMapper campusAuthMapper;
     private final CollegeMapper collegeMapper;
     private final UserMapper userMapper;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -173,8 +175,15 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
         if (updatedUser <= 0) {
             throw new BusinessException("审核失败");
         }
-
-        // TODO: 发送站内通知（F19 通知模块完成后启用）
+        notificationService.send(
+                auth.getUserId(),
+                8,
+                "校园认证通过",
+                "恭喜您，您的校园认证已通过审核！",
+                auth.getId(),
+                3,
+                2
+        );
     }
 
     @Override
@@ -216,7 +225,14 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
         if (updatedUser <= 0) {
             throw new BusinessException("审核失败");
         }
-
-        // TODO: 发送站内通知（F19 通知模块完成后启用）
+        notificationService.send(
+                auth.getUserId(),
+                9,
+                "校园认证被驳回",
+                "您的校园认证未通过审核，驳回原因：" + rejectReason,
+                auth.getId(),
+                3,
+                2
+        );
     }
 }

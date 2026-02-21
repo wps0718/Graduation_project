@@ -1228,12 +1228,12 @@
 
 ```
 监督者已驳回 F14 收藏模块的审查。请：
-1. 读取 tasks.md 中监督者关于 F14 的 [监督者] 反馈
+1. 读取 tasks03.md 中监督者关于 F14 的 [监督者] 反馈
 2. 逐一修正代码
 3. 重新运行 mvn test
 4. 更新 run-folder/F14-收藏模块/ 证据包
 5. 重新创建 .ready-for-review
-6. 在 tasks.md 中记录修正内容
+6. 在 tasks03.md 中记录修正内容
 ```
 
 ---
@@ -1759,7 +1759,7 @@
 ```
 请开始你的执行者工作，实现 Feature F21：Banner与搜索热词。
 
-1. 读取 tasks.md，找到 F21 Banner与搜索热词的任务步骤
+1. 读取 tasks02.md，找到 F21 Banner与搜索热词的任务步骤
 2. 读取 feature_list.json 中 id="F21" 的 acceptance_criteria
 3. 按步骤创建所有文件：
    - entity/Banner.java, entity/SearchKeyword.java
@@ -1773,7 +1773,7 @@
 5. 编写测试
 6. 运行 mvn test，保存输出到 run-folder/F21-Banner与搜索热词/
 7. 生成证据包，创建 .ready-for-review
-8. 完成后告诉我结果摘要
+8. 完成后将结果按照要求写入tasks02.md并且告诉我结果摘要
 ```
 
 ### F21-C：Kiro 执行审查
@@ -1835,7 +1835,7 @@
 ```
 请开始你的执行者工作，实现 Feature F22：公告模块。
 
-1. 读取 tasks.md，找到 F22 公告模块的任务步骤
+1. 读取 tasks03.md，找到 F22 公告模块的任务步骤
 2. 读取 feature_list.json 中 id="F22" 的 acceptance_criteria
 3. 按步骤创建所有文件：entity、mapper、service+impl、dto、vo、controller
 4. 实现：
@@ -1844,7 +1844,7 @@
 5. 编写测试
 6. 运行 mvn test，保存输出到 run-folder/F22-公告模块/
 7. 生成证据包，创建 .ready-for-review
-8. 完成后告诉我结果摘要
+8. 完成后将结果按照要求写入tasks03.md并且告诉我结果摘要
 
 注意：
 - 批量插入使用 MyBatis 的 <foreach> 或 MyBatis-Plus 的 saveBatch
@@ -1907,7 +1907,7 @@
 ```
 请开始你的执行者工作，实现 Feature F23：员工管理模块。
 
-1. 读取 tasks.md，找到 F23 员工管理模块的任务步骤
+1. 读取 tasks03.md，找到 F23 员工管理模块的任务步骤
 2. 读取 feature_list.json 中 id="F23" 的 acceptance_criteria
 3. 按步骤创建所有文件：
    - entity/Employee.java
@@ -1920,7 +1920,7 @@
 5. 编写测试覆盖：登录成功/失败、权限校验
 6. 运行 mvn test，保存输出到 run-folder/F23-员工管理模块/
 7. 生成证据包，创建 .ready-for-review
-8. 完成后告诉我结果摘要
+8. 完成后将结果按照要求写入tasks03.md并且告诉我结果摘要
 
 注意：
 - 默认密码 123456 的 BCrypt 值可以用 new BCryptPasswordEncoder().encode("123456") 生成

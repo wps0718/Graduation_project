@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.context.UserContext;
 import com.qingyuan.secondhand.common.result.Result;
 import com.qingyuan.secondhand.common.util.JwtUtil;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +25,20 @@ public class AdminJwtInterceptor implements HandlerInterceptor {
         String token = request.getHeader("Authorization");
         if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
             token = token.substring(7);
-            // In admin context, we might store admin ID instead of user ID, but using same context for now or different one if needed.
-            // Requirement said "parse admin info", assume it's also an ID.
-            Long adminId = jwtUtil.getUserId(token);
-            if (adminId != null) {
+            try {
+                Claims claims = jwtUtil.parseToken(token);
+                String type = claims.get("type", String.class);
+                if (!"admin".equals(type)) {
+                    writeUnauthorized(response);
+                    return false;
+                }
+                Long adminId = Long.parseLong(claims.getSubject());
                 UserContext.setCurrentUserId(adminId);
+                UserContext.setCurrentUserType(type);
                 return true;
+            } catch (Exception e) {
+                writeUnauthorized(response);
+                return false;
             }
         }
         writeUnauthorized(response);
@@ -39,6 +48,7 @@ public class AdminJwtInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
         UserContext.removeCurrentUserId();
+        UserContext.removeCurrentUserType();
     }
 
     private void writeUnauthorized(HttpServletResponse response) {

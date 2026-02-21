@@ -100,7 +100,15 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review> impleme
         if (updatedUser <= 0) {
             throw new BusinessException("更新评分失败");
         }
-        notificationService.sendNotification(targetId, 10, "您收到新的评价");
+        notificationService.send(
+                targetId,
+                10,
+                "您收到了新的评价",
+                "订单号：" + order.getOrderNo() + " 的交易对方给您评价了",
+                order.getId(),
+                2,
+                1
+        );
     }
 
     @Override

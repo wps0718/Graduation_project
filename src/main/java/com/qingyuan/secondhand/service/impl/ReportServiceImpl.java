@@ -182,7 +182,15 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
         report.setHandleResult(StringUtils.hasText(dto.getHandleResult()) ? dto.getHandleResult() : "商品已强制下架");
         report.setHandlerId(handlerId);
         report.setHandleTime(now);
-        notificationService.sendNotification(product.getUserId(), 9, "商品因举报被强制下架");
+        notificationService.send(
+                product.getUserId(),
+                2,
+                "商品被举报下架",
+                "您的商品《" + product.getTitle() + "》因被举报已下架",
+                product.getId(),
+                1,
+                2
+        );
     }
 
     private void handleWarn(Report report, ReportHandleDTO dto, Long handlerId, LocalDateTime now) {
@@ -194,7 +202,15 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
         report.setHandleResult(StringUtils.hasText(dto.getHandleResult()) ? dto.getHandleResult() : "已警告用户");
         report.setHandlerId(handlerId);
         report.setHandleTime(now);
-        notificationService.sendNotification(targetUserId, 9, "您的账号已被警告");
+        notificationService.send(
+                targetUserId,
+                2,
+                "您收到了警告",
+                "您因违规行为收到警告，请注意遵守平台规则",
+                report.getId(),
+                4,
+                2
+        );
     }
 
     private void handleBan(Report report, ReportHandleDTO dto, Long handlerId, LocalDateTime now) {
@@ -209,7 +225,8 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
         User updateUser = new User();
         updateUser.setId(user.getId());
         updateUser.setStatus(UserStatus.BANNED.getCode());
-        updateUser.setBanReason(StringUtils.hasText(dto.getHandleResult()) ? dto.getHandleResult() : "因举报被封禁");
+        String handleReason = StringUtils.hasText(dto.getHandleResult()) ? dto.getHandleResult() : "因举报被封禁";
+        updateUser.setBanReason(handleReason);
         updateUser.setUpdateTime(now);
         int updatedUser = userMapper.updateById(updateUser);
         if (updatedUser <= 0) {
@@ -249,7 +266,15 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
         report.setHandleResult(StringUtils.hasText(dto.getHandleResult()) ? dto.getHandleResult() : "用户已封禁");
         report.setHandlerId(handlerId);
         report.setHandleTime(now);
-        notificationService.sendNotification(targetUserId, 9, "您的账号因举报被封禁");
+        notificationService.send(
+                targetUserId,
+                2,
+                "账号已被封禁",
+                "您的账号因严重违规已被封禁，封禁原因：" + handleReason,
+                report.getId(),
+                4,
+                2
+        );
     }
 
     private void handleIgnore(Report report, ReportHandleDTO dto, Long handlerId, LocalDateTime now) {

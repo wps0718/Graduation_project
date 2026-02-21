@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.context.UserContext;
 import com.qingyuan.secondhand.common.result.Result;
 import com.qingyuan.secondhand.common.util.JwtUtil;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +25,20 @@ public class JwtInterceptor implements HandlerInterceptor {
         String token = request.getHeader("Authorization");
         if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
             token = token.substring(7);
-            Long userId = jwtUtil.getUserId(token);
-            if (userId != null) {
+            try {
+                Claims claims = jwtUtil.parseToken(token);
+                String type = claims.get("type", String.class);
+                if (!"mini".equals(type)) {
+                    writeUnauthorized(response);
+                    return false;
+                }
+                Long userId = Long.parseLong(claims.getSubject());
                 UserContext.setCurrentUserId(userId);
+                UserContext.setCurrentUserType(type);
                 return true;
+            } catch (Exception e) {
+                writeUnauthorized(response);
+                return false;
             }
         }
         writeUnauthorized(response);
@@ -37,6 +48,7 @@ public class JwtInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
         UserContext.removeCurrentUserId();
+        UserContext.removeCurrentUserType();
     }
 
     private void writeUnauthorized(HttpServletResponse response) {

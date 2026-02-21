@@ -98,7 +98,15 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             if (inserted <= 0) {
                 throw new BusinessException("创建订单失败");
             }
-            notificationService.sendNotification(product.getUserId(), 2, "订单已创建");
+            notificationService.send(
+                    order.getSellerId(),
+                    2,
+                    "您有新的订单",
+                    "买家对您的商品《" + product.getTitle() + "》下单了",
+                    order.getId(),
+                    2,
+                    1
+            );
             OrderCreateVO vo = new OrderCreateVO();
             vo.setOrderId(order.getId());
             vo.setOrderNo(order.getOrderNo());
@@ -188,7 +196,15 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         if (productMapper.updateById(product) <= 0) {
             throw new BusinessException("商品状态更新失败");
         }
-        notificationService.sendNotification(order.getSellerId(), 2, "订单已确认收货");
+        notificationService.send(
+                order.getSellerId(),
+                1,
+                "订单已确认收货",
+                "买家已确认收货，订单号：" + order.getOrderNo(),
+                order.getId(),
+                2,
+                1
+        );
     }
 
     @Override
@@ -228,7 +244,16 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BusinessException("商品状态更新失败");
         }
         Long targetUserId = isBuyer ? order.getSellerId() : order.getBuyerId();
-        notificationService.sendNotification(targetUserId, 2, "订单已取消");
+        String reasonText = StringUtils.hasText(cancelReason) ? "，原因：" + cancelReason : "";
+        notificationService.send(
+                targetUserId,
+                7,
+                "订单已取消",
+                "订单号：" + order.getOrderNo() + " 已被取消" + reasonText,
+                order.getId(),
+                2,
+                1
+        );
     }
 
     @Override

@@ -18,6 +18,7 @@ import com.qingyuan.secondhand.vo.FavoriteListVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
     private final NotificationService notificationService;
 
     @Override
+    @Transactional
     public void addFavorite(Long productId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -70,10 +72,19 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
         if (updated <= 0) {
             throw new BusinessException("收藏失败");
         }
-        notificationService.sendNotification(product.getUserId(), 6, "您的商品被收藏");
+        notificationService.send(
+                product.getUserId(),
+                6,
+                "您的商品被收藏了",
+                "有用户收藏了您的商品《" + product.getTitle() + "》",
+                product.getId(),
+                1,
+                1
+        );
     }
 
     @Override
+    @Transactional
     public void cancelFavorite(Long productId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {

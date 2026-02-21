@@ -316,7 +316,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (updated <= 0) {
             throw new BusinessException("审核失败");
         }
-        notificationService.sendNotification(product.getUserId(), 3, "商品审核通过");
+        notificationService.send(
+                product.getUserId(),
+                3,
+                "商品审核通过",
+                "您的商品《" + product.getTitle() + "》已通过审核，现已上架！",
+                product.getId(),
+                1,
+                2
+        );
     }
 
     @Override
@@ -346,7 +354,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (updated <= 0) {
             throw new BusinessException("审核失败");
         }
-        notificationService.sendNotification(product.getUserId(), 4, "商品审核驳回：" + rejectReason);
+        notificationService.send(
+                product.getUserId(),
+                4,
+                "商品审核驳回",
+                "您的商品《" + product.getTitle() + "》未通过审核，驳回原因：" + rejectReason,
+                product.getId(),
+                1,
+                2
+        );
     }
 
     @Override
@@ -390,7 +406,15 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (updated <= 0) {
             throw new BusinessException("强制下架失败");
         }
-        notificationService.sendNotification(product.getUserId(), 5, "商品被强制下架");
+        notificationService.send(
+                product.getUserId(),
+                2,
+                "商品被强制下架",
+                "您的商品《" + product.getTitle() + "》因违规被强制下架",
+                product.getId(),
+                1,
+                2
+        );
     }
 
     private void fillProduct(Product product, ProductPublishDTO dto) {

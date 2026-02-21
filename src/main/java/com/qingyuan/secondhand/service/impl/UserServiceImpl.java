@@ -94,7 +94,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         vo.setAvatarUrl(user.getAvatarUrl());
         vo.setDeactivating(UserStatus.DEREGISTERING.getCode().equals(user.getStatus()));
 
-        String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId()));
+        String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId(), "type", "mini"));
         vo.setToken(token);
         return vo;
     }
@@ -154,7 +154,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         vo.setAvatarUrl(user.getAvatarUrl());
         vo.setDeactivating(UserStatus.DEREGISTERING.getCode().equals(user.getStatus()));
 
-        String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId()));
+        String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId(), "type", "mini"));
         vo.setToken(token);
         return vo;
     }
@@ -236,7 +236,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         vo.setAvatarUrl(user.getAvatarUrl());
         vo.setDeactivating(UserStatus.DEREGISTERING.getCode().equals(user.getStatus()));
 
-        String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId()));
+        String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId(), "type", "mini"));
         vo.setToken(token);
         return vo;
     }
