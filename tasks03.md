@@ -2648,3 +2648,919 @@ mvn test -Dtest=EmployeeServiceImplTest
 **下一步**：执行者可继续开发下一个功能（F24 数据统计模块 或 F25 定时任务 或 F26 OpenIM集成）
 
 喵~
+ 个文件
+
+**总计**：8 个文件
+
+---
+
+**规划完成时间**：2026-02-21  
+**规划人**：监督者（Kiro IDE）  
+**下一步**：等待执行者（Trae IDE）按照规划实现代码
+
+---
+
+## [监督者] 2026-02-22 F24 数据统计模块任务规划
+
+### 功能概述
+- **功能ID**：F24
+- **功能名称**：数据统计模块
+- **模块**：MODULE-STATS
+- **范围**：admin（管理端）
+- **依赖**：F01（用户模块）、F11（商品模块）、F15（订单模块）
+
+### 接口列表
+1. `GET /admin/stats/overview` - 数据概览
+2. `GET /admin/stats/trend` - 趋势分析
+3. `GET /admin/stats/campus` - 校区统计
+4. `GET /admin/stats/category` - 分类统计
+
+### 数据库表涉及
+- `user` - 用户统计
+- `product` - 商品统计
+- `trade_order` - 订单统计
+- `campus_auth` - 认证统计
+- `report` - 举报统计
+- `campus` - 校区信息
+- `category` - 分类信息
+
+---
+
+### 任务步骤
+
+#### 步骤 1：创建 VO 类
+
+##### 1.1 StatsOverviewVO（数据概览）
+**文件**：`src/main/java/com/qingyuan/secondhand/vo/StatsOverviewVO.java`
+
+**字段定义**：
+```java
+public class StatsOverviewVO {
+    // 今日数据
+    private Integer todayNewUsers;        // 今日新增用户数
+    private Integer todayNewProducts;     // 今日新增商品数
+    private Integer todayOrders;          // 今日成交量
+    private BigDecimal todayGmv;          // 今日GMV（成交金额）
+    
+    // 累计数据
+    private Integer totalUsers;           // 累计用户数
+    private Integer totalProducts;        // 累计商品数
+    private Integer totalOrders;          // 累计成交量
+    private BigDecimal totalGmv;          // 累计GMV
+    
+    // 待处理事项
+    private Integer pendingProducts;      // 待审核商品数（status=0）
+    private Integer pendingAuths;         // 待处理认证数（status=0）
+    private Integer pendingReports;       // 待处理举报数（status=0）
+}
+```
+
+**说明**：
+- 今日数据：统计 `DATE(create_time) = CURDATE()` 的记录
+- 累计数据：统计所有记录
+- 待处理事项：统计 status=0 的记录
+- GMV（Gross Merchandise Volume）：成交金额，统计 trade_order 表中 status IN (3,4) 的 price 总和
+
+---
+
+##### 1.2 StatsTrendVO（趋势分析）
+**文件**：`src/main/java/com/qingyuan/secondhand/vo/StatsTrendVO.java`
+
+**字段定义**：
+```java
+public class StatsTrendVO {
+    private String date;                  // 日期（yyyy-MM-dd）
+    private Integer newUsers;             // 新增用户数
+    private Integer newProducts;          // 新增商品数
+    private Integer orders;               // 成交量
+    private BigDecimal gmv;               // GMV
+}
+```
+
+**说明**：
+- 返回近 N 天的趋势数据（默认 7 天）
+- 按日期分组统计
+- 日期格式：yyyy-MM-dd
+
+---
+
+##### 1.3 StatsCampusVO（校区统计）
+**文件**：`src/main/java/com/qingyuan/secondhand/vo/StatsCampusVO.java`
+
+**字段定义**：
+```java
+public class StatsCampusVO {
+    private Long campusId;                // 校区ID
+    private String campusName;            // 校区名称
+    private Integer productCount;         // 商品数（is_deleted=0）
+    private Integer orderCount;           // 交易数（status IN (3,4)）
+    private Integer userCount;            // 用户数（该校区的用户）
+}
+```
+
+**说明**：
+- 按校区分组统计
+- 商品数：product 表中 campus_id 对应的商品数（is_deleted=0）
+- 交易数：trade_order 表中 campus_id 对应的已完成订单数（status IN (3,4)）
+- 用户数：user 表中 campus_id 对应的用户数
+
+---
+
+##### 1.4 StatsCategoryVO（分类统计）
+**文件**：`src/main/java/com/qingyuan/secondhand/vo/StatsCategoryVO.java`
+
+**字段定义**：
+```java
+public class StatsCategoryVO {
+    private Long categoryId;              // 分类ID
+    private String categoryName;          // 分类名称
+    private Integer productCount;         // 商品数（is_deleted=0）
+    private Integer orderCount;           // 交易数（status IN (3,4)）
+}
+```
+
+**说明**：
+- 按分类分组统计
+- 商品数：product 表中 category_id 对应的商品数（is_deleted=0）
+- 交易数：通过 product 关联 trade_order，统计该分类下的已完成订单数
+
+---
+
+#### 步骤 2：创建 Service 接口
+**文件**：`src/main/java/com/qingyuan/secondhand/service/StatsService.java`
+
+```java
+public interface StatsService {
+    StatsOverviewVO getOverview();
+    List<StatsTrendVO> getTrend(Integer days);
+    List<StatsCampusVO> getCampusStats();
+    List<StatsCategoryVO> getCategoryStats();
+}
+```
+
+**说明**：
+- 不继承 IService（这是纯统计服务，不涉及实体 CRUD）
+- getTrend 方法接收 days 参数，默认 7 天
+
+---
+
+#### 步骤 3：创建 Mapper 接口（用于统计查询）
+**文件**：`src/main/java/com/qingyuan/secondhand/mapper/StatsMapper.java`
+
+```java
+@Mapper
+public interface StatsMapper {
+    // 数据概览相关
+    Integer countTodayNewUsers();
+    Integer countTodayNewProducts();
+    Integer countTodayOrders();
+    BigDecimal sumTodayGmv();
+    
+    Integer countTotalUsers();
+    Integer countTotalProducts();
+    Integer countTotalOrders();
+    BigDecimal sumTotalGmv();
+    
+    Integer countPendingProducts();
+    Integer countPendingAuths();
+    Integer countPendingReports();
+    
+    // 趋势分析
+    List<StatsTrendVO> getTrendData(@Param("days") Integer days);
+    
+    // 校区统计
+    List<StatsCampusVO> getCampusStats();
+    
+    // 分类统计
+    List<StatsCategoryVO> getCategoryStats();
+}
+```
+
+**说明**：
+- 使用 `@Mapper` 注解
+- 所有统计方法都在 XML 中编写 SQL
+
+---
+
+#### 步骤 4：创建 Mapper XML（核心统计 SQL）
+**文件**：`src/main/resources/mapper/StatsMapper.xml`
+
+**关键 SQL 示例**：
+
+##### 4.1 今日新增用户数
+```xml
+<select id="countTodayNewUsers" resultType="java.lang.Integer">
+    SELECT COUNT(*) 
+    FROM user 
+    WHERE DATE(create_time) = CURDATE()
+</select>
+```
+
+##### 4.2 今日新增商品数
+```xml
+<select id="countTodayNewProducts" resultType="java.lang.Integer">
+    SELECT COUNT(*) 
+    FROM product 
+    WHERE DATE(create_time) = CURDATE() AND is_deleted = 0
+</select>
+```
+
+##### 4.3 今日成交量
+```xml
+<select id="countTodayOrders" resultType="java.lang.Integer">
+    SELECT COUNT(*) 
+    FROM trade_order 
+    WHERE DATE(complete_time) = CURDATE() AND status IN (3, 4)
+</select>
+```
+
+##### 4.4 今日GMV
+```xml
+<select id="sumTodayGmv" resultType="java.math.BigDecimal">
+    SELECT COALESCE(SUM(price), 0) 
+    FROM trade_order 
+    WHERE DATE(complete_time) = CURDATE() AND status IN (3, 4)
+</select>
+```
+
+##### 4.5 累计用户数
+```xml
+<select id="countTotalUsers" resultType="java.lang.Integer">
+    SELECT COUNT(*) FROM user
+</select>
+```
+
+##### 4.6 累计商品数
+```xml
+<select id="countTotalProducts" resultType="java.lang.Integer">
+    SELECT COUNT(*) FROM product WHERE is_deleted = 0
+</select>
+```
+
+##### 4.7 累计成交量
+```xml
+<select id="countTotalOrders" resultType="java.lang.Integer">
+    SELECT COUNT(*) FROM trade_order WHERE status IN (3, 4)
+</select>
+```
+
+##### 4.8 累计GMV
+```xml
+<select id="sumTotalGmv" resultType="java.math.BigDecimal">
+    SELECT COALESCE(SUM(price), 0) FROM trade_order WHERE status IN (3, 4)
+</select>
+```
+
+##### 4.9 待审核商品数
+```xml
+<select id="countPendingProducts" resultType="java.lang.Integer">
+    SELECT COUNT(*) FROM product WHERE status = 0 AND is_deleted = 0
+</select>
+```
+
+##### 4.10 待处理认证数
+```xml
+<select id="countPendingAuths" resultType="java.lang.Integer">
+    SELECT COUNT(*) FROM campus_auth WHERE status = 0
+</select>
+```
+
+##### 4.11 待处理举报数
+```xml
+<select id="countPendingReports" resultType="java.lang.Integer">
+    SELECT COUNT(*) FROM report WHERE status = 0
+</select>
+```
+
+##### 4.12 趋势分析（近N天）
+```xml
+<select id="getTrendData" resultType="com.qingyuan.secondhand.vo.StatsTrendVO">
+    SELECT 
+        DATE(d.date) AS date,
+        COALESCE(u.newUsers, 0) AS newUsers,
+        COALESCE(p.newProducts, 0) AS newProducts,
+        COALESCE(o.orders, 0) AS orders,
+        COALESCE(o.gmv, 0) AS gmv
+    FROM (
+        SELECT DATE_SUB(CURDATE(), INTERVAL n DAY) AS date
+        FROM (
+            SELECT 0 AS n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 
+            UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9
+            UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14
+            UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19
+            UNION SELECT 20 UNION SELECT 21 UNION SELECT 22 UNION SELECT 23 UNION SELECT 24
+            UNION SELECT 25 UNION SELECT 26 UNION SELECT 27 UNION SELECT 28 UNION SELECT 29
+        ) AS nums
+        WHERE n &lt; #{days}
+    ) AS d
+    LEFT JOIN (
+        SELECT DATE(create_time) AS date, COUNT(*) AS newUsers
+        FROM user
+        WHERE DATE(create_time) &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+        GROUP BY DATE(create_time)
+    ) AS u ON d.date = u.date
+    LEFT JOIN (
+        SELECT DATE(create_time) AS date, COUNT(*) AS newProducts
+        FROM product
+        WHERE DATE(create_time) &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY) AND is_deleted = 0
+        GROUP BY DATE(create_time)
+    ) AS p ON d.date = p.date
+    LEFT JOIN (
+        SELECT DATE(complete_time) AS date, COUNT(*) AS orders, SUM(price) AS gmv
+        FROM trade_order
+        WHERE DATE(complete_time) &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY) AND status IN (3, 4)
+        GROUP BY DATE(complete_time)
+    ) AS o ON d.date = o.date
+    ORDER BY d.date ASC
+</select>
+```
+
+**说明**：
+- 使用日期序列生成近 N 天的日期
+- LEFT JOIN 确保即使某天没有数据也返回 0
+- COALESCE 处理 NULL 值
+- 按日期升序排序
+
+##### 4.13 校区统计
+```xml
+<select id="getCampusStats" resultType="com.qingyuan.secondhand.vo.StatsCampusVO">
+    SELECT 
+        c.id AS campusId,
+        c.name AS campusName,
+        COALESCE(p.productCount, 0) AS productCount,
+        COALESCE(o.orderCount, 0) AS orderCount,
+        COALESCE(u.userCount, 0) AS userCount
+    FROM campus c
+    LEFT JOIN (
+        SELECT campus_id, COUNT(*) AS productCount
+        FROM product
+        WHERE is_deleted = 0
+        GROUP BY campus_id
+    ) AS p ON c.id = p.campus_id
+    LEFT JOIN (
+        SELECT campus_id, COUNT(*) AS orderCount
+        FROM trade_order
+        WHERE status IN (3, 4)
+        GROUP BY campus_id
+    ) AS o ON c.id = o.campus_id
+    LEFT JOIN (
+        SELECT campus_id, COUNT(*) AS userCount
+        FROM user
+        GROUP BY campus_id
+    ) AS u ON c.id = u.campus_id
+    ORDER BY c.id ASC
+</select>
+```
+
+##### 4.14 分类统计
+```xml
+<select id="getCategoryStats" resultType="com.qingyuan.secondhand.vo.StatsCategoryVO">
+    SELECT 
+        cat.id AS categoryId,
+        cat.name AS categoryName,
+        COALESCE(p.productCount, 0) AS productCount,
+        COALESCE(o.orderCount, 0) AS orderCount
+    FROM category cat
+    LEFT JOIN (
+        SELECT category_id, COUNT(*) AS productCount
+        FROM product
+        WHERE is_deleted = 0
+        GROUP BY category_id
+    ) AS p ON cat.id = p.category_id
+    LEFT JOIN (
+        SELECT p.category_id, COUNT(*) AS orderCount
+        FROM trade_order o
+        INNER JOIN product p ON o.product_id = p.id
+        WHERE o.status IN (3, 4)
+        GROUP BY p.category_id
+    ) AS o ON cat.id = o.category_id
+    ORDER BY cat.id ASC
+</select>
+```
+
+---
+
+#### 步骤 5：创建 Service 实现类
+**文件**：`src/main/java/com/qingyuan/secondhand/service/impl/StatsServiceImpl.java`
+
+**核心业务逻辑**：
+
+```java
+@Service
+public class StatsServiceImpl implements StatsService {
+    
+    @Autowired
+    private StatsMapper statsMapper;
+    
+    @Override
+    public StatsOverviewVO getOverview() {
+        StatsOverviewVO vo = new StatsOverviewVO();
+        
+        // 今日数据
+        vo.setTodayNewUsers(statsMapper.countTodayNewUsers());
+        vo.setTodayNewProducts(statsMapper.countTodayNewProducts());
+        vo.setTodayOrders(statsMapper.countTodayOrders());
+        vo.setTodayGmv(statsMapper.sumTodayGmv());
+        
+        // 累计数据
+        vo.setTotalUsers(statsMapper.countTotalUsers());
+        vo.setTotalProducts(statsMapper.countTotalProducts());
+        vo.setTotalOrders(statsMapper.countTotalOrders());
+        vo.setTotalGmv(statsMapper.sumTotalGmv());
+        
+        // 待处理事项
+        vo.setPendingProducts(statsMapper.countPendingProducts());
+        vo.setPendingAuths(statsMapper.countPendingAuths());
+        vo.setPendingReports(statsMapper.countPendingReports());
+        
+        return vo;
+    }
+    
+    @Override
+    public List<StatsTrendVO> getTrend(Integer days) {
+        if (days == null || days <= 0) {
+            days = 7;  // 默认7天
+        }
+        if (days > 30) {
+            days = 30;  // 最多30天
+        }
+        return statsMapper.getTrendData(days);
+    }
+    
+    @Override
+    public List<StatsCampusVO> getCampusStats() {
+        return statsMapper.getCampusStats();
+    }
+    
+    @Override
+    public List<StatsCategoryVO> getCategoryStats() {
+        return statsMapper.getCategoryStats();
+    }
+}
+```
+
+**关键点**：
+- 不使用 Redis 缓存（按需求，所有统计直接查数据库）
+- getTrend 方法限制 days 范围：1-30 天，默认 7 天
+- 所有统计逻辑在 SQL 中完成，Service 层只做调用和参数校验
+
+---
+
+#### 步骤 6：创建 Controller
+**文件**：`src/main/java/com/qingyuan/secondhand/controller/admin/AdminStatsController.java`
+
+**接口定义**：
+```java
+@RestController
+@RequestMapping("/admin/stats")
+public class AdminStatsController {
+    
+    @Autowired
+    private StatsService statsService;
+    
+    @GetMapping("/overview")
+    public Result<StatsOverviewVO> getOverview() {
+        StatsOverviewVO vo = statsService.getOverview();
+        return Result.success(vo);
+    }
+    
+    @GetMapping("/trend")
+    public Result<List<StatsTrendVO>> getTrend(
+        @RequestParam(defaultValue = "7") Integer days
+    ) {
+        List<StatsTrendVO> list = statsService.getTrend(days);
+        return Result.success(list);
+    }
+    
+    @GetMapping("/campus")
+    public Result<List<StatsCampusVO>> getCampusStats() {
+        List<StatsCampusVO> list = statsService.getCampusStats();
+        return Result.success(list);
+    }
+    
+    @GetMapping("/category")
+    public Result<List<StatsCategoryVO>> getCategoryStats() {
+        List<StatsCategoryVO> list = statsService.getCategoryStats();
+        return Result.success(list);
+    }
+}
+```
+
+**说明**：
+- 路径前缀：`/admin/stats`
+- 只做参数接收和 Service 调用
+- 返回统一响应 `Result<T>`
+- trend 接口支持 days 参数，默认 7 天
+
+---
+
+#### 步骤 7：编写测试
+**文件**：`src/test/java/com/qingyuan/secondhand/service/impl/StatsServiceImplTest.java`
+
+**测试场景**：
+
+1. `testGetOverview_Success()` - 数据概览查询
+   - Mock statsMapper 的所有统计方法
+   - 验证返回的 VO 包含所有字段
+   - 验证今日数据、累计数据、待处理事项都正确
+
+2. `testGetTrend_DefaultDays()` - 趋势分析（默认7天）
+   - Mock statsMapper.getTrendData(7)
+   - 验证返回 7 条记录
+   - 验证日期按升序排列
+
+3. `testGetTrend_CustomDays()` - 趋势分析（自定义天数）
+   - Mock statsMapper.getTrendData(14)
+   - 验证返回 14 条记录
+
+4. `testGetTrend_InvalidDays()` - 趋势分析（无效天数）
+   - 传入 days=0 或 days=null
+   - 验证自动使用默认值 7
+
+5. `testGetTrend_ExceedMaxDays()` - 趋势分析（超过最大天数）
+   - 传入 days=50
+   - 验证自动限制为 30
+
+6. `testGetCampusStats_Success()` - 校区统计
+   - Mock statsMapper.getCampusStats()
+   - 验证返回的 VO 包含校区名、商品数、交易数、用户数
+
+7. `testGetCategoryStats_Success()` - 分类统计
+   - Mock statsMapper.getCategoryStats()
+   - 验证返回的 VO 包含分类名、商品数、交易数
+
+**测试要求**：
+- 使用 `@ExtendWith(MockitoExtension.class)`
+- Mock StatsMapper
+- 断言必须有实际意义，验证具体业务数据
+- 覆盖所有 acceptance_criteria
+- 重点验证 SQL 查询返回的数据结构正确
+
+---
+
+#### 步骤 8：运行测试并生成证据包
+```bash
+cd G:/Code/Graduation_project
+mvn test -Dtest=StatsServiceImplTest
+```
+
+**证据包目录**：`run-folder/F24-数据统计模块/`
+- `run.sh` - 测试执行脚本
+- `test_output.log` - 测试输出日志
+- `README.md` - 功能说明
+
+---
+
+### 验收标准（Acceptance Criteria）
+
+- [x] overview 返回今日数据（新增用户/新增商品/成交量/GMV）+ 累计数据 + 待处理事项（待审核商品数/待处理认证数/待处理举报数）
+- [x] trend 返回近 N 天趋势数据（新增用户/新增商品/成交量/GMV），支持 days 参数，默认 7 天
+- [x] campus 返回按校区统计的商品数/交易数/用户数
+- [x] category 返回按分类统计的商品数/交易数
+- [x] 所有统计使用 SQL 聚合查询，不使用 Redis 缓存
+- [x] 编写 Service 层单元测试，验证 SQL 查询返回的数据结构正确
+
+---
+
+### 关键技术点
+
+1. **SQL 聚合查询**：
+   - 使用 COUNT、SUM、GROUP BY 进行统计
+   - 使用 LEFT JOIN 确保即使没有数据也返回 0
+   - 使用 COALESCE 处理 NULL 值
+
+2. **日期筛选**：
+   - 今日数据：`DATE(create_time) = CURDATE()`
+   - 近 N 天：`DATE(create_time) >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)`
+
+3. **订单状态筛选**：
+   - 成交订单：`status IN (3, 4)`（3-已完成、4-已评价）
+   - 待处理：`status = 0`
+
+4. **趋势分析日期序列**：
+   - 使用 UNION 生成日期序列（0-29）
+   - LEFT JOIN 确保每天都有数据（没有则为 0）
+
+5. **不使用缓存**：
+   - 按需求，所有统计直接查数据库
+   - 实时性要求高，不使用 Redis 缓存
+
+---
+
+### 需要创建的文件清单
+
+1. `src/main/java/com/qingyuan/secondhand/vo/StatsOverviewVO.java`
+2. `src/main/java/com/qingyuan/secondhand/vo/StatsTrendVO.java`
+3. `src/main/java/com/qingyuan/secondhand/vo/StatsCampusVO.java`
+4. `src/main/java/com/qingyuan/secondhand/vo/StatsCategoryVO.java`
+5. `src/main/java/com/qingyuan/secondhand/service/StatsService.java`
+6. `src/main/java/com/qingyuan/secondhand/service/impl/StatsServiceImpl.java`
+7. `src/main/java/com/qingyuan/secondhand/mapper/StatsMapper.java`
+8. `src/main/resources/mapper/StatsMapper.xml`
+9. `src/main/java/com/qingyuan/secondhand/controller/admin/AdminStatsController.java`
+10. `src/test/java/com/qingyuan/secondhand/service/impl/StatsServiceImplTest.java`
+
+**总计**：10 个文件
+
+---
+
+### 重要 SQL 说明
+
+#### GMV 计算
+- GMV = 已完成订单的 price 总和
+- 订单状态：status IN (3, 4)
+  - 3：已完成（买家确认收货）
+  - 4：已评价（双方已评价）
+
+#### 商品统计
+- 只统计 `is_deleted = 0` 的商品
+- 待审核商品：`status = 0`
+
+#### 订单统计
+- 成交量：`status IN (3, 4)` 的订单数
+- 按 `complete_time` 统计（而非 `create_time`）
+
+#### 趋势分析
+- 使用日期序列确保每天都有数据
+- 没有数据的日期返回 0（使用 COALESCE）
+- 按日期升序排序
+
+---
+
+**规划完成时间**：2026-02-22  
+**规划人**：监督者（Kiro IDE）  
+**下一步**：等待执行者（Trae IDE）按照规划实现代码
+
+喵~
+
+---
+
+## [执行者] 2026-02-22 F24 数据统计模块实现记录
+
+### 完成内容
+1. 数据统计 VO、Service、Mapper、Controller 与 SQL 聚合查询
+2. trend/campus/category/overview 统计接口实现
+3. 单元测试 StatsServiceImplTest
+
+### 测试与证据
+执行命令：
+```bash
+mvn test -Dtest=StatsServiceImplTest 2>&1 | tee run-folder/F24-数据统计模块/test_output.log
+mvn compile -q
+```
+
+执行结果：
+- Tests run: 7, Failures: 0, Errors: 0, Skipped: 0
+- BUILD SUCCESS
+
+证据输出：
+- run-folder/F24-数据统计模块/test_output.log
+- run-folder/F24-数据统计模块/run.sh
+- .ready-for-review
+
+### 验收点对应
+- overview 返回今日数据 + 累计数据 + 待处理事项
+- trend 返回近 N 天趋势数据，days 参数默认 7 天
+- campus 返回按校区统计的商品数/交易数/用户数
+- category 返回按分类统计的商品数/交易数
+- SQL 聚合查询实现统计，不使用 Redis 缓存
+- Service 层单元测试覆盖统计数据结构校验
+
+
+---
+
+## [监督者] 2026-02-22 F24 数据统计模块审查报告
+
+### 审查时间
+2026-02-22 11:26
+
+### 审查范围
+- Mapper: StatsMapper.java + StatsMapper.xml
+- Service: StatsService.java + StatsServiceImpl.java
+- VO: StatsOverviewVO.java, StatsTrendVO.java, StatsCampusVO.java, StatsCategoryVO.java
+- Controller: AdminStatsController.java
+- Test: StatsServiceImplTest.java
+- 证据包: run-folder/F24-数据统计模块/
+
+---
+
+### 多维度代码审查
+
+#### 4.1 MyBatis-Plus 规范审查
+- [x] 本模块无 Entity 类（纯统计查询，直接返回 VO） ✅
+- [x] Mapper 接口使用 `@Mapper` 注解 ✅
+- [x] 统计查询使用 MyBatis XML 编写复杂 SQL ✅
+- [x] Service 实现类使用 `@Service` 注解 ✅
+- [x] 无需 MyBatis-Plus 的 BaseMapper（统计模块特殊性） ✅
+
+**结论**：✅ 符合项目架构规范（统计模块无需 Entity 和 BaseMapper）
+
+---
+
+#### 4.2 功能正确性审查
+
+##### 4.2.1 Overview 统计（今日数据 + 累计数据 + 待处理事项）
+- [x] `countTodayNewUsers`: `DATE(create_time) = CURDATE()` ✅
+- [x] `countTodayNewProducts`: `DATE(create_time) = CURDATE() AND is_deleted = 0` ✅
+- [x] `countTodayOrders`: `DATE(complete_time) = CURDATE() AND status IN (3, 4)` ✅
+- [x] `sumTodayGmv`: `COALESCE(SUM(price), 0)` 防止 NULL ✅
+- [x] `countTotalUsers`: 统计所有用户 ✅
+- [x] `countTotalProducts`: `is_deleted = 0` 排除已删除商品 ✅
+- [x] `countTotalOrders`: `status IN (3, 4)` 只统计已完成和已评价订单 ✅
+- [x] `sumTotalGmv`: `COALESCE(SUM(price), 0)` ✅
+- [x] `countPendingProducts`: `status = 0 AND is_deleted = 0` 待审核商品 ✅
+- [x] `countPendingAuths`: `status = 0` 待审核认证 ✅
+- [x] `countPendingReports`: `status = 0` 待处理举报 ✅
+
+**关键点验证**：
+- ✅ 今日订单和 GMV 使用 `complete_time`（完成时间）而非 `create_time`（创建时间），符合业务逻辑
+- ✅ 订单统计只计算 status=3（已完成）和 status=4（已评价）的订单
+- ✅ 使用 `COALESCE` 防止 SUM 返回 NULL
+
+##### 4.2.2 Trend 趋势统计（近 N 天数据）
+- [x] 参数校验：`days == null || days <= 0` 时默认为 7 ✅
+- [x] 参数限制：`days > 30` 时限制为 30 ✅
+- [x] 日期序列生成：使用 UNION 生成 0-29 的数字序列 ✅
+- [x] LEFT JOIN 确保每天都有数据（即使为 0） ✅
+- [x] 新增用户：`DATE(create_time) >= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)` ✅
+- [x] 新增商品：`is_deleted = 0` 排除已删除商品 ✅
+- [x] 订单和 GMV：使用 `complete_time` 和 `status IN (3, 4)` ✅
+- [x] 按日期升序排序：`ORDER BY d.date ASC` ✅
+
+**关键点验证**：
+- ✅ 日期范围计算正确：`DATE_SUB(CURDATE(), INTERVAL #{days} DAY)`
+- ✅ 使用 LEFT JOIN 确保没有数据的日期也返回 0
+- ✅ `COALESCE` 处理 NULL 值
+
+##### 4.2.3 Campus 校区统计
+- [x] 关联 campus 表获取校区名称 ✅
+- [x] 商品数统计：`is_deleted = 0` ✅
+- [x] 订单数统计：`status IN (3, 4)` ✅
+- [x] 用户数统计：按 campus_id 分组 ✅
+- [x] LEFT JOIN 确保没有数据的校区也显示 ✅
+- [x] `COALESCE` 处理 NULL 值 ✅
+
+##### 4.2.4 Category 分类统计
+- [x] 关联 category 表获取分类名称 ✅
+- [x] 商品数统计：`is_deleted = 0` ✅
+- [x] 订单数统计：通过 `INNER JOIN product` 关联获取分类 ✅
+- [x] 订单筛选：`status IN (3, 4)` ✅
+- [x] LEFT JOIN 确保没有数据的分类也显示 ✅
+- [x] `COALESCE` 处理 NULL 值 ✅
+
+**关键点验证**：
+- ✅ 订单统计需要通过 product 表关联获取 category_id
+- ✅ SQL 逻辑正确：`INNER JOIN product p ON o.product_id = p.id`
+
+##### 4.2.5 Controller 层
+- [x] Controller 只做参数接收和 Service 调用 ✅
+- [x] Controller 路径前缀为 `/admin/stats` ✅
+- [x] 所有接口返回 `Result<T>` 统一响应 ✅
+- [x] trend 接口支持可选的 days 参数 ✅
+
+**结论**：✅ 功能实现完全正确
+
+---
+
+#### 4.3 安全性审查
+- [x] XML 中全部使用 `#{}` 参数绑定（而非 `${}`） ✅
+- [x] 无 SQL 注入风险 ✅
+- [x] 无敏感信息泄露 ✅
+
+**结论**：✅ 无安全隐患
+
+---
+
+#### 4.4 代码质量审查
+- [x] 分层合理（Controller → Service → Mapper） ✅
+- [x] 命名规范（getOverview, getTrend, getCampusStats, getCategoryStats） ✅
+- [x] 无异常处理（统计查询无需抛业务异常） ✅
+- [x] 无事务需求（只读查询） ✅
+- [x] 无 N+1 查询问题（使用 JOIN 一次性查询） ✅
+- [x] SQL 使用聚合函数和 GROUP BY，性能良好 ✅
+
+**结论**：✅ 代码质量优秀
+
+---
+
+#### 4.5 测试审查（反作弊）
+- [x] 测试文件存在 ✅
+- [x] 使用 `@ExtendWith(MockitoExtension.class)` ✅
+- [x] Mock StatsMapper 正确配置 ✅
+- [x] 测试覆盖了 7 个场景：
+  1. testGetOverview_Success - 概览数据查询 ✅
+  2. testGetTrend_DefaultDays - 默认 7 天趋势 ✅
+  3. testGetTrend_CustomDays - 自定义天数趋势 ✅
+  4. testGetTrend_InvalidDays - 无效天数（<=0）默认为 7 ✅
+  5. testGetTrend_ExceedMaxDays - 超过 30 天限制为 30 ✅
+  6. testGetCampusStats_Success - 校区统计 ✅
+  7. testGetCategoryStats_Success - 分类统计 ✅
+
+**断言质量检查**：
+- ✅ testGetOverview_Success: 验证了 11 个字段的具体数值（3, 5, 2, 123.45, 100, 80, 60, 4567.89, 7, 4, 1）
+- ✅ testGetTrend_DefaultDays: 验证了 days=null 时调用 getTrendData(7)
+- ✅ testGetTrend_CustomDays: 验证了 days=14 时调用 getTrendData(14)
+- ✅ testGetTrend_InvalidDays: 验证了 days=0 时调用 getTrendData(7)
+- ✅ testGetTrend_ExceedMaxDays: 验证了 days=50 时调用 getTrendData(30)
+- ✅ testGetCampusStats_Success: 验证了校区名称和统计数据（"南海北", 10, 6, 200）
+- ✅ testGetCategoryStats_Success: 验证了分类名称和统计数据（"数码", 12, 4）
+
+**结论**：✅ 测试覆盖全面，断言有实际意义，无假测试
+
+---
+
+#### 4.6 数据库一致性审查
+- [x] 无 Entity 类（统计模块直接返回 VO） ✅
+- [x] SQL 查询的表名和字段名与数据库一致 ✅
+- [x] 字段类型映射正确：
+  - COUNT(*) → Integer ✅
+  - SUM(price) → BigDecimal ✅
+  - DATE_FORMAT → String ✅
+- [x] 枚举值使用正确：
+  - product.status: 0-待审核, 1-在售, 3-已售出, 4-审核驳回 ✅
+  - trade_order.status: 3-已完成, 4-已评价 ✅
+  - campus_auth.status: 0-待审核 ✅
+  - report.status: 0-待处理 ✅
+
+**结论**：✅ 数据库一致性正确
+
+---
+
+#### 4.7 证据包审查
+- [x] `run-folder/F24-数据统计模块/` 目录存在 ✅
+- [x] `run.sh` 文件存在 ✅
+- [x] `test_output.log` 存在 ✅
+- [x] 日志显示 `Tests run: 7, Failures: 0, Errors: 0, Skipped: 0` ✅
+- [x] 日志显示 `BUILD SUCCESS` ✅
+
+**结论**：✅ 证据包完整且有效
+
+---
+
+### 独立复跑验证
+
+**执行命令**：
+```bash
+mvn test -Dtest=StatsServiceImplTest
+```
+
+**测试结果**：
+```
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+[INFO] Total time: 6.547 s
+[INFO] Finished at: 2026-02-22T11:25:37+08:00
+```
+
+**结论**：✅ 所有测试通过，BUILD SUCCESS
+
+---
+
+### 验收标准逐项检查
+
+根据 feature_list.json 中 F24 的 acceptance_criteria：
+
+1. ✅ "overview返回今日数据（新增用户/新增商品/成交量/GMV）+累计数据+待处理事项（待审核商品数/待处理认证数/待处理举报数）" - 已实现，SQL 逻辑正确
+2. ✅ "trend返回近N天趋势数据（新增用户/新增商品/成交量/GMV），支持days参数，默认7天" - 已实现，参数校验和日期范围计算正确
+3. ✅ "campus返回按校区统计的商品数/交易数/用户数" - 已实现，LEFT JOIN 确保所有校区都显示
+4. ✅ "category返回按分类统计的商品数/交易数" - 已实现，通过 product 表关联获取分类
+5. ✅ "所有统计使用SQL聚合查询，不使用Redis缓存" - 已实现，无 Redis 缓存代码
+6. ✅ "编写Service层单元测试，验证SQL查询返回的数据结构正确" - 已实现，测试覆盖全面
+
+**所有验收标准均已满足** ✅
+
+---
+
+### 审查结论
+
+**✅ 通过**
+
+所有审查项均通过：
+1. ✅ MyBatis-Plus 规范：符合项目架构（统计模块特殊性）
+2. ✅ 功能正确性：SQL 逻辑完全正确，聚合函数、GROUP BY、日期筛选、关联查询全部准确
+3. ✅ 安全性：全部使用 `#{}` 参数绑定，无 SQL 注入风险
+4. ✅ 代码质量：分层合理，命名规范，SQL 性能良好
+5. ✅ 测试覆盖：7 个测试场景，断言有实际意义，覆盖所有验收标准
+6. ✅ 数据库一致性：表名、字段名、枚举值全部正确
+7. ✅ 证据包：完整且有效
+8. ✅ 独立复跑：7/7 全部通过
+
+**审查评价**：
+- 统计 SQL 编写规范，使用 COALESCE 防止 NULL，使用 LEFT JOIN 确保数据完整性
+- overview 的待处理事项查询准确（status=0）
+- trend 的日期范围计算正确，参数校验完善（默认 7 天，最大 30 天）
+- campus 和 category 统计的关联查询正确
+- 按要求不使用缓存，直接查询数据库
+- 测试覆盖全面，包含边界条件测试
+
+**特别表扬**：
+- ✅ 今日订单和 GMV 使用 `complete_time` 而非 `create_time`，业务逻辑准确
+- ✅ 订单统计只计算 status=3 和 status=4，符合业务规则
+- ✅ trend 使用日期序列 + LEFT JOIN 确保每天都有数据
+- ✅ category 统计通过 product 表关联获取分类，SQL 逻辑清晰
+
+---
+
+**审查人**：监督者（Kiro IDE）  
+**审查时间**：2026-02-22 11:26  
+**下一步**：更新 feature_list.json，将 F24 的 passes 设为 true，创建 .review-passed 信号文件，Git commit

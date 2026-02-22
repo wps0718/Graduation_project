@@ -809,7 +809,7 @@
         "所有统计使用SQL聚合查询，不使用Redis缓存",
         "编写Service层单元测试，验证SQL查询返回的数据结构正确"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F25",
