@@ -874,6 +874,125 @@
         "编写Service层单元测试，mock OpenIM API调用"
       ],
       "passes": false
+    },
+    
+    {
+  "id": "F-IM",
+  "name": "IM即时通讯 - WebSocket自建",
+  "module": "MODULE-IM",
+  "priority": "P0",
+  "version": "V1.0",
+  "description": "基于Spring Boot WebSocket自建即时通讯，替代原OpenIM方案。包含WebSocket连接管理、消息收发与持久化、会话管理、未读计数、心跳保活、业务卡片消息等完整IM能力。",
+  "sub_features": [
+    {
+      "id": "F-IM-01",
+      "name": "WebSocket基础通信",
+      "description": "WebSocket配置、端点建立、JWT鉴权握手、连接管理器、心跳PING/PONG、基本文本消息收发",
+      "acceptance_criteria": [
+        "WebSocket端点 /ws/chat 可正常连接",
+        "连接时通过URL参数token进行JWT校验（复用现有JwtUtil.parseToken，校验claims.get('type')=='mini'，通过claims.getSubject()取userId），校验失败拒绝连接",
+        "封禁(status=0)/注销中(status=2)用户拒绝连接",
+        "WebSocketSessionManager维护在线用户ConcurrentHashMap<Long, WebSocketSession>，支持add/remove/get/isOnline/sendToUser",
+        "客户端发送{type:'PING'}，服务端回复{type:'PONG'}",
+        "服务端60秒未收到心跳判定断线并清理Session",
+        "同一用户重复连接时踢掉旧连接，推送FORCE_OFFLINE消息",
+        "基本文本消息可通过WebSocket发送并被服务端正确解析"
+      ],
+      "files": [
+        "config/WebSocketConfig.java",
+        "websocket/ChatHandshakeInterceptor.java",
+        "websocket/WebSocketServer.java",
+        "websocket/WebSocketSessionManager.java",
+        "websocket/handler/MessageDispatcher.java",
+        "websocket/handler/PingMessageHandler.java",
+        "websocket/handler/ChatMessageHandler.java（空实现占位）",
+        "websocket/handler/ReadMessageHandler.java（空实现占位）",
+        "websocket/protocol/WebSocketMessage.java",
+        "websocket/protocol/MessageType.java",
+        "task/WebSocketHeartbeatTask.java",
+        "common/constant/RedisConstant.java（追加IM常量）"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F-IM-02",
+      "name": "会话管理",
+      "description": "chat_session表CRUD、会话创建（点击我想要时）、会话列表查询、会话删除、置顶、未读数管理",
+      "acceptance_criteria": [
+        "POST /mini/chat/session/create 创建会话时为双方各创建一条chat_session记录",
+        "已有会话不重复创建，直接返回sessionKey",
+        "创建新会话时自动插入一条商品卡片消息(msgType=2)——F-IM-04补全，此阶段TODO占位",
+        "GET /mini/chat/sessions 返回当前用户所有会话，按is_top DESC、last_time DESC排序",
+        "会话列表VO字段覆盖前端list.vue绑定：peerId→userId, peerName→nickName, peerAvatar→avatarUrl, peerAuthStatus→authStatus, lastMsg→lastMessage, lastTime, unread, productId, productTitle, productPrice, productImage",
+        "POST /mini/chat/session/delete 软删除会话(is_deleted=1)，不影响对方",
+        "POST /mini/chat/session/top 切换置顶状态",
+        "GET /mini/chat/unread-total 返回用户总未读消息数",
+        "sessionKey生成规则：min(userA,userB)_max(userA,userB)_productId"
+      ],
+      "files": [
+        "entity/ChatSession.java",
+        "mapper/ChatSessionMapper.java",
+        "resources/mapper/ChatSessionMapper.xml",
+        "service/ChatSessionService.java",
+        "service/impl/ChatSessionServiceImpl.java",
+        "controller/mini/MiniChatController.java",
+        "dto/ChatSessionCreateDTO.java",
+        "vo/ChatSessionVO.java",
+        "common/util/SessionKeyUtil.java"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F-IM-03",
+      "name": "消息存储与查询",
+      "description": "chat_message表CRUD、ChatMessageHandler处理CHAT类型消息入库与推送、历史消息分页查询、已读状态管理、ReadMessageHandler处理READ类型",
+      "acceptance_criteria": [
+        "收到CHAT类型WS消息后：参数校验→生成sessionKey→消息写入chat_message→更新双方chat_session(last_msg/last_time)→接收方unread+1→尝试WS推送→离线则写notification",
+        "chat_session.unread更新使用SQL SET unread=unread+1，避免并发覆盖",
+        "S2C推送的CHAT消息包含msgId/sessionKey/senderId/senderName/senderAvatar/receiverId/productId/msgType/content/createTime",
+        "GET /mini/chat/messages?sessionKey=xxx&page=1&pageSize=30 按create_time DESC分页返回",
+        "返回的ChatMessageVO包含isSelf字段（senderId==currentUserId）",
+        "收到READ类型消息后：该sessionKey下receiver_id=当前用户的所有未读消息标记已读，chat_session.unread置0",
+        "POST /mini/chat/read 作为REST备用已读接口",
+        "Redis维护im:unread:{userId}总未读数"
+      ],
+      "files": [
+        "entity/ChatMessage.java",
+        "mapper/ChatMessageMapper.java",
+        "resources/mapper/ChatMessageMapper.xml",
+        "service/ChatMessageService.java",
+        "service/impl/ChatMessageServiceImpl.java",
+        "websocket/handler/ChatMessageHandler.java（替换空实现）",
+        "websocket/handler/ReadMessageHandler.java（替换空实现）",
+        "websocket/protocol/ChatPayload.java",
+        "websocket/protocol/ReadPayload.java",
+        "vo/ChatMessageVO.java",
+        "controller/mini/MiniChatController.java（追加消息查询和已读接口）"
+      ],
+      "passes": true
+    },
+    {
+      "id": "F-IM-04",
+      "name": "业务卡片消息与系统集成",
+      "description": "商品卡片消息、订单卡片消息、系统提示消息、快捷回复消息、与订单创建/价格修改/订单取消的集成",
+      "acceptance_criteria": [
+        "商品卡片消息(msgType=2)：content为JSON字符串，包含productId/title/price/image/status",
+        "订单卡片消息(msgType=3)：订单创建时自动插入，content为JSON包含orderId/orderNo/price/status/statusText",
+        "系统提示消息(msgType=4)：如'卖家将价格修改为¥2600'",
+        "快捷回复消息(msgType=5)：与普通文本消息处理逻辑相同，前端展示时区分",
+        "ChatMessageService提供sendProductCard/sendOrderCard/sendSystemTip方法",
+        "ChatSessionServiceImpl.createSession的TODO补全：新会话自动发送商品卡片",
+        "OrderServiceImpl/ProductServiceImpl中集成IM调用（已实现则添加，未实现则TODO注释）"
+      ],
+      "files": [
+        "common/enums/MsgType.java",
+        "service/impl/ChatMessageServiceImpl.java（扩展卡片方法）",
+        "service/impl/ChatSessionServiceImpl.java（补全TODO）",
+        "service/impl/OrderServiceImpl.java（集成IM，视实现进度）",
+        "service/impl/ProductServiceImpl.java（集成IM，视实现进度）"
+      ]
     }
+  ]
+}
   ]
 }

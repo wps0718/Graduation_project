@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingyuan.secondhand.mapper.ChatSessionMapper">
+    <select id="selectSessionListByUserId" resultType="com.qingyuan.secondhand.vo.ChatSessionVO">
+        SELECT
+            cs.id AS sessionId,
+            cs.peer_id AS peerId,
+            u.nick_name AS peerName,
+            u.avatar_url AS peerAvatar,
+            u.auth_status AS peerAuthStatus,
+            cs.product_id AS productId,
+            p.title AS productTitle,
+            p.images AS productImage,
+            p.price AS productPrice,
+            p.status AS productStatus,
+            cs.last_msg AS lastMsg,
+            cs.last_msg_type AS lastMsgType,
+            cs.last_time AS lastTime,
+            cs.unread AS unread,
+            cs.is_top AS isTop
+        FROM chat_session cs
+        LEFT JOIN user u ON u.id = cs.peer_id
+        LEFT JOIN product p ON p.id = cs.product_id
+        WHERE cs.user_id = #{userId}
+          AND cs.is_deleted = 0
+        ORDER BY cs.is_top DESC, cs.last_time DESC
+    </select>
+
+    <update id="incrementUnread">
+        UPDATE chat_session
+        SET unread = unread + 1, update_time = NOW()
+        WHERE user_id = #{userId}
+          AND peer_id = #{peerId}
+        <choose>
+            <when test="productId != null">
+                AND product_id = #{productId}
+            </when>
+            <otherwise>
+                AND product_id IS NULL
+            </otherwise>
+        </choose>
+          AND is_deleted = 0
+    </update>
+</mapper>

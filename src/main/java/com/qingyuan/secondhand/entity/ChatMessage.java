@@ -16,22 +16,18 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("chat_session")
-public class ChatSession {
-
+@TableName("chat_message")
+public class ChatMessage {
     @TableId(type = IdType.AUTO)
     private Long id;
-    private Long userId;
-    private Long peerId;
+    private String sessionKey;
+    private Long senderId;
+    private Long receiverId;
+    private Integer msgType;
+    private String content;
     private Long productId;
-    private String lastMsg;
-    private Integer lastMsgType;
-    private Integer unread;
-    private LocalDateTime lastTime;
-    private Integer isTop;
-    private Integer isDeleted;
+    private Long orderId;
+    private Integer isRead;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
 }

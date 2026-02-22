@@ -2063,7 +2063,7 @@
 ```
 请开始你的执行者工作，实现 Feature F25：定时任务。
 
-1. 读取 tasks.md，找到 F25 定时任务的任务步骤
+1. 读取 tasks03.md，找到 F25 定时任务的任务步骤
 2. 读取 feature_list.json 中 id="F25" 的 acceptance_criteria
 3. 按步骤创建以下文件：
    - task/OrderExpireTask.java
@@ -2082,7 +2082,7 @@
 7. 编写测试验证业务逻辑
 8. 运行 mvn test，保存输出到 run-folder/F25-定时任务/
 9. 生成证据包，创建 .ready-for-review
-10. 完成后告诉我结果摘要
+10. 完成后将结果按照要求写入tasks03.md并且告诉我结果摘要
 
 注意：
 - ReviewAutoTask 生成默认好评时 is_auto=1，评分全5分

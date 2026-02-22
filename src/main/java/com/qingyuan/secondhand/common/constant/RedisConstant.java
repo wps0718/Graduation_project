@@ -19,4 +19,8 @@ public class RedisConstant {
     public static final String LOGIN_FAIL = "login:fail:";
     public static final String PRODUCT_LOCK = "product:lock:";
     public static final String PRODUCT_LOCK_PREFIX = "product:lock:";
+    public static final String IM_ONLINE = "im:online:";
+    public static final String IM_HEARTBEAT = "im:heartbeat:";
+    public static final String IM_UNREAD = "im:unread:";
+    public static final String IM_SESSION_UNREAD = "im:session:unread:";
 }
