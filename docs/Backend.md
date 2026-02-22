@@ -1984,7 +1984,7 @@
 ```
 请开始你的执行者工作，实现 Feature F24：数据统计模块。
 
-1. 读取 tasks.md，找到 F24 数据统计模块的任务步骤
+1. 读取 tasks03.md，找到 F24 数据统计模块的任务步骤
 2. 读取 feature_list.json 中 id="F24" 的 acceptance_criteria
 3. 按步骤创建所有文件：
    - vo/StatsOverviewVO.java, StatsTrendVO.java, StatsCampusVO.java, StatsCategoryVO.java
@@ -1994,7 +1994,7 @@
 5. 编写测试验证 SQL 查询结果结构
 6. 运行 mvn test，保存输出到 run-folder/F24-数据统计模块/
 7. 生成证据包，创建 .ready-for-review
-8. 完成后告诉我结果摘要
+8. 完成后将结果按照要求写入tasks03.md并且告诉我结果摘要
 
 注意：
 - trend 接口的 days 参数默认7天

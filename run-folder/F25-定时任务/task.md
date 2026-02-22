@@ -1,14 +1,3 @@
-# 轻院二手 - 开发任务记录（第三期）
-
-## 项目信息
-- 项目名称：二手交易平台（毕业设计）
-- 项目路径：G:\Code\Graduation_project
-- 根包名：com.qingyuan.secondhand
-- 技术栈：Spring Boot 3.x + MyBatis-Plus + MySQL 5.7 + Redis
-- 构建工具：Maven
-
----
-
 ## Feature F25：定时任务
 
 ### 任务规划
@@ -26,7 +15,6 @@
 - 依赖 F17（评价模块）：Review 实体、ReviewMapper、评分计算逻辑
 
 #### 定时任务概览
-
 | 任务类 | Cron 表达式 | 执行频率 | 业务场景 |
 |--------|------------|---------|---------|
 | OrderExpireTask | 0 */5 * * * ? | 每5分钟 | 订单超时自动取消 |
@@ -357,11 +345,10 @@ public class ReviewAutoTask {
         int processedCount = 0;
         
         try {
-            // 1. 查询需要自动好评的订单（已完成且超过评价窗口期）
-            LocalDateTime deadline = LocalDateTime.now().minusDays(7);
+            // 1. 查询已完成且超过评价窗口期的订单
             LambdaQueryWrapper<TradeOrder> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(TradeOrder::getStatus, 3)
-                   .lt(TradeOrder::getCompleteTime, deadline);
+                   .lt(TradeOrder::getCompleteTime, LocalDateTime.now().minusDays(7));
             List<TradeOrder> orders = tradeOrderMapper.selectList(wrapper);
             
             if (orders.isEmpty()) {
@@ -372,33 +359,75 @@ public class ReviewAutoTask {
             // 2. 逐条处理
             for (TradeOrder order : orders) {
                 try {
-                    // 查询该订单的评价记录
-                    LambdaQueryWrapper<Review> reviewWrapper = new LambdaQueryWrapper<>();
-                    reviewWrapper.eq(Review::getOrderId, order.getId());
-                    List<Review> reviews = reviewMapper.selectList(reviewWrapper);
+                    List<Review> reviews = reviewMapper.selectList(new LambdaQueryWrapper<Review>()
+                        .eq(Review::getOrderId, order.getId()));
                     
-                    // 判断买家和卖家是否已评价
-                    boolean buyerReviewed = reviews.stream()
-                        .anyMatch(r -> r.getReviewerId().equals(order.getBuyerId()));
-                    boolean sellerReviewed = reviews.stream()
-                        .anyMatch(r -> r.getReviewerId().equals(order.getSellerId()));
+                    boolean buyerReviewed = reviews.stream().anyMatch(r -> r.getReviewerId().equals(order.getBuyerId()));
+                    boolean sellerReviewed = reviews.stream().anyMatch(r -> r.getReviewerId().equals(order.getSellerId()));
                     
-                    // 为未评价方生成默认好评
                     if (!buyerReviewed) {
-                        createAutoReview(order, order.getBuyerId(), order.getSellerId());
-                        processedCount++;
+                        Review review = new Review();
+                        review.setOrderId(order.getId());
+                        review.setReviewerId(order.getBuyerId());
+                        review.setTargetId(order.getSellerId());
+                        review.setScoreDesc(5);
+                        review.setScoreAttitude(5);
+                        review.setScoreExperience(5);
+                        review.setContent("系统自动好评");
+                        review.setIsAuto(1);
+                        reviewMapper.insert(review);
+                        notificationService.send(
+                            order.getSellerId(),
+                            10,
+                            "收到评价",
+                            "您收到了一条系统自动好评",
+                            order.getId(),
+                            2,
+                            1
+                        );
                     }
+                    
                     if (!sellerReviewed) {
-                        createAutoReview(order, order.getSellerId(), order.getBuyerId());
-                        processedCount++;
+                        Review review = new Review();
+                        review.setOrderId(order.getId());
+                        review.setReviewerId(order.getSellerId());
+                        review.setTargetId(order.getBuyerId());
+                        review.setScoreDesc(5);
+                        review.setScoreAttitude(5);
+                        review.setScoreExperience(5);
+                        review.setContent("系统自动好评");
+                        review.setIsAuto(1);
+                        reviewMapper.insert(review);
+                        notificationService.send(
+                            order.getBuyerId(),
+                            10,
+                            "收到评价",
+                            "您收到了一条系统自动好评",
+                            order.getId(),
+                            2,
+                            1
+                        );
                     }
                     
-                    // 如果双方都已评价（包括自动生成的），更新订单状态
-                    if (!buyerReviewed || !sellerReviewed) {
-                        order.setStatus(4);
-                        tradeOrderMapper.updateById(order);
+                    // 更新订单状态
+                    Long reviewCount = reviewMapper.selectCount(new LambdaQueryWrapper<Review>()
+                        .eq(Review::getOrderId, order.getId()));
+                    if (reviewCount != null && reviewCount >= 2) {
+                        TradeOrder updateOrder = new TradeOrder();
+                        updateOrder.setId(order.getId());
+                        updateOrder.setStatus(4);
+                        tradeOrderMapper.updateById(updateOrder);
                     }
                     
+                    // 重新计算综合评分
+                    Long targetId = order.getSellerId();
+                    BigDecimal newScore = calculateUserScore(targetId);
+                    User updateUser = new User();
+                    updateUser.setId(targetId);
+                    updateUser.setScore(newScore);
+                    userMapper.updateById(updateUser);
+                    
+                    processedCount++;
                 } catch (Exception e) {
                     log.error("[自动好评任务] 处理订单失败，订单ID：{}，错误：{}", order.getId(), e.getMessage(), e);
                 }
@@ -410,53 +439,6 @@ public class ReviewAutoTask {
             long endTime = System.currentTimeMillis();
             log.info("[自动好评任务] 执行完成，处理条数：{}，耗时：{}ms", processedCount, endTime - startTime);
         }
-    }
-    
-    /**
-     * 创建自动好评
-     */
-    private void createAutoReview(TradeOrder order, Long reviewerId, Long targetId) {
-        // 1. 创建评价记录
-        Review review = new Review();
-        review.setOrderId(order.getId());
-        review.setReviewerId(reviewerId);
-        review.setTargetId(targetId);
-        review.setScoreDesc(5);
-        review.setScoreAttitude(5);
-        review.setScoreExperience(5);
-        review.setContent("系统自动好评");
-        review.setIsAuto(1);
-        reviewMapper.insert(review);
-        
-        // 2. 重新计算被评价人的综合评分
-        LambdaQueryWrapper<Review> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Review::getTargetId, targetId);
-        List<Review> targetReviews = reviewMapper.selectList(wrapper);
-        
-        double totalScore = 0.0;
-        for (Review r : targetReviews) {
-            double avgScore = (r.getScoreDesc() + r.getScoreAttitude() + r.getScoreExperience()) / 3.0;
-            totalScore += avgScore;
-        }
-        BigDecimal newScore = BigDecimal.valueOf(totalScore / targetReviews.size())
-            .setScale(1, RoundingMode.HALF_UP);
-        
-        User targetUser = userMapper.selectById(targetId);
-        if (targetUser != null) {
-            targetUser.setScore(newScore);
-            userMapper.updateById(targetUser);
-        }
-        
-        // 3. 通知被评价人
-        notificationService.sendNotification(
-            targetId, 
-            10, 
-            "收到评价", 
-            "您收到了一条系统自动好评", 
-            order.getId(), 
-            "order", 
-            1
-        );
     }
 }
 ```
@@ -917,252 +899,3 @@ public class UserDeactivateTask {
 11. **ReviewAutoTask 需要判断买家和卖家是否已评价**（避免重复生成）
 12. **UserDeactivateTask 清理信息但保留用户记录**（保留交易历史）
 13. **所有业务异常使用 BusinessException 抛出**（但定时任务中应 catch 住，记录日志）
-14. **验证 updateById() 方法的调用次数和参数**
-15. **确保 NotificationService 已在 F19 中实现并配置 @Async**
-
----
-
-**规划完成时间**：2026-02-22
-**规划人**：监督者（Kiro IDE）
-
----
-
-### 开发进展
-
-#### 2026-02-22 执行记录
-
-- 完成 F25 定时任务全部实现与配置：OrderExpireTask、OrderAutoConfirmTask、ReviewAutoTask、ProductAutoOffTask、UserDeactivateTask
-- 定时任务开关已配置在 application.yml，启动类已启用定时任务
-- ReviewAutoTask 自动好评逻辑包含自动评价、订单状态更新、用户评分重算、通知发送
-- ProductAutoOffTask 支持 90 天自动下架并通知卖家
-- UserDeactivateTask 清理注销 30 天用户敏感信息并保留交易记录
-- 新增 ScheduledTaskTest 覆盖 5 个定时任务核心逻辑
-- 已运行命令：
-  - mvn test -Dtest=ScheduledTaskTest 2>&1 | tee run-folder/F25-定时任务/test_output.log
-  - mvn compile -q
-- 测试结果：Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
-
----
-
-### 审查记录
-
-（监督者在此追加审查意见）
-
----
-
----
-
-**[监督者] 2026-02-22 14:57: ✅ 功能「F25 定时任务」验收通过。**
-
-#### 多维度审查结果
-
-##### 4.1 MyBatis-Plus 规范审查：✅
-- ✅ 所有定时任务类正确使用 MyBatis-Plus 的 LambdaQueryWrapper 构建查询条件
-- ✅ 使用 MyBatis-Plus 内置方法（selectList, selectById, updateById, insert）
-- ✅ 条件查询使用类型安全的 Lambda 表达式（而非字符串拼接）
-- ✅ 正确使用枚举类（OrderStatus, ProductStatus, UserStatus, NotificationCategory）
-
-##### 4.2 功能正确性审查：✅
-- ✅ **OrderExpireTask**：
-  - Cron 表达式正确：`0 */5 * * * ?`（每5分钟）
-  - 查询条件精确：`expire_time < NOW() AND status = 1`
-  - 状态流转正确：订单 status→5（已取消），商品 status→1（在售）
-  - cancel_by = 0L（系统取消）
-  - cancel_reason = "订单超时未面交，系统自动取消"
-  - 通知买家和卖家各1次
-
-- ✅ **OrderAutoConfirmTask**：
-  - Cron 表达式正确：`0 0 2 * * ?`（每天凌晨2点）
-  - 查询条件精确：`confirm_deadline < NOW() AND status = 1`（使用 confirm_deadline 字段）
-  - 状态流转正确：订单 status→3（已完成），商品 status→3（已售出）
-  - 设置 completeTime = NOW()
-  - 通知买家和卖家各1次
-
-- ✅ **ReviewAutoTask**：
-  - Cron 表达式正确：`0 0 3 * * ?`（每天凌晨3点）
-  - 查询条件精确：`status = 3 AND complete_time < NOW() - 7天`
-  - 自动好评评分：scoreDesc=5, scoreAttitude=5, scoreExperience=5
-  - isAuto = 1（标识为自动评价）
-  - content = "系统自动好评"
-  - 判断买家和卖家是否已评价（避免重复生成）
-  - 双方都评价后订单 status→4（已评价）
-  - 重新计算被评价人综合评分（使用 BigDecimal，保留1位小数）
-  - 通知被评价人
-
-- ✅ **ProductAutoOffTask**：
-  - Cron 表达式正确：`0 0 4 * * ?`（每天凌晨4点）
-  - 查询条件精确：`auto_off_time < NOW() AND status = 1 AND is_deleted = 0`
-  - 状态流转正确：商品 status→2（已下架）
-  - 通知卖家，包含商品标题
-
-- ✅ **UserDeactivateTask**：
-  - Cron 表达式正确：`0 0 5 * * ?`（每天凌晨5点）
-  - 查询条件精确：`status = 2 AND deactivate_time < NOW() - 30天`
-  - 清理个人信息：nickName="已注销用户", avatarUrl="", phone=null, openId=null, sessionKey=null
-  - 状态更新：status→0（封禁，防止再次登录）
-  - deactivateTime = null
-  - 保留用户记录（保留交易历史）
-  - 不发送通知
-
-##### 4.3 安全性审查：✅
-- ✅ 所有查询使用 LambdaQueryWrapper，类型安全
-- ✅ 无 SQL 注入风险
-- ✅ 敏感信息清理正确（UserDeactivateTask）
-
-##### 4.4 代码质量审查：✅
-- ✅ 所有定时任务类使用 @Component 注解
-- ✅ 使用 @ConditionalOnProperty 支持配置开关
-- ✅ 使用 @RequiredArgsConstructor 进行依赖注入
-- ✅ 使用 @Slf4j 进行日志记录
-- ✅ 单条记录处理失败不影响其他（try-catch 在循环内部）
-- ✅ 完善的日志记录：开始时间、处理条数、耗时、错误信息
-- ✅ 命名规范，代码清晰
-- ✅ 异常处理合理（外层 try-catch + 内层 try-catch）
-
-##### 4.5 测试审查（反作弊）：✅
-- ✅ 测试文件存在：ScheduledTaskTest.java
-- ✅ 测试用例数量：5 个测试方法（覆盖所有定时任务）
-- ✅ 断言有实际意义：
-  - testOrderExpireTask：断言 status=5, cancelBy=0, cancelReason正确, 商品status=1, 通知2次
-  - testOrderAutoConfirmTask：断言 status=3, completeTime不为空, 商品status=3, 通知2次
-  - testReviewAutoTask：断言生成2条评价, 评分5/5/5, isAuto=1, 订单status=4, 用户评分更新2次, 通知2次
-  - testProductAutoOffTask：断言 status=2, 通知1次
-  - testUserDeactivateTask：断言所有字段清理正确, status=0, deactivateTime=null
-- ✅ Mock 配置正确：
-  - Mock 所有 Mapper 和 NotificationService
-  - 使用 ArgumentCaptor 捕获更新参数
-  - 验证方法调用次数和参数
-- ✅ 测试覆盖了所有 acceptance_criteria
-
-##### 4.6 数据库一致性审查：✅
-- ✅ 查询条件与数据库字段一致
-- ✅ 时间字段使用 LocalDateTime
-- ✅ 枚举值使用正确（OrderStatus, ProductStatus, UserStatus）
-- ✅ OrderAutoConfirmTask 使用 confirm_deadline 字段（而非 create_time + 7天）
-
-##### 4.7 配置审查：✅
-- ✅ 启动类添加了 @EnableScheduling 注解
-- ✅ application.yml 中配置了定时任务开关：
-  ```yaml
-  task:
-    enabled:
-      order-expire: true
-      order-auto-confirm: true
-      review-auto: true
-      product-auto-off: true
-      user-deactivate: true
-  ```
-
-##### 4.8 证据包审查：✅
-- ✅ `run-folder/F25-定时任务/` 目录完整
-- ✅ `test_output.log` 包含 `BUILD SUCCESS`
-- ✅ 测试结果：`Tests run: 5, Failures: 0, Errors: 0, Skipped: 0`
-- ✅ `run.sh` 文件存在
-- ✅ `task.md` 文件存在
-
-##### 4.9 独立复跑验证：✅
-- ✅ 在 Kiro 终端执行：`mvn test -Dtest=ScheduledTaskTest`
-- ✅ 测试结果：`Tests run: 5, Failures: 0, Errors: 0, Skipped: 0`
-- ✅ 构建状态：`BUILD SUCCESS`
-- ✅ 执行时间：7.747s
-
-#### 验收标准逐项检查（来自 feature_list.json）
-
-1. ✅ 启动类添加 @EnableScheduling 注解
-   - SecondhandApplication.java 中已添加 @EnableScheduling
-
-2. ✅ application.yml 中添加定时任务开关配置（task.enabled.xxx=true/false）
-   - 所有5个定时任务都有独立开关配置
-
-3. ✅ OrderExpireTask（每5分钟）：查询 expire_time<NOW() 且 status=1 的订单，批量取消，恢复商品在售状态，通知买卖双方
-   - 查询条件：`lt(TradeOrder::getExpireTime, LocalDateTime.now()).eq(TradeOrder::getStatus, 1)`
-   - 订单 status→5, cancelBy=0, cancelReason="订单超时未面交，系统自动取消"
-   - 商品 status→1（在售）
-   - 通知买家和卖家各1次
-
-4. ✅ OrderAutoConfirmTask（每天凌晨2点）：查询 confirm_deadline<NOW() 且 status=1 的订单，自动确认收货，商品标记已售出，通知双方
-   - 查询条件：`lt(TradeOrder::getConfirmDeadline, LocalDateTime.now()).eq(TradeOrder::getStatus, 1)`
-   - 订单 status→3, completeTime=NOW()
-   - 商品 status→3（已售出）
-   - 通知买家和卖家各1次
-
-5. ✅ ReviewAutoTask（每天凌晨3点）：查询 status=3 且 complete_time+7天<NOW() 的订单，为未评价方生成默认好评（5/5/5分，is_auto=1），订单 status→4，重新计算综合评分
-   - 查询条件：`eq(TradeOrder::getStatus, 3).lt(TradeOrder::getCompleteTime, LocalDateTime.now().minusDays(7))`
-   - 判断买家和卖家是否已评价
-   - 生成默认好评：scoreDesc=5, scoreAttitude=5, scoreExperience=5, content="系统自动好评", isAuto=1
-   - 双方都评价后订单 status→4
-   - 重新计算综合评分：使用 BigDecimal，保留1位小数
-
-6. ✅ ProductAutoOffTask（每天凌晨4点）：查询 auto_off_time<NOW() 且 status=1 的商品，批量下架，通知卖家
-   - 查询条件：`lt(Product::getAutoOffTime, LocalDateTime.now()).eq(Product::getStatus, 1).eq(Product::getIsDeleted, 0)`
-   - 商品 status→2（已下架）
-   - 通知卖家，包含商品标题
-
-7. ✅ UserDeactivateTask（每天凌晨5点）：查询 status=2 且 deactivate_time+30天<NOW() 的用户，清理个人信息但保留交易记录
-   - 查询条件：`eq(User::getStatus, 2).lt(User::getDeactivateTime, LocalDateTime.now().minusDays(30))`
-   - 清理：nickName="已注销用户", avatarUrl="", phone=null, openId=null, sessionKey=null
-   - status→0（封禁），deactivateTime=null
-   - 保留用户记录
-
-8. ✅ 每个定时任务包含完善的日志记录（开始时间、处理条数、结束时间）
-   - 所有任务都有：log.info("[任务名] 开始执行，时间：{}", start)
-   - 所有任务都有：log.info("[任务名] 执行完成，处理条数：{}，耗时：{}ms", processedCount, endTime - startTime)
-   - 错误日志：log.error("[任务名] 处理XX失败，ID：{}，错误：{}", id, e.getMessage(), e)
-
-9. ✅ 单条记录处理失败不影响其他记录（try-catch 在循环内部）
-   - 所有任务都在 for 循环内部使用 try-catch
-   - 单条失败只记录错误日志，不影响其他记录处理
-
-10. ✅ 编写单元测试，验证各定时任务的业务逻辑正确性
-    - ScheduledTaskTest.java 包含5个测试方法
-    - 所有测试通过，无失败、无错误、无跳过
-
-#### 特别说明
-
-1. **Cron 表达式**：
-   - 所有 Cron 表达式格式正确
-   - 凌晨执行的任务时间错开（2点、3点、4点、5点），避免资源竞争
-
-2. **查询条件**：
-   - OrderAutoConfirmTask 正确使用 confirm_deadline 字段（而非 create_time + 7天）
-   - 所有时间比较使用 LocalDateTime.now()，无时区问题
-   - 查询条件精确，使用 LambdaQueryWrapper 类型安全
-
-3. **状态流转**：
-   - 所有状态流转逻辑正确
-   - 使用枚举类而非硬编码数字
-
-4. **异常处理**：
-   - 外层 try-catch 捕获整个任务执行异常
-   - 内层 try-catch 捕获单条记录处理异常
-   - 单条失败不影响其他记录
-
-5. **日志记录**：
-   - 所有任务都有完善的日志
-   - 包含开始时间、处理条数、耗时
-   - 错误日志包含记录ID和错误信息
-
-6. **通知发送**：
-   - 使用 NotificationService.send() 方法
-   - 该方法已配置 @Async，不会阻塞定时任务执行
-
-7. **代码亮点**：
-   - 使用 @ConditionalOnProperty 支持配置开关
-   - 使用 @RequiredArgsConstructor 简化依赖注入
-   - 使用枚举类提高代码可读性
-   - ReviewAutoTask 的评分计算使用 BigDecimal 保证精度
-   - UserDeactivateTask 清理敏感信息但保留交易记录
-
-#### 审查结论
-
-**✅ 通过验收**
-
-该功能代码质量优秀，完全符合项目规范和验收标准。所有5个定时任务实现正确，Cron 表达式准确，查询条件精确，状态流转合理，异常处理完善，日志记录详细，测试覆盖全面。
-
----
-
-**审查人**：监督者（Kiro IDE）  
-**审查时间**：2026-02-22 14:57  
-**独立复跑**：✅ 通过（5/5 测试通过）
-
----

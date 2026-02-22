@@ -34,3 +34,10 @@ upload:
 wx:
   appId: "wx39b09d716cef8023"
   appSecret: "ef635b970208b06a722850af5b6328b9"
+task:
+  enabled:
+    order-expire: true
+    order-auto-confirm: true
+    review-auto: true
+    product-auto-off: true
+    user-deactivate: true
