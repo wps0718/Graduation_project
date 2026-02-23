@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.qingyuan.secondhand.common.result.Result;
 import com.qingyuan.secondhand.dto.OrderCancelDTO;
 import com.qingyuan.secondhand.dto.OrderCreateDTO;
+import com.qingyuan.secondhand.dto.OrderIdDTO;
 import com.qingyuan.secondhand.service.TradeOrderService;
 import com.qingyuan.secondhand.vo.OrderCreateVO;
 import com.qingyuan.secondhand.vo.OrderDetailVO;
@@ -34,9 +35,9 @@ public class MiniOrderController {
     public Result<IPage<OrderListVO>> getOrderList(
             @RequestParam String role,
             @RequestParam(required = false) Integer status,
-            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize) {
-        return Result.success(tradeOrderService.getOrderList(role, status, pageNum, pageSize));
+        return Result.success(tradeOrderService.getOrderList(role, status, page, pageSize));
     }
 
     @GetMapping("/detail/{id}")
@@ -45,8 +46,9 @@ public class MiniOrderController {
     }
 
     @PostMapping("/confirm")
-    public Result<Void> confirm(@RequestParam Long orderId) {
-        tradeOrderService.confirmOrder(orderId);
+    public Result<Void> confirm(@RequestBody(required = false) @Valid OrderIdDTO dto,
+                                @RequestParam(required = false) Long orderId) {
+        tradeOrderService.confirmOrder(dto != null ? dto.getOrderId() : orderId);
         return Result.success();
     }
 
@@ -57,8 +59,9 @@ public class MiniOrderController {
     }
 
     @PostMapping("/delete")
-    public Result<Void> delete(@RequestParam Long orderId) {
-        tradeOrderService.deleteOrder(orderId);
+    public Result<Void> delete(@RequestBody(required = false) @Valid OrderIdDTO dto,
+                               @RequestParam(required = false) Long orderId) {
+        tradeOrderService.deleteOrder(dto != null ? dto.getOrderId() : orderId);
         return Result.success();
     }
 }

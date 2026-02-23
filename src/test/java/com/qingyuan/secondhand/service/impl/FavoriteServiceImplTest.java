@@ -5,10 +5,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.context.UserContext;
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.entity.Favorite;
+import com.qingyuan.secondhand.entity.Notification;
 import com.qingyuan.secondhand.entity.Product;
 import com.qingyuan.secondhand.mapper.FavoriteMapper;
+import com.qingyuan.secondhand.mapper.NotificationMapper;
 import com.qingyuan.secondhand.mapper.ProductMapper;
 import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.FavoriteListVO;
@@ -23,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class FavoriteServiceImplTest {
@@ -37,6 +41,7 @@ class FavoriteServiceImplTest {
         FavoriteMapper favoriteMapper = Mockito.mock(FavoriteMapper.class);
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        NotificationMapper notificationMapper = Mockito.mock(NotificationMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Product product = new Product();
@@ -48,9 +53,10 @@ class FavoriteServiceImplTest {
         Mockito.when(favoriteMapper.selectCount(Mockito.any())).thenReturn(0L);
         Mockito.when(favoriteMapper.insert(Mockito.<Favorite>any())).thenReturn(1);
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
+        Mockito.when(notificationMapper.selectOne(Mockito.any())).thenReturn(null);
 
         UserContext.setCurrentUserId(10001L);
-        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationService);
+        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationMapper, notificationService);
         service.addFavorite(1L);
 
         ArgumentCaptor<Favorite> favoriteCaptor = ArgumentCaptor.forClass(Favorite.class);
@@ -64,12 +70,11 @@ class FavoriteServiceImplTest {
         Assertions.assertEquals(6, productCaptor.getValue().getFavoriteCount());
         Mockito.verify(notificationService).send(
                 Mockito.eq(10002L),
-                Mockito.eq(6),
-                Mockito.eq("您的商品被收藏了"),
-                Mockito.anyString(),
+                Mockito.eq(NotificationType.BE_FAVORITED),
+                Mockito.eq(Map.of("productName", "商品", "count", "1")),
                 Mockito.eq(1L),
                 Mockito.eq(1),
-                Mockito.eq(1)
+                Mockito.eq(2)
         );
     }
 
@@ -78,11 +83,12 @@ class FavoriteServiceImplTest {
         FavoriteMapper favoriteMapper = Mockito.mock(FavoriteMapper.class);
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        NotificationMapper notificationMapper = Mockito.mock(NotificationMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Mockito.when(productMapper.selectById(1L)).thenReturn(null);
         UserContext.setCurrentUserId(10001L);
-        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationService);
+        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationMapper, notificationService);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.addFavorite(1L));
         Assertions.assertEquals("商品不存在", ex.getMsg());
@@ -93,6 +99,7 @@ class FavoriteServiceImplTest {
         FavoriteMapper favoriteMapper = Mockito.mock(FavoriteMapper.class);
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        NotificationMapper notificationMapper = Mockito.mock(NotificationMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Product product = new Product();
@@ -104,7 +111,7 @@ class FavoriteServiceImplTest {
         Mockito.when(favoriteMapper.selectCount(Mockito.any())).thenReturn(1L);
 
         UserContext.setCurrentUserId(10001L);
-        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationService);
+        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationMapper, notificationService);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.addFavorite(1L));
         Assertions.assertEquals("已收藏该商品", ex.getMsg());
@@ -116,6 +123,7 @@ class FavoriteServiceImplTest {
         FavoriteMapper favoriteMapper = Mockito.mock(FavoriteMapper.class);
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        NotificationMapper notificationMapper = Mockito.mock(NotificationMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Favorite favorite = new Favorite();
@@ -132,7 +140,7 @@ class FavoriteServiceImplTest {
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
-        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationService);
+        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationMapper, notificationService);
         service.cancelFavorite(1L);
 
         ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
@@ -146,11 +154,12 @@ class FavoriteServiceImplTest {
         FavoriteMapper favoriteMapper = Mockito.mock(FavoriteMapper.class);
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        NotificationMapper notificationMapper = Mockito.mock(NotificationMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Mockito.when(favoriteMapper.selectOne(Mockito.any())).thenReturn(null);
         UserContext.setCurrentUserId(10001L);
-        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationService);
+        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationMapper, notificationService);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.cancelFavorite(1L));
         Assertions.assertEquals("未收藏该商品", ex.getMsg());
@@ -161,6 +170,7 @@ class FavoriteServiceImplTest {
         FavoriteMapper favoriteMapper = Mockito.mock(FavoriteMapper.class);
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        NotificationMapper notificationMapper = Mockito.mock(NotificationMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         FavoriteListVO vo = new FavoriteListVO();
@@ -183,7 +193,7 @@ class FavoriteServiceImplTest {
                 .thenReturn(List.of("img1", "img2"));
 
         UserContext.setCurrentUserId(10001L);
-        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationService);
+        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationMapper, notificationService);
         IPage<FavoriteListVO> result = service.getFavoriteList(1, 10);
 
         Assertions.assertEquals(1, result.getTotal());
@@ -195,11 +205,12 @@ class FavoriteServiceImplTest {
         FavoriteMapper favoriteMapper = Mockito.mock(FavoriteMapper.class);
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        NotificationMapper notificationMapper = Mockito.mock(NotificationMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Mockito.when(favoriteMapper.selectCount(Mockito.any())).thenReturn(1L);
         UserContext.setCurrentUserId(10001L);
-        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationService);
+        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationMapper, notificationService);
 
         Assertions.assertTrue(service.checkFavorite(1L));
     }
@@ -209,12 +220,58 @@ class FavoriteServiceImplTest {
         FavoriteMapper favoriteMapper = Mockito.mock(FavoriteMapper.class);
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        NotificationMapper notificationMapper = Mockito.mock(NotificationMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
 
         Mockito.when(favoriteMapper.selectCount(Mockito.any())).thenReturn(0L);
         UserContext.setCurrentUserId(10001L);
-        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationService);
+        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationMapper, notificationService);
 
         Assertions.assertFalse(service.checkFavorite(1L));
+    }
+
+    @Test
+    void testAddFavorite_MergeNotification() {
+        FavoriteMapper favoriteMapper = Mockito.mock(FavoriteMapper.class);
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        NotificationMapper notificationMapper = Mockito.mock(NotificationMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+
+        Product product = new Product();
+        product.setId(1L);
+        product.setUserId(10002L);
+        product.setFavoriteCount(2);
+        product.setIsDeleted(0);
+        product.setTitle("测试商品");
+        Mockito.when(productMapper.selectById(1L)).thenReturn(product);
+        Mockito.when(favoriteMapper.selectCount(Mockito.any())).thenReturn(0L);
+        Mockito.when(favoriteMapper.insert(Mockito.<Favorite>any())).thenReturn(1);
+        Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
+
+        Notification existing = new Notification();
+        existing.setId(10L);
+        existing.setContent("你的商品《测试商品》被3位用户收藏了");
+        Mockito.when(notificationMapper.selectOne(Mockito.any())).thenReturn(existing);
+        Mockito.when(notificationMapper.updateById(Mockito.any(Notification.class))).thenReturn(1);
+
+        UserContext.setCurrentUserId(10001L);
+        FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationMapper, notificationService);
+        service.addFavorite(1L);
+
+        ArgumentCaptor<Notification> notificationCaptor = ArgumentCaptor.forClass(Notification.class);
+        Mockito.verify(notificationMapper).updateById(notificationCaptor.capture());
+        Notification updated = notificationCaptor.getValue();
+        Assertions.assertEquals(10L, updated.getId());
+        Assertions.assertEquals("你的商品《测试商品》被4位用户收藏了", updated.getContent());
+        Assertions.assertEquals(0, updated.getIsRead());
+        Mockito.verify(notificationService, Mockito.never()).send(
+                Mockito.anyLong(),
+                Mockito.any(),
+                Mockito.anyMap(),
+                Mockito.anyLong(),
+                Mockito.anyInt(),
+                Mockito.anyInt()
+        );
     }
 }

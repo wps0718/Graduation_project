@@ -195,7 +195,8 @@ function onOrderAction(payload) {
 }
 
 function openCancel(order) {
-  const reasons = ['双方协商取消', '对方无响应', '不想买了', '其他']
+  const roleSpecificReason = activeTab.value === 'buyer' ? '不想买了' : '不想卖了'
+  const reasons = ['双方协商取消', '对方无响应', roleSpecificReason, '其他']
   uni.showActionSheet({
     itemList: reasons,
     success: async (res) => {

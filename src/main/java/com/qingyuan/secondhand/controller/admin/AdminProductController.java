@@ -2,10 +2,12 @@ package com.qingyuan.secondhand.controller.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.qingyuan.secondhand.common.result.Result;
+import com.qingyuan.secondhand.dto.ProductRejectDTO;
 import com.qingyuan.secondhand.service.ProductService;
 import com.qingyuan.secondhand.vo.AdminProductPageVO;
 import com.qingyuan.secondhand.vo.ProductDetailVO;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,8 +44,8 @@ public class AdminProductController {
     }
 
     @PostMapping("/reject")
-    public Result<Void> reject(@RequestParam Long productId, @RequestParam String rejectReason) {
-        productService.rejectProduct(productId, rejectReason);
+    public Result<Void> reject(@RequestBody @Valid ProductRejectDTO dto) {
+        productService.rejectProduct(dto.getProductId(), dto.getRejectReason());
         return Result.success();
     }
 

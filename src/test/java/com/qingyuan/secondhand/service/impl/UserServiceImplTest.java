@@ -40,6 +40,29 @@ import java.util.concurrent.TimeUnit;
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
 
+    private Integer readAgreementAccepted(LoginVO vo) {
+        try {
+            var field = LoginVO.class.getDeclaredField("agreementAccepted");
+            field.setAccessible(true);
+            return (Integer) field.get(vo);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void invokeAcceptAgreement(UserServiceImpl service) {
+        try {
+            var method = UserServiceImpl.class.getMethod("acceptAgreement");
+            method.invoke(service);
+        } catch (Exception e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            throw new RuntimeException(e);
+        }
+    }
+
     @Test
     void testWxLogin_ExistingUser() {
         WxConfig wxConfig = Mockito.mock(WxConfig.class);
@@ -62,6 +85,7 @@ class UserServiceImplTest {
         existing.setAvatarUrl("a.png");
         existing.setAuthStatus(2);
         existing.setStatus(1);
+        existing.setAgreementAccepted(1);
 
         Mockito.when(userMapper.selectByOpenId("openid-1")).thenReturn(existing);
         Mockito.when(jwtUtil.createToken(Mockito.eq(1L), Mockito.anyMap())).thenReturn("token-1");
@@ -79,6 +103,7 @@ class UserServiceImplTest {
         Assertions.assertEquals("老用户", vo.getNickName());
         Assertions.assertEquals("a.png", vo.getAvatarUrl());
         Assertions.assertEquals("token-1", vo.getToken());
+        Assertions.assertEquals(1, readAgreementAccepted(vo));
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         Mockito.verify(service).updateById(userCaptor.capture());
@@ -119,6 +144,7 @@ class UserServiceImplTest {
         Assertions.assertEquals("微信用户", vo.getNickName());
         Assertions.assertNotNull(vo.getToken());
         Assertions.assertEquals("token-2", vo.getToken());
+        Assertions.assertEquals(0, readAgreementAccepted(vo));
     }
 
     @Test
@@ -173,6 +199,7 @@ class UserServiceImplTest {
         deactivating.setStatus(2);
         deactivating.setScore(BigDecimal.valueOf(5.0));
         deactivating.setLastLoginTime(LocalDateTime.now());
+        deactivating.setAgreementAccepted(0);
 
         Mockito.when(userMapper.selectByOpenId("openid-4")).thenReturn(deactivating);
         Mockito.when(jwtUtil.createToken(Mockito.eq(4L), Mockito.anyMap())).thenReturn("token-4");
@@ -188,6 +215,7 @@ class UserServiceImplTest {
         Assertions.assertEquals(false, vo.getIsNew());
         Assertions.assertEquals(true, vo.getDeactivating());
         Assertions.assertEquals("token-4", vo.getToken());
+        Assertions.assertEquals(0, readAgreementAccepted(vo));
     }
 
     @Test
@@ -211,6 +239,7 @@ class UserServiceImplTest {
         user.setAvatarUrl("a.png");
         user.setAuthStatus(0);
         user.setStatus(1);
+        user.setAgreementAccepted(1);
 
         Mockito.when(userMapper.selectByPhone("13800000000")).thenReturn(user);
         Mockito.when(valueOps.get("login:fail:13800000000")).thenReturn(null);
@@ -228,6 +257,7 @@ class UserServiceImplTest {
         Assertions.assertEquals(10L, vo.getUserId());
         Assertions.assertEquals(false, vo.getIsNew());
         Assertions.assertEquals("token-10", vo.getToken());
+        Assertions.assertEquals(1, readAgreementAccepted(vo));
 
         Mockito.verify(stringRedisTemplate).delete("login:fail:13800000000");
         Mockito.verify(service).updateById(Mockito.any(User.class));
@@ -356,6 +386,109 @@ class UserServiceImplTest {
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.accountLogin(dto));
         Assertions.assertEquals("密码错误次数过多，账号已锁定15分钟", ex.getMsg());
+    }
+
+    @Test
+    void testAcceptAgreement_SetsAcceptedAndClearsCache() {
+        WxConfig wxConfig = Mockito.mock(WxConfig.class);
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
+
+        User user = new User();
+        user.setId(400L);
+        user.setAgreementAccepted(0);
+
+        Mockito.when(userMapper.selectById(400L)).thenReturn(user);
+        Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
+
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper());
+
+        try {
+            UserContext.setCurrentUserId(400L);
+            invokeAcceptAgreement(service);
+        } finally {
+            UserContext.removeCurrentUserId();
+        }
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        Mockito.verify(userMapper).updateById(userCaptor.capture());
+        Assertions.assertEquals(400L, userCaptor.getValue().getId());
+        Assertions.assertEquals(1, userCaptor.getValue().getAgreementAccepted());
+        Mockito.verify(stringRedisTemplate).delete("user:info:400");
+        Mockito.verify(stringRedisTemplate).delete("user:stats:400");
+    }
+
+    @Test
+    void testAcceptAgreement_IdempotentWhenAlreadyAccepted() {
+        WxConfig wxConfig = Mockito.mock(WxConfig.class);
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
+
+        User user = new User();
+        user.setId(401L);
+        user.setAgreementAccepted(1);
+
+        Mockito.when(userMapper.selectById(401L)).thenReturn(user);
+
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper());
+
+        try {
+            UserContext.setCurrentUserId(401L);
+            invokeAcceptAgreement(service);
+        } finally {
+            UserContext.removeCurrentUserId();
+        }
+
+        Mockito.verify(userMapper, Mockito.never()).updateById(Mockito.any(User.class));
+        Mockito.verify(stringRedisTemplate, Mockito.never()).delete(Mockito.anyString());
+    }
+
+    @Test
+    void testAcceptAgreement_NotLoggedIn() {
+        WxConfig wxConfig = Mockito.mock(WxConfig.class);
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
+
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper());
+
+        BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> invokeAcceptAgreement(service));
+        Assertions.assertEquals("未登录", ex.getMsg());
+        Mockito.verifyNoInteractions(userMapper);
+        Mockito.verifyNoInteractions(stringRedisTemplate);
+    }
+
+    @Test
+    void testAcceptAgreement_UserNotFound() {
+        WxConfig wxConfig = Mockito.mock(WxConfig.class);
+        RestTemplate restTemplate = Mockito.mock(RestTemplate.class);
+        JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
+
+        Mockito.when(userMapper.selectById(500L)).thenReturn(null);
+
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper());
+
+        try {
+            UserContext.setCurrentUserId(500L);
+            BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> invokeAcceptAgreement(service));
+            Assertions.assertEquals("用户不存在", ex.getMsg());
+        } finally {
+            UserContext.removeCurrentUserId();
+        }
+
+        Mockito.verify(userMapper, Mockito.never()).updateById(Mockito.any(User.class));
+        Mockito.verify(stringRedisTemplate, Mockito.never()).delete(Mockito.anyString());
     }
 
     @Test
@@ -1125,6 +1258,7 @@ class UserServiceImplTest {
         user.setAvatarUrl("a.png");
         user.setAuthStatus(0);
         user.setStatus(1);
+        user.setAgreementAccepted(1);
 
         Mockito.when(userMapper.selectByPhone("13800000012")).thenReturn(user);
         Mockito.when(jwtUtil.createToken(Mockito.eq(20L), Mockito.anyMap())).thenReturn("token-20");
@@ -1140,6 +1274,7 @@ class UserServiceImplTest {
         Assertions.assertEquals(20L, vo.getUserId());
         Assertions.assertEquals(false, vo.getIsNew());
         Assertions.assertEquals("token-20", vo.getToken());
+        Assertions.assertEquals(1, readAgreementAccepted(vo));
         Mockito.verify(stringRedisTemplate).delete("sms:code:13800000012");
     }
 
@@ -1176,6 +1311,7 @@ class UserServiceImplTest {
         Assertions.assertEquals(true, vo.getIsNew());
         Assertions.assertEquals("用户0013", vo.getNickName());
         Assertions.assertEquals("token-10002", vo.getToken());
+        Assertions.assertEquals(0, readAgreementAccepted(vo));
         Mockito.verify(stringRedisTemplate).delete("sms:code:13800000013");
     }
 
@@ -1283,6 +1419,7 @@ class UserServiceImplTest {
         user.setAvatarUrl("");
         user.setAuthStatus(0);
         user.setStatus(2);
+        user.setAgreementAccepted(0);
 
         Mockito.when(userMapper.selectByPhone("13800000017")).thenReturn(user);
         Mockito.when(jwtUtil.createToken(Mockito.eq(31L), Mockito.anyMap())).thenReturn("token-31");
@@ -1297,6 +1434,7 @@ class UserServiceImplTest {
         LoginVO vo = service.smsLogin(dto);
         Assertions.assertEquals(true, vo.getDeactivating());
         Assertions.assertEquals("token-31", vo.getToken());
+        Assertions.assertEquals(0, readAgreementAccepted(vo));
         Mockito.verify(stringRedisTemplate).delete("sms:code:13800000017");
     }
 }

@@ -8,14 +8,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.constant.RedisConstant;
 import com.qingyuan.secondhand.common.context.UserContext;
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.common.util.OrderNoUtil;
 import com.qingyuan.secondhand.common.util.PhoneUtil;
 import com.qingyuan.secondhand.dto.OrderCreateDTO;
 import com.qingyuan.secondhand.entity.Product;
 import com.qingyuan.secondhand.entity.TradeOrder;
+import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.mapper.ProductMapper;
 import com.qingyuan.secondhand.mapper.TradeOrderMapper;
+import com.qingyuan.secondhand.mapper.UserMapper;
 import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.service.TradeOrderService;
 import com.qingyuan.secondhand.vo.AdminOrderPageVO;
@@ -32,6 +35,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -43,6 +47,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private final ProductMapper productMapper;
     private final StringRedisTemplate redisTemplate;
     private final NotificationService notificationService;
+    private final UserMapper userMapper;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -123,7 +128,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
     @Override
-    public IPage<OrderListVO> getOrderList(String role, Integer status, Integer pageNum, Integer pageSize) {
+    public IPage<OrderListVO> getOrderList(String role, Integer status, Integer page, Integer pageSize) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
             throw new BusinessException("未登录");
@@ -134,8 +139,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         if (!"buyer".equals(role) && !"seller".equals(role)) {
             throw new BusinessException("角色参数错误");
         }
-        Page<OrderListVO> page = new Page<>(pageNum, pageSize);
-        return tradeOrderMapper.getOrderList(page, userId, role, status);
+        Page<OrderListVO> pageObj = new Page<>(page, pageSize);
+        return tradeOrderMapper.getOrderList(pageObj, userId, role, status);
     }
 
     @Override
@@ -196,11 +201,11 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         if (productMapper.updateById(product) <= 0) {
             throw new BusinessException("商品状态更新失败");
         }
+        String productName = product.getTitle() == null ? "商品" : product.getTitle();
         notificationService.send(
-                order.getSellerId(),
-                1,
-                "订单已确认收货",
-                "买家已确认收货，订单号：" + order.getOrderNo(),
+                order.getBuyerId(),
+                NotificationType.TRADE_SUCCESS,
+                Map.of("productName", productName),
                 order.getId(),
                 2,
                 1
@@ -244,12 +249,14 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BusinessException("商品状态更新失败");
         }
         Long targetUserId = isBuyer ? order.getSellerId() : order.getBuyerId();
-        String reasonText = StringUtils.hasText(cancelReason) ? "，原因：" + cancelReason : "";
+        String productName = product.getTitle() == null ? "商品" : product.getTitle();
+        User otherUser = userMapper.selectById(targetUserId);
+        String nickName = otherUser == null || !StringUtils.hasText(otherUser.getNickName()) ? "对方" : otherUser.getNickName();
+        Map<String, String> params = Map.of("nickName", nickName, "productName", productName);
         notificationService.send(
                 targetUserId,
-                7,
-                "订单已取消",
-                "订单号：" + order.getOrderNo() + " 已被取消" + reasonText,
+                NotificationType.ORDER_CANCEL,
+                params,
                 order.getId(),
                 2,
                 1

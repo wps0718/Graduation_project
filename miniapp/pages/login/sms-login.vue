@@ -181,6 +181,12 @@ async function onSendCode() {
 
 async function finishLogin(data) {
   await userStore.login(data)
+  if (data && data.agreementAccepted !== 1) {
+    try {
+      await post('/mini/user/accept-agreement', {}, { showLoading: false })
+    } catch (error) {
+    }
+  }
   uni.switchTab({ url: '/pages/index/index' })
 }
 

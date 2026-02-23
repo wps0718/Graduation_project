@@ -6,7 +6,7 @@ import lombok.Data;
 public class CampusVO {
     private Long id;
     private String name;
-    private String address;
+    private String code;
     private Integer sort;
     private Integer status;
 }

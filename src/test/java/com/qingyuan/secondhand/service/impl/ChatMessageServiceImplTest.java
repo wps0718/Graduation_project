@@ -2,14 +2,14 @@ package com.qingyuan.secondhand.service.impl;
 
 import com.qingyuan.secondhand.common.constant.RedisConstant;
 import com.qingyuan.secondhand.common.context.UserContext;
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.entity.ChatMessage;
-import com.qingyuan.secondhand.entity.Notification;
 import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.mapper.ChatMessageMapper;
-import com.qingyuan.secondhand.mapper.NotificationMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
 import com.qingyuan.secondhand.service.ChatSessionService;
+import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.ChatMessageVO;
 import com.qingyuan.secondhand.websocket.WebSocketSessionManager;
 import com.qingyuan.secondhand.websocket.protocol.ChatPayload;
@@ -59,7 +59,7 @@ class ChatMessageServiceImplTest {
     private UserMapper userMapper;
 
     @Mock
-    private NotificationMapper notificationMapper;
+    private NotificationService notificationService;
 
     @Mock
     private StringRedisTemplate stringRedisTemplate;
@@ -113,7 +113,7 @@ class ChatMessageServiceImplTest {
         verify(chatSessionService).incrementUnread(10002L, senderId, 1L);
         verify(valueOperations).increment(RedisConstant.IM_UNREAD + 10002L);
         verify(sessionManager).sendToUser(eq(10002L), any(WebSocketMessage.class));
-        verify(notificationMapper, never()).insert(any(Notification.class));
+        verify(notificationService, never()).send(anyLong(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -123,7 +123,8 @@ class ChatMessageServiceImplTest {
         payload.setReceiverId(10002L);
         payload.setProductId(1L);
         payload.setMsgType(1);
-        payload.setContent("你好");
+        String content = "这是一个超过二十个字符的内容预览测试用例文本";
+        payload.setContent(content);
 
         User sender = new User();
         sender.setId(senderId);
@@ -132,7 +133,6 @@ class ChatMessageServiceImplTest {
 
         when(userMapper.selectById(senderId)).thenReturn(sender);
         when(sessionManager.sendToUser(anyLong(), any())).thenReturn(false);
-        when(notificationMapper.insert(any(Notification.class))).thenReturn(1);
         doAnswer(invocation -> {
             ChatMessage msg = invocation.getArgument(0);
             msg.setId(1L);
@@ -141,7 +141,19 @@ class ChatMessageServiceImplTest {
 
         chatMessageService.saveAndPushMessage(senderId, payload);
 
-        verify(notificationMapper).insert(any(Notification.class));
+        @SuppressWarnings("unchecked")
+        org.mockito.ArgumentCaptor<Map<String, String>> paramsCaptor = org.mockito.ArgumentCaptor.forClass(Map.class);
+        verify(notificationService).send(
+                eq(10002L),
+                eq(NotificationType.NEW_MESSAGE),
+                paramsCaptor.capture(),
+                eq(1L),
+                eq(1),
+                eq(1)
+        );
+        Map<String, String> params = paramsCaptor.getValue();
+        assertEquals("张三", params.get("nickName"));
+        assertEquals(content.substring(0, 20) + "...", params.get("content"));
     }
 
     @Test

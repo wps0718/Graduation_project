@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qingyuan.secondhand.entity.User;
+import com.qingyuan.secondhand.vo.AdminUserDetailVO;
+import com.qingyuan.secondhand.vo.AdminUserPageVO;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
@@ -56,4 +58,12 @@ public interface UserMapper extends BaseMapper<User> {
             order by create_time desc
             """)
     Page<Map<String, Object>> pageOnSaleProducts(Page<Map<String, Object>> page, @Param("userId") Long userId);
+
+    Page<AdminUserPageVO> getAdminUserPage(Page<AdminUserPageVO> page,
+                                           @Param("keyword") String keyword,
+                                           @Param("status") Integer status,
+                                           @Param("authStatus") Integer authStatus,
+                                           @Param("campusId") Long campusId);
+
+    AdminUserDetailVO getAdminUserDetail(@Param("id") Long id);
 }

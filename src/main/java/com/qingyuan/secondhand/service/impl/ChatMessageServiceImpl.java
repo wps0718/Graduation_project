@@ -2,16 +2,16 @@ package com.qingyuan.secondhand.service.impl;
 
 import com.qingyuan.secondhand.common.constant.RedisConstant;
 import com.qingyuan.secondhand.common.context.UserContext;
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.common.util.SessionKeyUtil;
 import com.qingyuan.secondhand.entity.ChatMessage;
-import com.qingyuan.secondhand.entity.Notification;
 import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.mapper.ChatMessageMapper;
-import com.qingyuan.secondhand.mapper.NotificationMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
 import com.qingyuan.secondhand.service.ChatMessageService;
 import com.qingyuan.secondhand.service.ChatSessionService;
+import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.ChatMessageVO;
 import com.qingyuan.secondhand.websocket.WebSocketSessionManager;
 import com.qingyuan.secondhand.websocket.protocol.ChatPayload;
@@ -38,7 +38,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private final ChatSessionService chatSessionService;
     private final WebSocketSessionManager sessionManager;
     private final UserMapper userMapper;
-    private final NotificationMapper notificationMapper;
+    private final NotificationService notificationService;
     private final StringRedisTemplate stringRedisTemplate;
 
     @Override
@@ -82,7 +82,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         boolean sent = sessionManager.sendToUser(payload.getReceiverId(), wsMsg);
 
         if (!sent) {
-            sendOfflineNotification(senderId, payload.getReceiverId(), lastMsg, payload.getProductId());
+            sendOfflineNotification(senderId, payload.getReceiverId(), payload, message, lastMsg);
         }
 
         return message.getId();
@@ -253,24 +253,34 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         return pushData;
     }
 
-    private void sendOfflineNotification(Long senderId, Long receiverId, String lastMsg, Long productId) {
+    private void sendOfflineNotification(Long senderId, Long receiverId, ChatPayload payload, ChatMessage message, String lastMsg) {
         User sender = userMapper.selectById(senderId);
         if (sender == null) {
             throw new BusinessException("发送者不存在");
         }
-        Notification notification = new Notification();
-        notification.setUserId(receiverId);
-        notification.setType(2);
-        notification.setTitle("新消息");
-        notification.setContent(sender.getNickName() + "：" + lastMsg);
-        notification.setRelatedId(productId);
-        notification.setRelatedType(1);
-        notification.setIsRead(0);
-        notification.setCategory(1);
-        int inserted = notificationMapper.insert(notification);
-        if (inserted <= 0) {
-            throw new BusinessException("通知保存失败");
-        }
+        String preview = buildMessagePreview(payload, lastMsg);
+        Map<String, String> params = new HashMap<>();
+        params.put("nickName", sender.getNickName());
+        params.put("content", preview);
+        notificationService.send(
+                receiverId,
+                NotificationType.NEW_MESSAGE,
+                params,
+                message.getId(),
+                1,
+                1
+        );
         log.info("接收方{}离线，已写入notification", receiverId);
+    }
+
+    private String buildMessagePreview(ChatPayload payload, String lastMsg) {
+        String source = payload != null && StringUtils.hasText(payload.getContent()) ? payload.getContent() : lastMsg;
+        if (!StringUtils.hasText(source)) {
+            return "";
+        }
+        if (source.length() > 20) {
+            return source.substring(0, 20) + "...";
+        }
+        return source;
     }
 }

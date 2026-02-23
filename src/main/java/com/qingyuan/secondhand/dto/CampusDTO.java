@@ -13,8 +13,9 @@ public class CampusDTO {
     @Size(max = 64, message = "校区名称长度不能超过64个字符")
     private String name;
 
-    @Size(max = 255, message = "校区地址长度不能超过255个字符")
-    private String address;
+    @NotBlank(message = "校区编码不能为空")
+    @Size(max = 32, message = "校区编码长度不能超过32个字符")
+    private String code;
 
     @NotNull(message = "排序不能为空")
     private Integer sort;

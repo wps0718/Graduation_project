@@ -67,7 +67,7 @@ public class CampusServiceImpl extends ServiceImpl<CampusMapper, Campus> impleme
     public void addCampus(CampusDTO dto) {
         Campus campus = new Campus();
         campus.setName(dto.getName());
-        campus.setAddress(dto.getAddress());
+        campus.setCode(dto.getCode());
         campus.setSort(dto.getSort());
         campus.setStatus(dto.getStatus());
         int inserted = campusMapper.insert(campus);
@@ -89,7 +89,7 @@ public class CampusServiceImpl extends ServiceImpl<CampusMapper, Campus> impleme
         Campus campus = new Campus();
         campus.setId(dto.getId());
         campus.setName(dto.getName());
-        campus.setAddress(dto.getAddress());
+        campus.setCode(dto.getCode());
         campus.setSort(dto.getSort());
         campus.setStatus(dto.getStatus());
         campus.setUpdateTime(LocalDateTime.now());
@@ -104,7 +104,7 @@ public class CampusServiceImpl extends ServiceImpl<CampusMapper, Campus> impleme
         CampusVO vo = new CampusVO();
         vo.setId(campus.getId());
         vo.setName(campus.getName());
-        vo.setAddress(campus.getAddress());
+        vo.setCode(campus.getCode());
         vo.setSort(campus.getSort());
         vo.setStatus(campus.getStatus());
         return vo;

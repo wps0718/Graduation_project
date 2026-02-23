@@ -60,7 +60,7 @@ class CampusServiceImplTest {
         Campus campus = new Campus();
         campus.setId(2L);
         campus.setName("北校区");
-        campus.setAddress("北门");
+        campus.setCode("north");
         campus.setSort(1);
         campus.setStatus(1);
         Mockito.when(campusMapper.selectList(Mockito.any())).thenReturn(List.of(campus));
@@ -116,7 +116,7 @@ class CampusServiceImplTest {
         CampusServiceImpl service = new CampusServiceImpl(campusMapper, stringRedisTemplate, objectMapper);
         CampusDTO dto = new CampusDTO();
         dto.setName("新校区");
-        dto.setAddress("南门");
+        dto.setCode("new_campus");
         dto.setSort(1);
         dto.setStatus(1);
         service.addCampus(dto);
@@ -140,7 +140,7 @@ class CampusServiceImplTest {
         CampusDTO dto = new CampusDTO();
         dto.setId(10L);
         dto.setName("南校区");
-        dto.setAddress("南门");
+        dto.setCode("south");
         dto.setSort(1);
         dto.setStatus(1);
         service.updateCampus(dto);

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingyuan.secondhand.mapper.UserMapper">
+
+    <select id="getAdminUserPage" resultType="com.qingyuan.secondhand.vo.AdminUserPageVO">
+        SELECT
+            u.id,
+            u.nick_name AS nickName,
+            u.phone,
+            u.avatar_url AS avatarUrl,
+            u.auth_status AS authStatus,
+            u.status,
+            u.ban_reason AS banReason,
+            u.campus_id AS campusId,
+            c.name AS campusName,
+            u.create_time AS createTime,
+            u.last_login_time AS lastLoginTime
+        FROM user u
+        LEFT JOIN campus c ON u.campus_id = c.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (u.nick_name LIKE CONCAT('%', #{keyword}, '%')
+                OR u.phone LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null">
+                AND u.status = #{status}
+            </if>
+            <if test="authStatus != null">
+                AND u.auth_status = #{authStatus}
+            </if>
+            <if test="campusId != null">
+                AND u.campus_id = #{campusId}
+            </if>
+        </where>
+        ORDER BY u.create_time DESC
+    </select>
+
+    <select id="getAdminUserDetail" resultType="com.qingyuan.secondhand.vo.AdminUserDetailVO">
+        SELECT
+            u.id,
+            u.nick_name AS nickName,
+            u.username,
+            u.phone,
+            u.avatar_url AS avatarUrl,
+            u.gender,
+            u.campus_id AS campusId,
+            c.name AS campusName,
+            u.auth_status AS authStatus,
+            u.status,
+            u.ban_reason AS banReason,
+            u.score,
+            u.deactivate_time AS deactivateTime,
+            u.last_login_time AS lastLoginTime,
+            u.create_time AS createTime,
+            u.update_time AS updateTime
+        FROM user u
+        LEFT JOIN campus c ON u.campus_id = c.id
+        WHERE u.id = #{id}
+        LIMIT 1
+    </select>
+</mapper>

@@ -1,5 +1,6 @@
 package com.qingyuan.secondhand.task;
 
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.enums.OrderStatus;
 import com.qingyuan.secondhand.common.enums.ProductStatus;
 import com.qingyuan.secondhand.common.enums.UserStatus;
@@ -21,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class ScheduledTaskTest {
@@ -97,8 +99,7 @@ class ScheduledTaskTest {
         TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
         ReviewMapper reviewMapper = Mockito.mock(ReviewMapper.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
-        NotificationService notificationService = Mockito.mock(NotificationService.class);
-        ReviewAutoTask task = new ReviewAutoTask(tradeOrderMapper, reviewMapper, userMapper, notificationService);
+        ReviewAutoTask task = new ReviewAutoTask(tradeOrderMapper, reviewMapper, userMapper);
 
         TradeOrder order = buildOrder(3L, 13L, 23L, 33L, OrderStatus.COMPLETED.getCode());
         order.setCompleteTime(LocalDateTime.now().minusDays(8));
@@ -127,9 +128,38 @@ class ScheduledTaskTest {
         Mockito.verify(tradeOrderMapper).updateById(orderCaptor.capture());
         Assertions.assertEquals(OrderStatus.RATED.getCode(), orderCaptor.getValue().getStatus());
 
-        Mockito.verify(notificationService, Mockito.times(2))
-                .send(Mockito.anyLong(), Mockito.eq(10), Mockito.anyString(), Mockito.anyString(), Mockito.eq(3L), Mockito.eq(2), Mockito.eq(1));
         Mockito.verify(userMapper, Mockito.times(2)).updateById(Mockito.any(User.class));
+    }
+
+    @Test
+    void testReviewRemindTask() {
+        TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
+        ReviewMapper reviewMapper = Mockito.mock(ReviewMapper.class);
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+        ReviewRemindTask task = new ReviewRemindTask(tradeOrderMapper, reviewMapper, productMapper, notificationService);
+
+        TradeOrder order = buildOrder(4L, 14L, 24L, 34L, OrderStatus.COMPLETED.getCode());
+        order.setCompleteTime(LocalDateTime.now().minusDays(3).minusHours(1));
+        Product product = buildProduct(14L, 34L, ProductStatus.SOLD.getCode(), 0);
+
+        Mockito.when(tradeOrderMapper.selectList(Mockito.any())).thenReturn(List.of(order));
+        Mockito.when(reviewMapper.selectList(Mockito.any())).thenReturn(List.of());
+        Mockito.when(productMapper.selectById(14L)).thenReturn(product);
+
+        task.execute();
+
+        ArgumentCaptor<Long> userIdCaptor = ArgumentCaptor.forClass(Long.class);
+        Mockito.verify(notificationService, Mockito.times(2))
+                .send(userIdCaptor.capture(),
+                        Mockito.eq(NotificationType.REVIEW_REMIND),
+                        Mockito.eq(Map.of("productName", "测试商品")),
+                        Mockito.eq(4L),
+                        Mockito.eq(2),
+                        Mockito.eq(1));
+        List<Long> userIds = userIdCaptor.getAllValues();
+        Assertions.assertTrue(userIds.contains(24L));
+        Assertions.assertTrue(userIds.contains(34L));
     }
 
     @Test

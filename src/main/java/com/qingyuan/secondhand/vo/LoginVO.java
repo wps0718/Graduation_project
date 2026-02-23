@@ -12,4 +12,5 @@ public class LoginVO {
     private String nickName;
     private String avatarUrl;
     private Boolean deactivating;
+    private Integer agreementAccepted;
 }

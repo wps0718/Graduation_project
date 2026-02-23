@@ -12,7 +12,7 @@ import com.qingyuan.secondhand.vo.OrderListVO;
 public interface TradeOrderService extends IService<TradeOrder> {
     OrderCreateVO createOrder(OrderCreateDTO dto);
 
-    IPage<OrderListVO> getOrderList(String role, Integer status, Integer pageNum, Integer pageSize);
+    IPage<OrderListVO> getOrderList(String role, Integer status, Integer page, Integer pageSize);
 
     OrderDetailVO getOrderDetail(Long id);
 

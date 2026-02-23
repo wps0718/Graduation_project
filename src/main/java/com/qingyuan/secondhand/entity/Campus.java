@@ -16,9 +16,9 @@ public class Campus {
     @TableId(type = IdType.AUTO)
     private Long id;
     private String name;
-    private String address;
-    private Integer sort;
+    private String code;
     private Integer status;
+    private Integer sort;
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

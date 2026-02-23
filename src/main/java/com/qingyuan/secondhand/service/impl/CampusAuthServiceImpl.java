@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qingyuan.secondhand.common.context.UserContext;
 import com.qingyuan.secondhand.common.enums.AuthStatus;
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.dto.AuthSubmitDTO;
 import com.qingyuan.secondhand.entity.CampusAuth;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -177,9 +179,8 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
         }
         notificationService.send(
                 auth.getUserId(),
-                8,
-                "校园认证通过",
-                "恭喜您，您的校园认证已通过审核！",
+                NotificationType.AUTH_PASS,
+                Map.of(),
                 auth.getId(),
                 3,
                 2
@@ -227,9 +228,8 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
         }
         notificationService.send(
                 auth.getUserId(),
-                9,
-                "校园认证被驳回",
-                "您的校园认证未通过审核，驳回原因：" + rejectReason,
+                NotificationType.AUTH_REJECT,
+                Map.of("reason", rejectReason),
                 auth.getId(),
                 3,
                 2

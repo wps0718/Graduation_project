@@ -84,9 +84,7 @@ const actions = computed(() => {
       )
     }
   } else if (status === ORDER_STATUS.COMPLETED) {
-    if (role === 'buyer') {
-      list.push({ key: 'review', label: '去评价' })
-    }
+    list.push({ key: 'review', label: '去评价' })
   } else if (status === ORDER_STATUS.REVIEWED) {
     if (role === 'buyer') {
       list.push(

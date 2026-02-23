@@ -564,7 +564,7 @@ export const mockData = {
     msg: 'success',
     data: currentUser
   },
-  'POST /mini/user/cancel': {
+  'POST /mini/user/deactivate': {
     code: 1,
     msg: 'success',
     data: null

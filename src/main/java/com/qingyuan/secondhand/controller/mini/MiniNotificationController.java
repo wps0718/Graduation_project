@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.qingyuan.secondhand.common.result.Result;
 import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.NotificationVO;
+import com.qingyuan.secondhand.vo.UnreadCountVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,7 +39,7 @@ public class MiniNotificationController {
     }
 
     @GetMapping("/unread-count")
-    public Result<Long> unreadCount() {
+    public Result<UnreadCountVO> unreadCount() {
         return Result.success(notificationService.getUnreadCount());
     }
 }

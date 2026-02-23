@@ -32,3 +32,6 @@ unpackage/
 .ready-for-review
 .review-passed
 .review-rejected
+
+# Git worktrees
+.worktrees/

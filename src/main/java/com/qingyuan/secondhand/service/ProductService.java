@@ -17,7 +17,7 @@ public interface ProductService extends IService<Product> {
 
     void updateProduct(ProductUpdateDTO dto);
 
-    void updatePrice(Long productId, BigDecimal newPrice);
+    void updatePrice(Long productId, BigDecimal price);
 
     ProductDetailVO getProductDetail(Long productId);
 

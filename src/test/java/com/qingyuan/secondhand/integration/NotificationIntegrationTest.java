@@ -1,6 +1,7 @@
 package com.qingyuan.secondhand.integration;
 
 import com.qingyuan.secondhand.common.context.UserContext;
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.dto.OrderCreateDTO;
 import com.qingyuan.secondhand.dto.ReportHandleDTO;
@@ -15,6 +16,7 @@ import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.mapper.CampusAuthMapper;
 import com.qingyuan.secondhand.mapper.CollegeMapper;
 import com.qingyuan.secondhand.mapper.FavoriteMapper;
+import com.qingyuan.secondhand.mapper.NotificationMapper;
 import com.qingyuan.secondhand.mapper.ProductMapper;
 import com.qingyuan.secondhand.mapper.ReportMapper;
 import com.qingyuan.secondhand.mapper.ReviewMapper;
@@ -58,6 +60,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @SpringBootTest(classes = NotificationIntegrationTest.TestApp.class)
 class NotificationIntegrationTest {
@@ -101,8 +104,9 @@ class NotificationIntegrationTest {
         FavoriteService favoriteService(FavoriteMapper favoriteMapper,
                                         ProductMapper productMapper,
                                         ObjectMapper objectMapper,
-                                        NotificationService notificationService) {
-            return new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationService);
+                                    NotificationMapper notificationMapper,
+                                    NotificationService notificationService) {
+        return new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationMapper, notificationService);
         }
 
         @Bean
@@ -110,8 +114,9 @@ class NotificationIntegrationTest {
                                             ProductMapper productMapper,
                                             StringRedisTemplate redisTemplate,
                                             NotificationService notificationService,
+                                            UserMapper userMapper,
                                             ObjectMapper objectMapper) {
-            return new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, objectMapper);
+            return new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
         }
 
         @Bean
@@ -175,6 +180,9 @@ class NotificationIntegrationTest {
     private FavoriteMapper favoriteMapper;
 
     @MockBean
+    private NotificationMapper notificationMapper;
+
+    @MockBean
     private TradeOrderMapper tradeOrderMapper;
 
     @MockBean
@@ -215,11 +223,10 @@ class NotificationIntegrationTest {
         UserContext.setCurrentUserId(90001L);
         campusAuthService.approveAuth(11L);
 
-        SendArgs args = captureSendArgs();
+        TemplateArgs args = captureTemplateArgs();
         Assertions.assertEquals(auth.getUserId(), args.userId());
-        Assertions.assertEquals(8, args.type());
-        Assertions.assertEquals("校园认证通过", args.title());
-        Assertions.assertTrue(args.content().contains("校园认证已通过"));
+        Assertions.assertEquals(NotificationType.AUTH_PASS, args.type());
+        Assertions.assertEquals(Map.of(), args.params());
         Assertions.assertEquals(auth.getId(), args.relatedId());
         Assertions.assertEquals(RELATED_TYPE_CAMPUS_AUTH, args.relatedType());
         Assertions.assertEquals(2, args.category());
@@ -238,11 +245,10 @@ class NotificationIntegrationTest {
         UserContext.setCurrentUserId(90002L);
         campusAuthService.rejectAuth(12L, "学号不符");
 
-        SendArgs args = captureSendArgs();
+        TemplateArgs args = captureTemplateArgs();
         Assertions.assertEquals(auth.getUserId(), args.userId());
-        Assertions.assertEquals(9, args.type());
-        Assertions.assertEquals("校园认证被驳回", args.title());
-        Assertions.assertTrue(args.content().contains("学号不符"));
+        Assertions.assertEquals(NotificationType.AUTH_REJECT, args.type());
+        Assertions.assertEquals(Map.of("reason", "学号不符"), args.params());
         Assertions.assertEquals(auth.getId(), args.relatedId());
         Assertions.assertEquals(RELATED_TYPE_CAMPUS_AUTH, args.relatedType());
         Assertions.assertEquals(2, args.category());
@@ -262,11 +268,10 @@ class NotificationIntegrationTest {
         UserContext.setCurrentUserId(90003L);
         productService.approveProduct(21L);
 
-        SendArgs args = captureSendArgs();
+        TemplateArgs args = captureTemplateArgs();
         Assertions.assertEquals(product.getUserId(), args.userId());
-        Assertions.assertEquals(3, args.type());
-        Assertions.assertEquals("商品审核通过", args.title());
-        Assertions.assertTrue(args.content().contains(product.getTitle()));
+        Assertions.assertEquals(NotificationType.AUDIT_PASS, args.type());
+        Assertions.assertEquals(Map.of("productName", product.getTitle()), args.params());
         Assertions.assertEquals(product.getId(), args.relatedId());
         Assertions.assertEquals(RELATED_TYPE_PRODUCT, args.relatedType());
         Assertions.assertEquals(2, args.category());
@@ -286,11 +291,10 @@ class NotificationIntegrationTest {
         UserContext.setCurrentUserId(90004L);
         productService.rejectProduct(22L, "图片不清晰");
 
-        SendArgs args = captureSendArgs();
+        TemplateArgs args = captureTemplateArgs();
         Assertions.assertEquals(product.getUserId(), args.userId());
-        Assertions.assertEquals(4, args.type());
-        Assertions.assertEquals("商品审核驳回", args.title());
-        Assertions.assertTrue(args.content().contains("图片不清晰"));
+        Assertions.assertEquals(NotificationType.AUDIT_REJECT, args.type());
+        Assertions.assertEquals(Map.of("productName", product.getTitle(), "reason", "图片不清晰"), args.params());
         Assertions.assertEquals(product.getId(), args.relatedId());
         Assertions.assertEquals(RELATED_TYPE_PRODUCT, args.relatedType());
         Assertions.assertEquals(2, args.category());
@@ -335,14 +339,13 @@ class NotificationIntegrationTest {
         UserContext.setCurrentUserId(10001L);
         favoriteService.addFavorite(31L);
 
-        SendArgs args = captureSendArgs();
+        TemplateArgs args = captureTemplateArgs();
         Assertions.assertEquals(product.getUserId(), args.userId());
-        Assertions.assertEquals(6, args.type());
-        Assertions.assertEquals("您的商品被收藏了", args.title());
-        Assertions.assertTrue(args.content().contains(product.getTitle()));
+        Assertions.assertEquals(NotificationType.BE_FAVORITED, args.type());
+        Assertions.assertEquals(Map.of("productName", product.getTitle(), "count", "1"), args.params());
         Assertions.assertEquals(product.getId(), args.relatedId());
         Assertions.assertEquals(RELATED_TYPE_PRODUCT, args.relatedType());
-        Assertions.assertEquals(1, args.category());
+        Assertions.assertEquals(2, args.category());
     }
 
     @Test
@@ -395,6 +398,7 @@ class NotificationIntegrationTest {
         Product product = new Product();
         product.setId(511L);
         product.setIsDeleted(0);
+        product.setTitle("测试商品");
         Mockito.when(tradeOrderMapper.selectById(51L)).thenReturn(order);
         Mockito.when(productMapper.selectById(511L)).thenReturn(product);
         Mockito.when(tradeOrderMapper.updateById(Mockito.any(TradeOrder.class))).thenReturn(1);
@@ -403,11 +407,10 @@ class NotificationIntegrationTest {
         UserContext.setCurrentUserId(70001L);
         tradeOrderService.confirmOrder(51L);
 
-        SendArgs args = captureSendArgs();
-        Assertions.assertEquals(order.getSellerId(), args.userId());
-        Assertions.assertEquals(1, args.type());
-        Assertions.assertEquals("订单已确认收货", args.title());
-        Assertions.assertTrue(args.content().contains(order.getOrderNo()));
+        TemplateArgs args = captureTemplateArgs();
+        Assertions.assertEquals(order.getBuyerId(), args.userId());
+        Assertions.assertEquals(NotificationType.TRADE_SUCCESS, args.type());
+        Assertions.assertEquals(Map.of("productName", "测试商品"), args.params());
         Assertions.assertEquals(order.getId(), args.relatedId());
         Assertions.assertEquals(RELATED_TYPE_TRADE_ORDER, args.relatedType());
         Assertions.assertEquals(1, args.category());
@@ -425,20 +428,23 @@ class NotificationIntegrationTest {
         Product product = new Product();
         product.setId(611L);
         product.setIsDeleted(0);
+        product.setTitle("测试商品");
+        User seller = new User();
+        seller.setId(80002L);
+        seller.setNickName("卖家");
         Mockito.when(tradeOrderMapper.selectById(61L)).thenReturn(order);
         Mockito.when(productMapper.selectById(611L)).thenReturn(product);
         Mockito.when(tradeOrderMapper.updateById(Mockito.any(TradeOrder.class))).thenReturn(1);
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
+        Mockito.when(userMapper.selectById(80002L)).thenReturn(seller);
 
         UserContext.setCurrentUserId(80001L);
         tradeOrderService.cancelOrder(61L, "不方便面交");
 
-        SendArgs args = captureSendArgs();
+        TemplateArgs args = captureTemplateArgs();
         Assertions.assertEquals(order.getSellerId(), args.userId());
-        Assertions.assertEquals(7, args.type());
-        Assertions.assertEquals("订单已取消", args.title());
-        Assertions.assertTrue(args.content().contains(order.getOrderNo()));
-        Assertions.assertTrue(args.content().contains("不方便面交"));
+        Assertions.assertEquals(NotificationType.ORDER_CANCEL, args.type());
+        Assertions.assertEquals(Map.of("nickName", "卖家", "productName", "测试商品"), args.params());
         Assertions.assertEquals(order.getId(), args.relatedId());
         Assertions.assertEquals(RELATED_TYPE_TRADE_ORDER, args.relatedType());
         Assertions.assertEquals(1, args.category());
@@ -456,19 +462,23 @@ class NotificationIntegrationTest {
         Product product = new Product();
         product.setId(612L);
         product.setIsDeleted(0);
+        product.setTitle("测试商品");
+        User buyer = new User();
+        buyer.setId(80101L);
+        buyer.setNickName("买家");
         Mockito.when(tradeOrderMapper.selectById(62L)).thenReturn(order);
         Mockito.when(productMapper.selectById(612L)).thenReturn(product);
         Mockito.when(tradeOrderMapper.updateById(Mockito.any(TradeOrder.class))).thenReturn(1);
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
+        Mockito.when(userMapper.selectById(80101L)).thenReturn(buyer);
 
         UserContext.setCurrentUserId(80102L);
         tradeOrderService.cancelOrder(62L, null);
 
-        SendArgs args = captureSendArgs();
+        TemplateArgs args = captureTemplateArgs();
         Assertions.assertEquals(order.getBuyerId(), args.userId());
-        Assertions.assertEquals(7, args.type());
-        Assertions.assertEquals("订单已取消", args.title());
-        Assertions.assertTrue(args.content().contains(order.getOrderNo()));
+        Assertions.assertEquals(NotificationType.ORDER_CANCEL, args.type());
+        Assertions.assertEquals(Map.of("nickName", "买家", "productName", "测试商品"), args.params());
         Assertions.assertEquals(order.getId(), args.relatedId());
         Assertions.assertEquals(RELATED_TYPE_TRADE_ORDER, args.relatedType());
         Assertions.assertEquals(1, args.category());
@@ -633,6 +643,31 @@ class NotificationIntegrationTest {
         );
     }
 
+    private TemplateArgs captureTemplateArgs() {
+        ArgumentCaptor<Long> userIdCaptor = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<NotificationType> typeCaptor = ArgumentCaptor.forClass(NotificationType.class);
+        ArgumentCaptor<Map<String, String>> paramsCaptor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Long> relatedIdCaptor = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<Integer> relatedTypeCaptor = ArgumentCaptor.forClass(Integer.class);
+        ArgumentCaptor<Integer> categoryCaptor = ArgumentCaptor.forClass(Integer.class);
+        Mockito.verify(notificationService).send(
+                userIdCaptor.capture(),
+                typeCaptor.capture(),
+                paramsCaptor.capture(),
+                relatedIdCaptor.capture(),
+                relatedTypeCaptor.capture(),
+                categoryCaptor.capture()
+        );
+        return new TemplateArgs(
+                userIdCaptor.getValue(),
+                typeCaptor.getValue(),
+                paramsCaptor.getValue(),
+                relatedIdCaptor.getValue(),
+                relatedTypeCaptor.getValue(),
+                categoryCaptor.getValue()
+        );
+    }
+
     private Review buildReview(Long id, Long reviewerId, Long targetId) {
         Review review = new Review();
         review.setId(id);
@@ -647,5 +682,9 @@ class NotificationIntegrationTest {
 
     private record SendArgs(Long userId, Integer type, String title, String content, Long relatedId, Integer relatedType,
                             Integer category) {
+    }
+
+    private record TemplateArgs(Long userId, NotificationType type, Map<String, String> params, Long relatedId,
+                                Integer relatedType, Integer category) {
     }
 }

@@ -3,7 +3,9 @@ package com.qingyuan.secondhand.controller.mini;
 import com.qingyuan.secondhand.common.result.Result;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.qingyuan.secondhand.dto.ProductPublishDTO;
+import com.qingyuan.secondhand.dto.ProductIdDTO;
 import com.qingyuan.secondhand.dto.ProductUpdateDTO;
+import com.qingyuan.secondhand.dto.ProductUpdatePriceDTO;
 import com.qingyuan.secondhand.service.ProductService;
 import com.qingyuan.secondhand.vo.ProductDetailVO;
 import com.qingyuan.secondhand.vo.ProductListVO;
@@ -39,26 +41,29 @@ public class MiniProductController {
     }
 
     @PostMapping("/update-price")
-    public Result<Void> updatePrice(@RequestParam Long productId, @RequestParam BigDecimal newPrice) {
-        productService.updatePrice(productId, newPrice);
+    public Result<Void> updatePrice(@RequestBody @Valid ProductUpdatePriceDTO dto) {
+        productService.updatePrice(dto.getProductId(), dto.getPrice());
         return Result.success();
     }
 
     @PostMapping("/off-shelf")
-    public Result<Void> offShelf(@RequestParam Long productId) {
-        productService.offShelf(productId);
+    public Result<Void> offShelf(@RequestBody(required = false) @Valid ProductIdDTO dto,
+                                 @RequestParam(required = false) Long productId) {
+        productService.offShelf(dto != null ? dto.getProductId() : productId);
         return Result.success();
     }
 
     @PostMapping("/on-shelf")
-    public Result<Void> onShelf(@RequestParam Long productId) {
-        productService.onShelf(productId);
+    public Result<Void> onShelf(@RequestBody(required = false) @Valid ProductIdDTO dto,
+                                @RequestParam(required = false) Long productId) {
+        productService.onShelf(dto != null ? dto.getProductId() : productId);
         return Result.success();
     }
 
     @PostMapping("/delete")
-    public Result<Void> deleteProduct(@RequestParam Long productId) {
-        productService.deleteProduct(productId);
+    public Result<Void> deleteProduct(@RequestBody(required = false) @Valid ProductIdDTO dto,
+                                      @RequestParam(required = false) Long productId) {
+        productService.deleteProduct(dto != null ? dto.getProductId() : productId);
         return Result.success();
     }
 

@@ -117,6 +117,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { onLoad, onShareAppMessage } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
+import { QUICK_REPLIES } from '@/utils/constant'
 import { useUserStore } from '@/store'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import Price from '@/components/price/price.vue'
@@ -134,13 +135,7 @@ const scrollIntoView = ref('')
 const inputValue = ref('')
 const orderCreated = ref(false)
 
-const quickReplies = [
-  '可以聊聊面交时间吗？',
-  '我在校内，可以当面验货',
-  '今晚七点可以吗？',
-  '可以便宜一点吗？',
-  '好的，谢谢'
-]
+const quickReplies = QUICK_REPLIES
 
 const selfId = computed(() => (userStore.userInfo && userStore.userInfo.id) || 0)
 const selfUser = computed(() => userStore.userInfo || {})

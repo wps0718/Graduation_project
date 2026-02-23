@@ -7,10 +7,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.context.UserContext;
+import com.qingyuan.secondhand.common.enums.NotificationCategory;
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.entity.Favorite;
+import com.qingyuan.secondhand.entity.Notification;
 import com.qingyuan.secondhand.entity.Product;
 import com.qingyuan.secondhand.mapper.FavoriteMapper;
+import com.qingyuan.secondhand.mapper.NotificationMapper;
 import com.qingyuan.secondhand.mapper.ProductMapper;
 import com.qingyuan.secondhand.service.FavoriteService;
 import com.qingyuan.secondhand.service.NotificationService;
@@ -21,7 +25,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +38,7 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
     private final FavoriteMapper favoriteMapper;
     private final ProductMapper productMapper;
     private final ObjectMapper objectMapper;
+    private final NotificationMapper notificationMapper;
     private final NotificationService notificationService;
 
     @Override
@@ -72,15 +81,37 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
         if (updated <= 0) {
             throw new BusinessException("收藏失败");
         }
-        notificationService.send(
-                product.getUserId(),
-                6,
-                "您的商品被收藏了",
-                "有用户收藏了您的商品《" + product.getTitle() + "》",
-                product.getId(),
-                1,
-                1
-        );
+        String productName = product.getTitle() == null ? "商品" : product.getTitle();
+        LocalDateTime todayStart = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+        Notification existingNotification = notificationMapper.selectOne(new LambdaQueryWrapper<Notification>()
+                .eq(Notification::getUserId, product.getUserId())
+                .eq(Notification::getType, NotificationType.BE_FAVORITED.getCode())
+                .eq(Notification::getRelatedId, productId)
+                .ge(Notification::getCreateTime, todayStart)
+                .orderByDesc(Notification::getCreateTime)
+                .last("LIMIT 1"));
+        if (existingNotification != null) {
+            int countValue = extractFavoriteCount(existingNotification.getContent()) + 1;
+            Map<String, String> params = Map.of("productName", productName, "count", String.valueOf(countValue));
+            Notification updateNotification = new Notification();
+            updateNotification.setId(existingNotification.getId());
+            updateNotification.setContent(NotificationType.BE_FAVORITED.formatContent(params));
+            updateNotification.setIsRead(0);
+            updateNotification.setUpdateTime(LocalDateTime.now());
+            int updatedNotification = notificationMapper.updateById(updateNotification);
+            if (updatedNotification <= 0) {
+                throw new BusinessException("更新通知失败");
+            }
+        } else {
+            notificationService.send(
+                    product.getUserId(),
+                    NotificationType.BE_FAVORITED,
+                    Map.of("productName", productName, "count", "1"),
+                    product.getId(),
+                    1,
+                    NotificationCategory.SYSTEM.getCode()
+            );
+        }
     }
 
     @Override
@@ -165,5 +196,17 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private int extractFavoriteCount(String content) {
+        if (!StringUtils.hasText(content)) {
+            return 1;
+        }
+        Pattern pattern = Pattern.compile("被(\\d+)位用户收藏了");
+        Matcher matcher = pattern.matcher(content);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+        return 1;
     }
 }

@@ -63,6 +63,12 @@ public class MiniUserController {
         return Result.success();
     }
 
+    @PostMapping("/accept-agreement")
+    public Result<Void> acceptAgreement() {
+        userService.acceptAgreement();
+        return Result.success();
+    }
+
     @GetMapping("/stats")
     public Result<UserStatsVO> getUserStats() {
         return Result.success(userService.getUserStats());

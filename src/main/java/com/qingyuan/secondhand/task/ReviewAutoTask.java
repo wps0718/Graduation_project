@@ -1,7 +1,6 @@
 package com.qingyuan.secondhand.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.qingyuan.secondhand.common.enums.NotificationCategory;
 import com.qingyuan.secondhand.common.enums.OrderStatus;
 import com.qingyuan.secondhand.entity.Review;
 import com.qingyuan.secondhand.entity.TradeOrder;
@@ -9,7 +8,6 @@ import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.mapper.ReviewMapper;
 import com.qingyuan.secondhand.mapper.TradeOrderMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
-import com.qingyuan.secondhand.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -32,7 +30,6 @@ public class ReviewAutoTask {
     private final TradeOrderMapper tradeOrderMapper;
     private final ReviewMapper reviewMapper;
     private final UserMapper userMapper;
-    private final NotificationService notificationService;
 
     @Scheduled(cron = "0 0 3 * * ?")
     public void execute() {
@@ -65,15 +62,6 @@ public class ReviewAutoTask {
                         if (inserted <= 0) {
                             throw new RuntimeException("自动好评失败");
                         }
-                        notificationService.send(
-                                order.getSellerId(),
-                                10,
-                                "收到评价",
-                                "您收到了一条系统自动好评",
-                                order.getId(),
-                                2,
-                                NotificationCategory.TRANSACTION.getCode()
-                        );
                         targetIds.add(order.getSellerId());
                         newCount++;
                     }
@@ -83,15 +71,6 @@ public class ReviewAutoTask {
                         if (inserted <= 0) {
                             throw new RuntimeException("自动好评失败");
                         }
-                        notificationService.send(
-                                order.getBuyerId(),
-                                10,
-                                "收到评价",
-                                "您收到了一条系统自动好评",
-                                order.getId(),
-                                2,
-                                NotificationCategory.TRANSACTION.getCode()
-                        );
                         targetIds.add(order.getBuyerId());
                         newCount++;
                     }

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.context.UserContext;
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.dto.ProductPublishDTO;
 import com.qingyuan.secondhand.dto.ProductUpdateDTO;
@@ -590,7 +591,7 @@ class ProductServiceImplTest {
         Assertions.assertEquals(900L, captor.getValue().getReviewerId());
         Assertions.assertNotNull(captor.getValue().getReviewTime());
         Assertions.assertNull(captor.getValue().getRejectReason());
-        Mockito.verify(notificationService).sendNotification(200L, 3, "商品审核通过");
+        Mockito.verify(notificationService).send(Mockito.eq(200L), Mockito.eq(NotificationType.AUDIT_PASS), Mockito.anyMap(), Mockito.eq(1L), Mockito.eq(1), Mockito.eq(2));
     }
 
     @Test
@@ -639,7 +640,7 @@ class ProductServiceImplTest {
         Assertions.assertEquals("违规", captor.getValue().getRejectReason());
         Assertions.assertEquals(900L, captor.getValue().getReviewerId());
         Assertions.assertNotNull(captor.getValue().getReviewTime());
-        Mockito.verify(notificationService).sendNotification(200L, 4, "商品审核驳回：违规");
+        Mockito.verify(notificationService).send(Mockito.eq(200L), Mockito.eq(NotificationType.AUDIT_REJECT), Mockito.anyMap(), Mockito.eq(1L), Mockito.eq(1), Mockito.eq(2));
     }
 
     @Test
@@ -708,7 +709,7 @@ class ProductServiceImplTest {
         ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
         Mockito.verify(productMapper).updateById(captor.capture());
         Assertions.assertEquals(2, captor.getValue().getStatus());
-        Mockito.verify(notificationService).sendNotification(200L, 5, "商品被强制下架");
+        Mockito.verify(notificationService).send(Mockito.eq(200L), Mockito.eq(2), Mockito.eq("商品被强制下架"), Mockito.anyString(), Mockito.eq(1L), Mockito.eq(1), Mockito.eq(2));
     }
 
     @Test

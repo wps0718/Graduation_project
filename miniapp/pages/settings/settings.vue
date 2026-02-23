@@ -123,7 +123,7 @@ async function onCancelAccount() {
     return
   }
   try {
-    await post('/mini/user/cancel', {}, { showLoading: true })
+    await post('/mini/user/deactivate', {}, { showLoading: true })
     userStore.logout()
     uni.reLaunch({ url: '/pages/login/login' })
   } catch (error) {

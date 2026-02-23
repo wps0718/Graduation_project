@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.constant.RedisConstant;
 import com.qingyuan.secondhand.common.context.UserContext;
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.dto.ProductPublishDTO;
 import com.qingyuan.secondhand.dto.ProductUpdateDTO;
@@ -28,6 +29,7 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -89,12 +91,12 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
-    public void updatePrice(Long productId, BigDecimal newPrice) {
+    public void updatePrice(Long productId, BigDecimal price) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
             throw new BusinessException("未登录");
         }
-        if (newPrice == null || newPrice.compareTo(BigDecimal.ZERO) <= 0) {
+        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException("价格必须大于0");
         }
         Product existing = productMapper.selectById(productId);
@@ -106,7 +108,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         }
         Product product = new Product();
         product.setId(productId);
-        product.setPrice(newPrice);
+        product.setPrice(price);
         int updated = productMapper.updateById(product);
         if (updated <= 0) {
             throw new BusinessException("修改价格失败");
@@ -316,11 +318,11 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (updated <= 0) {
             throw new BusinessException("审核失败");
         }
+        String productName = product.getTitle() == null ? "" : product.getTitle();
         notificationService.send(
                 product.getUserId(),
-                3,
-                "商品审核通过",
-                "您的商品《" + product.getTitle() + "》已通过审核，现已上架！",
+                NotificationType.AUDIT_PASS,
+                Map.of("productName", productName),
                 product.getId(),
                 1,
                 2
@@ -354,11 +356,11 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (updated <= 0) {
             throw new BusinessException("审核失败");
         }
+        String productName = product.getTitle() == null ? "" : product.getTitle();
         notificationService.send(
                 product.getUserId(),
-                4,
-                "商品审核驳回",
-                "您的商品《" + product.getTitle() + "》未通过审核，驳回原因：" + rejectReason,
+                NotificationType.AUDIT_REJECT,
+                Map.of("productName", productName, "reason", rejectReason),
                 product.getId(),
                 1,
                 2

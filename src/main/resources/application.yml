@@ -39,5 +39,6 @@ task:
     order-expire: true
     order-auto-confirm: true
     review-auto: true
+    review-remind: true
     product-auto-off: true
     user-deactivate: true

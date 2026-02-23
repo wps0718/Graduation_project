@@ -6,15 +6,20 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qingyuan.secondhand.common.context.UserContext;
+import com.qingyuan.secondhand.common.enums.NotificationCategory;
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.entity.Notification;
 import com.qingyuan.secondhand.mapper.NotificationMapper;
 import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.NotificationVO;
+import com.qingyuan.secondhand.vo.UnreadCountVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -90,15 +95,37 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     }
 
     @Override
-    public Long getUnreadCount() {
+    public UnreadCountVO getUnreadCount() {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
             throw new BusinessException("未登录");
         }
-        Long count = notificationMapper.selectCount(new LambdaQueryWrapper<Notification>()
+        Long totalCount = notificationMapper.selectCount(new LambdaQueryWrapper<Notification>()
                 .eq(Notification::getUserId, userId)
                 .eq(Notification::getIsRead, 0));
-        return count == null ? 0L : count;
+        Long tradeCount = notificationMapper.selectCount(new LambdaQueryWrapper<Notification>()
+                .eq(Notification::getUserId, userId)
+                .eq(Notification::getIsRead, 0)
+                .eq(Notification::getCategory, NotificationCategory.TRANSACTION.getCode()));
+        Long systemCount = notificationMapper.selectCount(new LambdaQueryWrapper<Notification>()
+                .eq(Notification::getUserId, userId)
+                .eq(Notification::getIsRead, 0)
+                .eq(Notification::getCategory, NotificationCategory.SYSTEM.getCode()));
+        UnreadCountVO vo = new UnreadCountVO();
+        vo.setTrade(tradeCount == null ? 0L : tradeCount);
+        vo.setSystem(systemCount == null ? 0L : systemCount);
+        vo.setTotal(totalCount == null ? 0L : totalCount);
+        return vo;
+    }
+
+    @Override
+    @Async
+    public void send(Long userId, NotificationType type, Map<String, String> params, Long relatedId, Integer relatedType, Integer category) {
+        if (type == null) {
+            throw new BusinessException("消息类型不能为空");
+        }
+        String content = type.formatContent(params);
+        send(userId, type.getCode(), type.getDescription(), content, relatedId, relatedType, category);
     }
 
     @Override

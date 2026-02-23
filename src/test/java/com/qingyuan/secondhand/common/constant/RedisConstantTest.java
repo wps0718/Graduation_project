@@ -18,7 +18,7 @@ class RedisConstantTest {
         assertThat(RedisConstant.CAMPUS_LIST).isEqualTo("campus:list");
         assertThat(RedisConstant.COLLEGE_LIST).isEqualTo("college:list");
         assertThat(RedisConstant.BANNER_LIST).isEqualTo("banner:list:");
-        assertThat(RedisConstant.SEARCH_HOT).isEqualTo("search:hot");
+        assertThat(RedisConstant.SEARCH_HOT).isEqualTo("search:hot:keywords");
         assertThat(RedisConstant.USER_STATS).isEqualTo("user:stats:");
         assertThat(RedisConstant.LOGIN_FAIL).isEqualTo("login:fail:");
         assertThat(RedisConstant.PRODUCT_LOCK).isEqualTo("product:lock:");

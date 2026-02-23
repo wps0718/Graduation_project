@@ -18,9 +18,11 @@ import com.qingyuan.secondhand.dto.WxLoginDTO;
 import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.mapper.UserMapper;
 import com.qingyuan.secondhand.service.UserService;
+import com.qingyuan.secondhand.vo.AdminUserDetailVO;
+import com.qingyuan.secondhand.vo.AdminUserPageVO;
 import com.qingyuan.secondhand.vo.LoginVO;
-import com.qingyuan.secondhand.vo.UserInfoVO;
 import com.qingyuan.secondhand.vo.ProductSimpleVO;
+import com.qingyuan.secondhand.vo.UserInfoVO;
 import com.qingyuan.secondhand.vo.UserProfileVO;
 import com.qingyuan.secondhand.vo.UserStatsVO;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -93,6 +95,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         vo.setNickName(user.getNickName());
         vo.setAvatarUrl(user.getAvatarUrl());
         vo.setDeactivating(UserStatus.DEREGISTERING.getCode().equals(user.getStatus()));
+        Integer agreementAccepted = user.getAgreementAccepted();
+        vo.setAgreementAccepted(agreementAccepted == null ? 0 : agreementAccepted);
 
         String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId(), "type", "mini"));
         vo.setToken(token);
@@ -153,6 +157,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         vo.setNickName(user.getNickName());
         vo.setAvatarUrl(user.getAvatarUrl());
         vo.setDeactivating(UserStatus.DEREGISTERING.getCode().equals(user.getStatus()));
+        Integer agreementAccepted = user.getAgreementAccepted();
+        vo.setAgreementAccepted(agreementAccepted == null ? 0 : agreementAccepted);
 
         String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId(), "type", "mini"));
         vo.setToken(token);
@@ -235,6 +241,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         vo.setNickName(user.getNickName());
         vo.setAvatarUrl(user.getAvatarUrl());
         vo.setDeactivating(UserStatus.DEREGISTERING.getCode().equals(user.getStatus()));
+        Integer agreementAccepted = user.getAgreementAccepted();
+        vo.setAgreementAccepted(agreementAccepted == null ? 0 : agreementAccepted);
 
         String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId(), "type", "mini"));
         vo.setToken(token);
@@ -390,6 +398,32 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public void acceptAgreement() {
+        Long userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException("未登录");
+        }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        if (Integer.valueOf(1).equals(user.getAgreementAccepted())) {
+            return;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        User update = new User();
+        update.setId(userId);
+        update.setAgreementAccepted(1);
+        update.setUpdateTime(now);
+        int updated = userMapper.updateById(update);
+        if (updated <= 0) {
+            throw new BusinessException("协议确认失败");
+        }
+        stringRedisTemplate.delete(RedisConstant.USER_INFO + userId);
+        stringRedisTemplate.delete(RedisConstant.USER_STATS + userId);
+    }
+
+    @Override
     @Transactional
     public void deactivateAccount() {
         Long userId = UserContext.getCurrentUserId();
@@ -458,6 +492,85 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException("恢复失败");
         }
 
+        stringRedisTemplate.delete(RedisConstant.USER_INFO + userId);
+        stringRedisTemplate.delete(RedisConstant.USER_STATS + userId);
+    }
+
+    @Override
+    public Page<AdminUserPageVO> getAdminUserPage(Integer page, Integer pageSize, String keyword, Integer status, Integer authStatus, Long campusId) {
+        int current = page == null || page <= 0 ? 1 : page;
+        int size = pageSize == null || pageSize <= 0 ? 10 : pageSize;
+        Page<AdminUserPageVO> result = userMapper.getAdminUserPage(new Page<>(current, size), keyword, status, authStatus, campusId);
+        if (result == null || result.getRecords() == null) {
+            return result;
+        }
+        result.getRecords().forEach(item -> item.setPhone(PhoneUtil.maskPhone(item.getPhone())));
+        return result;
+    }
+
+    @Override
+    public AdminUserDetailVO getAdminUserDetail(Long id) {
+        if (id == null) {
+            throw new BusinessException("用户ID不能为空");
+        }
+        AdminUserDetailVO detail = userMapper.getAdminUserDetail(id);
+        if (detail == null) {
+            throw new BusinessException("用户不存在");
+        }
+        detail.setPhone(PhoneUtil.maskPhone(detail.getPhone()));
+        return detail;
+    }
+
+    @Override
+    public void banUser(Long userId, String banReason) {
+        if (userId == null) {
+            throw new BusinessException("用户ID不能为空");
+        }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        if (UserStatus.BANNED.getCode().equals(user.getStatus())) {
+            throw new BusinessException("账号已被封禁");
+        }
+        if (UserStatus.DEREGISTERING.getCode().equals(user.getStatus())) {
+            throw new BusinessException("账号注销中，无法封禁");
+        }
+        String reason = StringUtils.hasText(banReason) ? banReason : "违规封禁";
+        User update = new User();
+        update.setId(userId);
+        update.setStatus(UserStatus.BANNED.getCode());
+        update.setBanReason(reason);
+        update.setUpdateTime(LocalDateTime.now());
+        int updated = userMapper.updateById(update);
+        if (updated <= 0) {
+            throw new BusinessException("封禁失败");
+        }
+        stringRedisTemplate.delete(RedisConstant.USER_INFO + userId);
+        stringRedisTemplate.delete(RedisConstant.USER_STATS + userId);
+    }
+
+    @Override
+    public void unbanUser(Long userId) {
+        if (userId == null) {
+            throw new BusinessException("用户ID不能为空");
+        }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        if (!UserStatus.BANNED.getCode().equals(user.getStatus())) {
+            throw new BusinessException("账号未被封禁");
+        }
+        User update = new User();
+        update.setId(userId);
+        update.setStatus(UserStatus.NORMAL.getCode());
+        update.setBanReason(null);
+        update.setUpdateTime(LocalDateTime.now());
+        int updated = userMapper.updateById(update);
+        if (updated <= 0) {
+            throw new BusinessException("解封失败");
+        }
         stringRedisTemplate.delete(RedisConstant.USER_INFO + userId);
         stringRedisTemplate.delete(RedisConstant.USER_STATS + userId);
     }

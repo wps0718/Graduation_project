@@ -3,10 +3,12 @@ package com.qingyuan.secondhand.service.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qingyuan.secondhand.common.context.UserContext;
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.entity.Notification;
 import com.qingyuan.secondhand.mapper.NotificationMapper;
 import com.qingyuan.secondhand.vo.NotificationVO;
+import com.qingyuan.secondhand.vo.UnreadCountVO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -17,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceImplTest {
@@ -129,11 +132,13 @@ class NotificationServiceImplTest {
         NotificationServiceImpl service = new NotificationServiceImpl(notificationMapper);
 
         UserContext.setCurrentUserId(10001L);
-        Mockito.when(notificationMapper.selectCount(Mockito.any())).thenReturn(5L);
+        Mockito.when(notificationMapper.selectCount(Mockito.any())).thenReturn(5L, 2L, 3L);
 
-        Long count = service.getUnreadCount();
+        UnreadCountVO count = service.getUnreadCount();
 
-        Assertions.assertEquals(5L, count);
+        Assertions.assertEquals(5L, count.getTotal());
+        Assertions.assertEquals(2L, count.getTrade());
+        Assertions.assertEquals(3L, count.getSystem());
     }
 
     @Test
@@ -155,6 +160,34 @@ class NotificationServiceImplTest {
         Assertions.assertEquals(100L, saved.getRelatedId());
         Assertions.assertEquals(2, saved.getRelatedType());
         Assertions.assertEquals(0, saved.getIsRead());
+        Assertions.assertEquals(1, saved.getCategory());
+    }
+
+    @Test
+    void testNotificationTypeFormatContent() {
+        String content = NotificationType.TRADE_SUCCESS.formatContent(Map.of("productName", "相机"));
+
+        Assertions.assertEquals("你购买的「相机」交易已完成，给卖家一个评价吧！", content);
+    }
+
+    @Test
+    void testSendWithTemplate_Success() {
+        NotificationMapper notificationMapper = Mockito.mock(NotificationMapper.class);
+        NotificationServiceImpl service = new NotificationServiceImpl(notificationMapper);
+
+        Mockito.when(notificationMapper.insert(Mockito.any(Notification.class))).thenReturn(1);
+
+        service.send(10001L, NotificationType.TRADE_SUCCESS, Map.of("productName", "耳机"), 100L, 2, 1);
+
+        ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
+        Mockito.verify(notificationMapper).insert(captor.capture());
+        Notification saved = captor.getValue();
+        Assertions.assertEquals(10001L, saved.getUserId());
+        Assertions.assertEquals(1, saved.getType());
+        Assertions.assertEquals("交易成功", saved.getTitle());
+        Assertions.assertEquals("你购买的「耳机」交易已完成，给卖家一个评价吧！", saved.getContent());
+        Assertions.assertEquals(100L, saved.getRelatedId());
+        Assertions.assertEquals(2, saved.getRelatedType());
         Assertions.assertEquals(1, saved.getCategory());
     }
 

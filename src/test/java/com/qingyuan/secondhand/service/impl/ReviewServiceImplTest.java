@@ -70,7 +70,7 @@ class ReviewServiceImplTest {
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         Mockito.verify(userMapper).updateById(userCaptor.capture());
         Assertions.assertEquals(new BigDecimal("4.0"), userCaptor.getValue().getScore());
-        Mockito.verify(notificationService).sendNotification(10002L, 10, "您收到新的评价");
+        Mockito.verify(notificationService).send(Mockito.eq(10002L), Mockito.eq(10), Mockito.eq("您收到了新的评价"), Mockito.anyString(), Mockito.eq(1L), Mockito.eq(2), Mockito.eq(1));
         Mockito.verify(tradeOrderMapper, Mockito.never()).updateById(Mockito.any(TradeOrder.class));
     }
 
