@@ -1,14 +1,15 @@
-F-IM-03 消息存储与查询 - 审查通过
-
-审查时间：2026-02-23 10:52
+F-IM-04 业务卡片消息与系统集成
+审查通过时间：2026-02-23 12:05
 审查人：监督者（Kiro IDE）
 
-审查结果：✅ 通过
+所有验收标准均已满足：
+1. ✅ 商品卡片消息(msgType=2)：content为JSON，包含productId/title/price/image/status
+2. ✅ 订单卡片消息(msgType=3)：订单创建时自动插入，content为JSON包含orderId/orderNo/price/status/statusText
+3. ✅ 系统提示消息(msgType=4)：如'卖家将价格修改为¥2600'
+4. ✅ 快捷回复消息(msgType=5)：与普通文本消息处理逻辑相同
+5. ✅ ChatMessageService提供sendProductCard/sendOrderCard/sendSystemTip方法
+6. ✅ ChatSessionServiceImpl.createSession补全：新会话自动发送商品卡片
+7. ✅ TradeOrderServiceImpl/ProductServiceImpl集成IM调用
 
-所有红线问题已修复：
-1. ChatMessageHandler 异常处理 - ✅ 已修复
-2. ReadMessageHandler 异常处理 - ✅ 已修复
-
-独立复跑验证：✅ 通过（9/9 测试通过）
-
-详细审查报告见 tasksWeb.md
+测试结果：20/20 通过
+独立复跑：✅ 通过
