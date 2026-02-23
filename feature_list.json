@@ -969,7 +969,9 @@
         "vo/ChatMessageVO.java",
         "controller/mini/MiniChatController.java（追加消息查询和已读接口）"
       ],
-      "passes": true
+      "passes": true,
+      "reviewed_by": "Kiro Supervisor",
+      "reviewed_at": "2026-02-23 10:52"
     },
     {
       "id": "F-IM-04",
