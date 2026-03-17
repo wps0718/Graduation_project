@@ -47,23 +47,20 @@ public class MiniProductController {
     }
 
     @PostMapping("/off-shelf")
-    public Result<Void> offShelf(@RequestBody(required = false) @Valid ProductIdDTO dto,
-                                 @RequestParam(required = false) Long productId) {
-        productService.offShelf(dto != null ? dto.getProductId() : productId);
+    public Result<Void> offShelf(@RequestBody @Valid ProductIdDTO dto) {
+        productService.offShelf(dto.getProductId());
         return Result.success();
     }
 
     @PostMapping("/on-shelf")
-    public Result<Void> onShelf(@RequestBody(required = false) @Valid ProductIdDTO dto,
-                                @RequestParam(required = false) Long productId) {
-        productService.onShelf(dto != null ? dto.getProductId() : productId);
+    public Result<Void> onShelf(@RequestBody @Valid ProductIdDTO dto) {
+        productService.onShelf(dto.getProductId());
         return Result.success();
     }
 
     @PostMapping("/delete")
-    public Result<Void> deleteProduct(@RequestBody(required = false) @Valid ProductIdDTO dto,
-                                      @RequestParam(required = false) Long productId) {
-        productService.deleteProduct(dto != null ? dto.getProductId() : productId);
+    public Result<Void> deleteProduct(@RequestBody @Valid ProductIdDTO dto) {
+        productService.deleteProduct(dto.getProductId());
         return Result.success();
     }
 
