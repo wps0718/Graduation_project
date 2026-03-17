@@ -2,7 +2,7 @@ import { BASE_URL } from './constant'
 import { getToken, logout } from './auth'
 import { mockData } from './mock'
 
-const USE_MOCK = true
+const USE_MOCK = false
 
 function getMockResponse(url, method) {
   const key = `${method.toUpperCase()} ${url}`

@@ -46,9 +46,8 @@ public class MiniOrderController {
     }
 
     @PostMapping("/confirm")
-    public Result<Void> confirm(@RequestBody(required = false) @Valid OrderIdDTO dto,
-                                @RequestParam(required = false) Long orderId) {
-        tradeOrderService.confirmOrder(dto != null ? dto.getOrderId() : orderId);
+    public Result<Void> confirm(@RequestBody @Valid OrderIdDTO dto) {
+        tradeOrderService.confirmOrder(dto.getOrderId());
         return Result.success();
     }
 
@@ -59,9 +58,8 @@ public class MiniOrderController {
     }
 
     @PostMapping("/delete")
-    public Result<Void> delete(@RequestBody(required = false) @Valid OrderIdDTO dto,
-                               @RequestParam(required = false) Long orderId) {
-        tradeOrderService.deleteOrder(dto != null ? dto.getOrderId() : orderId);
+    public Result<Void> delete(@RequestBody @Valid OrderIdDTO dto) {
+        tradeOrderService.deleteOrder(dto.getOrderId());
         return Result.success();
     }
 }
