@@ -27,7 +27,33 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/mini/**")
-                .excludePathPatterns("/mini/user/login", "/mini/user/wx-login", "/mini/user/sms/send", "/mini/user/sms-login", "/mini/user/profile/**", "/mini/common/**", "/mini/college/list", "/mini/category/list", "/mini/campus/list", "/mini/campus/meeting-points/**");
+                .excludePathPatterns(
+                        // 登录相关
+                        "/mini/user/login",
+                        "/mini/user/wx-login",
+                        "/mini/user/sms/send",
+                        "/mini/user/sms-login",
+                        // 用户公开接口
+                        "/mini/user/profile/**",
+                        "/mini/common/**",
+                        // 校区相关（首页必需）
+                        "/mini/campus/list",
+                        "/mini/campus/meeting-points/**",
+                        // 分类相关（首页必需）
+                        "/mini/category/list",
+                        // Banner（首页必需）
+                        "/mini/banner/list",
+                        // 商品公开接口（首页必需）
+                        "/mini/product/list",
+                        "/mini/product/detail/**",
+                        "/mini/product/my-list",
+                        // 搜索相关（首页必需）
+                        "/mini/search/hot-keywords",
+                        // 收藏相关
+                        "/mini/favorite/check/**",
+                        // 学院列表
+                        "/mini/college/list"
+                );
 
         registry.addInterceptor(adminJwtInterceptor)
                 .addPathPatterns("/admin/**")
