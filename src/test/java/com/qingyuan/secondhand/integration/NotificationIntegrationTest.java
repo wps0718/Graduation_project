@@ -356,6 +356,9 @@ class NotificationIntegrationTest {
         product.setTitle("显示器");
         product.setStatus(1);
         product.setIsDeleted(0);
+        product.setPrice(new BigDecimal("99.00"));
+        product.setCampusId(1L);
+        product.setMeetingPointText("图书馆");
         Mockito.when(productMapper.selectById(41L)).thenReturn(product);
         Mockito.when(tradeOrderMapper.selectCount(Mockito.any())).thenReturn(0L);
         Mockito.when(tradeOrderMapper.insert(Mockito.any(TradeOrder.class))).thenAnswer(invocation -> {
@@ -371,9 +374,6 @@ class NotificationIntegrationTest {
         UserContext.setCurrentUserId(60001L);
         OrderCreateDTO dto = new OrderCreateDTO();
         dto.setProductId(41L);
-        dto.setPrice(new BigDecimal("99.00"));
-        dto.setCampusId(1L);
-        dto.setMeetingPoint("图书馆");
         tradeOrderService.createOrder(dto);
 
         SendArgs args = captureSendArgs();

@@ -91,9 +91,9 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             order.setProductId(dto.getProductId());
             order.setBuyerId(userId);
             order.setSellerId(product.getUserId());
-            order.setPrice(dto.getPrice());
-            order.setCampusId(dto.getCampusId());
-            order.setMeetingPoint(dto.getMeetingPoint());
+            order.setPrice(product.getPrice());
+            order.setCampusId(product.getCampusId());
+            order.setMeetingPoint(product.getMeetingPointText());
             order.setStatus(1);
             order.setExpireTime(LocalDateTime.now().plusHours(72));
             order.setConfirmDeadline(LocalDateTime.now().plusDays(7));

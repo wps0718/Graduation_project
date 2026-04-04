@@ -98,9 +98,9 @@ class TradeOrderServiceImplTest {
         Assertions.assertEquals(1L, saved.getProductId());
         Assertions.assertEquals(10000L, saved.getBuyerId());
         Assertions.assertEquals(20001L, saved.getSellerId());
-        Assertions.assertEquals(dto.getPrice(), saved.getPrice());
-        Assertions.assertEquals(dto.getCampusId(), saved.getCampusId());
-        Assertions.assertEquals(dto.getMeetingPoint(), saved.getMeetingPoint());
+        Assertions.assertEquals(new BigDecimal("199.99"), saved.getPrice());
+        Assertions.assertEquals(1L, saved.getCampusId());
+        Assertions.assertEquals("A区门口", saved.getMeetingPoint());
 
         Duration expireDuration = Duration.between(before, saved.getExpireTime());
         Assertions.assertTrue(expireDuration.toHours() >= 71 && expireDuration.toHours() <= 73);
@@ -625,9 +625,6 @@ class TradeOrderServiceImplTest {
     private OrderCreateDTO buildCreateDTO() {
         OrderCreateDTO dto = new OrderCreateDTO();
         dto.setProductId(1L);
-        dto.setPrice(new BigDecimal("199.99"));
-        dto.setCampusId(1L);
-        dto.setMeetingPoint("A区门口");
         return dto;
     }
 
@@ -637,6 +634,9 @@ class TradeOrderServiceImplTest {
         product.setUserId(userId);
         product.setStatus(status);
         product.setIsDeleted(0);
+        product.setPrice(new BigDecimal("199.99"));
+        product.setCampusId(1L);
+        product.setMeetingPointText("A区门口");
         return product;
     }
 
