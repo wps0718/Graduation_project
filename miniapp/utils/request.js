@@ -125,8 +125,63 @@ export function post(url, data = {}, options = {}) {
   return request(url, 'POST', data, options)
 }
 
-export default {
-  get,
-  post
+export function uploadFile(url, filePath, options = {}) {
+  const mergedOptions = {
+    showLoading: true,
+    name: 'file',
+    formData: {},
+    ...options
+  }
+  const { showLoading, name, formData } = mergedOptions
+  if (showLoading) {
+    uni.showLoading({
+      title: '上传中',
+      mask: true
+    })
+  }
+  const token = getToken()
+  return new Promise((resolve, reject) => {
+    uni.uploadFile({
+      url: BASE_URL + url,
+      filePath,
+      name,
+      formData,
+      header: {
+        Authorization: token ? `Bearer ${token}` : ''
+      },
+      success: (res) => {
+        if (showLoading) {
+          uni.hideLoading()
+        }
+        let response = {}
+        try {
+          response = JSON.parse(res.data || '{}')
+        } catch (error) {
+          uni.showToast({
+            title: '上传响应解析失败',
+            icon: 'none'
+          })
+          reject(error)
+          return
+        }
+        handleResponse(response, resolve, reject)
+      },
+      fail: (err) => {
+        if (showLoading) {
+          uni.hideLoading()
+        }
+        uni.showToast({
+          title: '上传失败，请稍后重试',
+          icon: 'none'
+        })
+        reject(err)
+      }
+    })
+  })
 }
 
+export default {
+  get,
+  post,
+  uploadFile
+}

@@ -1,7 +1,7 @@
 <template>
   <view class="product-card" @click="goDetail">
     <view class="product-card__image">
-      <image :src="product.coverImage" mode="aspectFill" class="product-card__image-inner" />
+      <image :src="imageSrc" mode="aspectFill" class="product-card__image-inner" @error="onImageError" />
     </view>
     <view class="product-card__info">
       <text class="product-card__title text-ellipsis-2">{{ product.title }}</text>
@@ -20,7 +20,9 @@
 </template>
 
 <script setup>
+import { computed, ref, watch } from 'vue'
 import Price from '@/components/price/price.vue'
+import { resolveImageUrl } from '@/utils/image'
 
 const props = defineProps({
   product: {
@@ -28,6 +30,28 @@ const props = defineProps({
     required: true
   }
 })
+
+const imageLoadFailed = ref(false)
+
+watch(
+  () => props.product && props.product.coverImage,
+  () => {
+    imageLoadFailed.value = false
+  }
+)
+
+const imageSrc = computed(() => {
+  if (imageLoadFailed.value) {
+    return '/static/pic/校徽.png'
+  }
+  return resolveImageUrl(props.product && props.product.coverImage, {
+    fallback: '/static/pic/校徽.png'
+  })
+})
+
+function onImageError() {
+  imageLoadFailed.value = true
+}
 
 function goDetail() {
   if (!props.product || !props.product.id) {
@@ -109,4 +133,3 @@ function goDetail() {
   color: var(--text-secondary);
 }
 </style>
-

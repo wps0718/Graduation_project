@@ -45,7 +45,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
-import { get, post } from '@/utils/request'
+import { get, post, uploadFile } from '@/utils/request'
+import { resolveImageUrl } from '@/utils/image'
 import { useUserStore } from '@/store'
 
 const userStore = useUserStore()
@@ -133,9 +134,9 @@ async function changeAvatar() {
     const path = res && res.tempFilePaths && res.tempFilePaths[0]
     if (!path) return
     form.value.avatarUrl = path
-    const data = await post('/common/upload', { filePath: path }, { showLoading: true })
+    const data = await uploadFile('/common/upload', path, { showLoading: true })
     if (data && data.url) {
-      form.value.avatarUrl = data.url
+      form.value.avatarUrl = resolveImageUrl(data.url)
     }
   } catch (error) {
     showToast('头像更新失败')

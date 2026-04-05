@@ -9,14 +9,14 @@
           <view class="campus-arrow">▼</view>
         </view>
         <view class="campus-location">
-          <image src="/static/svg/定位.svg" class="location-icon" />
+          <image src="/static/svg/location.svg" class="location-icon" />
           <text>{{ appStore.currentCampusName ? appStore.currentCampusName + '校区' : '定位中...' }}</text>
         </view>
       </view>
       
       <!-- 第二行：搜索框 -->
       <view class="search-bar" @click="goSearch">
-        <image src="/static/svg/搜索.svg" class="search-icon" />
+        <image src="/static/svg/search.svg" class="search-icon" />
         <text class="search-placeholder">搜索闲置物品</text>
       </view>
     </view>
@@ -51,15 +51,24 @@
           @click="handleCategoryClick(item)"
         >
           <view class="category-icon">
-            <image v-if="item.iconPath" :src="item.iconPath" class="category-icon-img" />
-            <text v-else>{{ item.icon }}</text>
+            <image
+              :src="getCategoryIconSrc(item)"
+              class="category-icon-img"
+              @error="handleCategoryIconError(item)"
+            />
           </view>
           <text class="category-text">{{ item.name }}</text>
+        </view>
+        <view class="category-item" @click="goPickupPackage">
+          <view class="category-icon">
+            <image src="/static/svg/Pick_up_Package.svg" class="category-icon-img" />
+          </view>
+          <text class="category-text">代拿快递</text>
         </view>
         <!-- 更多分类 -->
         <view class="category-item" @click="goSearch">
           <view class="category-icon">
-             <image src="/static/svg/全部.svg" class="category-icon-img" />
+             <image src="/static/svg/all.svg" class="category-icon-img" />
           </view>
           <text class="category-text">更多</text>
         </view>
@@ -99,12 +108,12 @@ import { ref } from 'vue'
 import { onLoad, onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useAppStore } from '@/store/app'
 import { get } from '@/utils/request'
+import { normalizeProductCardData } from '@/utils/image'
 import ProductCard from '@/components/product-card/product-card.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
 
 const appStore = useAppStore()
 
-// 状态定义
 const bannerList = ref([])
 const categoryList = ref([])
 const productList = ref([])
@@ -112,8 +121,30 @@ const loading = ref(false)
 const hasMore = ref(true)
 const page = ref(1)
 const pageSize = 20
+const categoryIconErrorMap = ref({})
+const CATEGORY_ICON_PLACEHOLDER = '/static/svg/all.svg'
+const CATEGORY_ICON_BY_NAME = {
+  书籍: '/static/svg/book.svg',
+  服饰: '/static/svg/clothing.svg',
+  服饰鞋包: '/static/svg/clothing-bags.svg',
+  生活: '/static/svg/water-bottle.svg',
+  生活设备: '/static/svg/water-bottle.svg',
+  电子设备: '/static/svg/electronics.svg',
+  运动设备: '/static/svg/sports.svg',
+  潮玩娱乐: '/static/svg/hobby.svg',
+  快递: '/static/svg/bicycle.svg',
+  代拿快递: '/static/svg/Pick_up_Package.svg'
+}
+const CATEGORY_ICON_BY_ID = {
+  1: '/static/svg/book.svg',
+  2: '/static/svg/clothing.svg',
+  3: '/static/svg/water-bottle.svg',
+  4: '/static/svg/electronics.svg',
+  5: '/static/svg/sports.svg',
+  6: '/static/svg/hobby.svg',
+  7: '/static/svg/bicycle.svg'
+}
 
-// 生命周期
 onLoad(async () => {
   try {
     await appStore.loadCampusList()
@@ -126,7 +157,6 @@ onLoad(async () => {
 })
 
 onShow(() => {
-  // 每次显示页面时刷新商品列表（保持最新）
   if (productList.value.length > 0) {
     loadProducts(true)
   }
@@ -147,7 +177,63 @@ onReachBottom(() => {
   }
 })
 
-// 数据加载方法
+function getNormalizedCategoryIconPath(item) {
+  const rawIcon = (item?.iconPath || item?.icon || '').trim()
+  if (!rawIcon) {
+    return ''
+  }
+  if (/^https?:\/\//i.test(rawIcon)) {
+    return rawIcon
+  }
+  if (rawIcon.startsWith('/')) {
+    return rawIcon
+  }
+  if (rawIcon.endsWith('.svg')) {
+    return `/static/svg/${rawIcon}`
+  }
+  return ''
+}
+
+function normalizeCategoryList(list) {
+  return (list || []).map((item) => {
+    return {
+      ...item,
+      _iconPath: getNormalizedCategoryIconPath(item)
+    }
+  })
+}
+
+function getCategoryMappedIconPath(item) {
+  const name = String(item?.name || '').trim()
+  const id = String(item?.id || '').trim()
+  if (name && CATEGORY_ICON_BY_NAME[name]) {
+    return CATEGORY_ICON_BY_NAME[name]
+  }
+  if (id && CATEGORY_ICON_BY_ID[id]) {
+    return CATEGORY_ICON_BY_ID[id]
+  }
+  return CATEGORY_ICON_PLACEHOLDER
+}
+
+function getCategoryIconSrc(item) {
+  const key = String(item?.id || item?.name || '')
+  if (key && categoryIconErrorMap.value[key]) {
+    return getCategoryMappedIconPath(item)
+  }
+  return item?._iconPath || getCategoryMappedIconPath(item)
+}
+
+function handleCategoryIconError(item) {
+  const key = String(item?.id || item?.name || '')
+  if (!key) {
+    return
+  }
+  categoryIconErrorMap.value = {
+    ...categoryIconErrorMap.value,
+    [key]: true
+  }
+}
+
 async function loadBanners() {
   if (!appStore.currentCampusId) return
   try {
@@ -160,13 +246,13 @@ async function loadBanners() {
 
 async function loadCategories() {
   try {
-    // 优先从store获取，如果store没有再请求
     if (appStore.categoryList && appStore.categoryList.length > 0) {
-      categoryList.value = appStore.categoryList
+      categoryList.value = normalizeCategoryList(appStore.categoryList)
     } else {
       await appStore.loadCategoryList()
-      categoryList.value = appStore.categoryList
+      categoryList.value = normalizeCategoryList(appStore.categoryList)
     }
+    categoryIconErrorMap.value = {}
   } catch (e) {
     console.error('加载分类失败', e)
   }
@@ -189,7 +275,10 @@ async function loadProducts(refresh = false) {
       sortBy: 'latest'
     })
 
-    const list = res?.records || []
+    const list = (res?.records || []).map((item) => {
+      const version = item && (item.updateTime || item.createTime || item.id)
+      return normalizeProductCardData(item, { version })
+    })
     if (refresh) {
       productList.value = list
     } else {
@@ -208,7 +297,6 @@ async function loadProducts(refresh = false) {
   }
 }
 
-// 交互处理
 function handleCampusChange() {
   const itemList = appStore.campusList.map(item => item.name)
   uni.showActionSheet({
@@ -218,7 +306,6 @@ function handleCampusChange() {
       const selectedCampus = appStore.campusList[selectedIndex]
       if (selectedCampus.id !== appStore.currentCampusId) {
         appStore.setCampus(selectedCampus.id, selectedCampus.name)
-        // 切换校区后重新加载数据
         loadBanners()
         loadProducts(true)
       }
@@ -232,16 +319,21 @@ function goSearch() {
   })
 }
 
+function goPickupPackage() {
+  const title = encodeURIComponent('代拿快递')
+  uni.navigateTo({
+    url: `/pages/search/search?keyword=${title}`
+  })
+}
+
 function handleBannerClick(item) {
   if (!item.linkUrl) return
   
-  // 根据linkType跳转，此处简化处理，假设内部链接跳转
-  if (item.linkType === 1) { // 商品详情
+  if (item.linkType === 1) {
      uni.navigateTo({ url: `/pages/product/detail/detail?id=${item.linkUrl}` })
-  } else if (item.linkType === 2) { // 页面跳转
+  } else if (item.linkType === 2) {
      uni.navigateTo({ url: item.linkUrl })
-  } else { // 外链（小程序需webview）
-     // 暂不处理
+  } else {
   }
 }
 

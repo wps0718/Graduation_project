@@ -91,7 +91,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
-import { get, post } from '@/utils/request'
+import { get, post, uploadFile } from '@/utils/request'
+import { resolveImageUrl } from '@/utils/image'
 import { AUTH_STATUS } from '@/utils/constant'
 import { useUserStore } from '@/store'
 
@@ -218,9 +219,9 @@ async function chooseMaterial() {
     const file = res && res.tempFiles && res.tempFiles[0]
     if (!validateImage(file)) return
     form.value.materialUrl = file.path
-    const data = await post('/common/upload', { filePath: file.path }, { showLoading: true })
+    const data = await uploadFile('/common/upload', file.path, { showLoading: true })
     if (data && data.url) {
-      form.value.materialUrl = data.url
+      form.value.materialUrl = resolveImageUrl(data.url)
     }
   } catch (error) {
     showToast('上传失败，请重试')
