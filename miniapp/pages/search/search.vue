@@ -7,7 +7,7 @@
       </view>
       <view class="search-header__input-wrap">
         <view class="search-header__search-icon" @click="handleSearch">
-          <image class="search-header__search-icon-img" src="/static/svg/搜索.svg" mode="aspectFit" />
+          <image class="search-header__search-icon-img" src="/static/svg/search.svg" mode="aspectFit" />
         </view>
         <input
           ref="searchInputRef"

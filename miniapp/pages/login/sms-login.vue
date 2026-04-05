@@ -28,7 +28,7 @@
         <text class="sms__section-title">短信验证</text>
 
         <view class="sms__field">
-          <image class="sms__field-icon" src="/static/svg/手机.svg" mode="aspectFit" />
+          <image class="sms__field-icon" src="/static/svg/phone.svg" mode="aspectFit" />
           <input
             class="sms__input"
             :value="phone"
@@ -41,7 +41,7 @@
         </view>
 
         <view class="sms__field sms__field--code">
-          <image class="sms__field-icon" src="/static/svg/验证码.svg" mode="aspectFit" />
+          <image class="sms__field-icon" src="/static/svg/verify-code.svg" mode="aspectFit" />
           <input
             class="sms__input sms__input--code"
             :value="code"
@@ -66,13 +66,13 @@
       <view class="sms__other">
         <view class="sms__other-item" @click="onWeChatLogin">
           <view class="sms__other-icon-wrap">
-            <image class="sms__other-icon" src="/static/svg/微信.svg" mode="aspectFit" />
+            <image class="sms__other-icon" src="/static/svg/wechat.svg" mode="aspectFit" />
           </view>
           <text class="sms__other-text">微信登录</text>
         </view>
         <view class="sms__other-item" @click="goAccountLogin">
           <view class="sms__other-icon-wrap">
-            <image class="sms__other-icon" src="/static/svg/密码.svg" mode="aspectFit" />
+            <image class="sms__other-icon" src="/static/svg/password.svg" mode="aspectFit" />
           </view>
           <text class="sms__other-text">账号密码登录</text>
         </view>

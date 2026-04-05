@@ -395,13 +395,13 @@ const chatSessions = [
 ]
 
 const categories = [
-  { id: 1, name: '书籍', icon: '📚', iconPath: '/static/svg/书本.svg' },
-  { id: 2, name: '服饰', icon: '👕', iconPath: '/static/svg/服饰鞋包.svg' },
-  { id: 3, name: '生活设备', icon: '🏠', iconPath: '/static/svg/水壶.svg' },
-  { id: 4, name: '电子设备', icon: '📱', iconPath: '/static/svg/电子设备.svg' },
-  { id: 5, name: '运动设备', icon: '⚽', iconPath: '/static/svg/运动器材.svg' },
-  { id: 6, name: '潮玩娱乐', icon: '🎮', iconPath: '/static/svg/潮玩兴趣.svg' },
-  { id: 7, name: '快递', icon: '📦', iconPath: '/static/svg/自行车.svg' }
+  { id: 1, name: '书籍', icon: '📚', iconPath: '/static/svg/book.svg' },
+  { id: 2, name: '服饰', icon: '👕', iconPath: '/static/svg/clothing.svg' },
+  { id: 3, name: '生活设备', icon: '🏠', iconPath: '/static/svg/water-bottle.svg' },
+  { id: 4, name: '电子设备', icon: '📱', iconPath: '/static/svg/electronics.svg' },
+  { id: 5, name: '运动设备', icon: '⚽', iconPath: '/static/svg/sports.svg' },
+  { id: 6, name: '潮玩娱乐', icon: '🎮', iconPath: '/static/svg/hobby.svg' },
+  { id: 7, name: '快递', icon: '📦', iconPath: '/static/svg/bicycle.svg' }
 ]
 
 const favoriteProducts = products.filter((item) =>

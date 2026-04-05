@@ -159,7 +159,8 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
-import { get, post } from '@/utils/request'
+import { get, post, uploadFile } from '@/utils/request'
+import { resolveImageUrl } from '@/utils/image'
 import { useAppStore } from '@/store/app'
 import { CONDITION_LEVELS } from '@/utils/constant'
 
@@ -307,8 +308,9 @@ async function chooseImages() {
 }
 
 async function uploadImage(filePath) {
-  const data = await post('/common/upload', { filePath }, { showLoading: false })
-  return data && data.url ? data.url : ''
+  const data = await uploadFile('/common/upload', filePath, { showLoading: false })
+  const url = data && data.url ? data.url : ''
+  return resolveImageUrl(url)
 }
 
 function validateForm() {

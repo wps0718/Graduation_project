@@ -64,7 +64,7 @@
       <view class="detail__section">
         <text class="detail__section-title">面交信息</text>
         <view class="detail__meeting">
-          <image class="detail__meeting-icon" src="/static/svg/定位.svg" mode="aspectFit" />
+          <image class="detail__meeting-icon" src="/static/svg/location.svg" mode="aspectFit" />
           <view class="detail__meeting-content">
             <text class="detail__meeting-title">{{ detail.campusName || '未设置校区' }}</text>
             <text class="detail__meeting-sub">{{ detail.meetingPointName || '未设置面交点' }}</text>
@@ -98,7 +98,7 @@
           <view class="detail__bottom-icon" :class="{ 'is-active': isFavorited }">
             <image
               class="detail__bottom-icon-img"
-              :src="isFavorited ? '/static/svg/已收藏 .svg' : '/static/svg/收藏.svg'"
+              :src="isFavorited ? '/static/svg/favorited.svg' : '/static/svg/favorite.svg'"
               mode="aspectFit"
             />
           </view>
@@ -106,7 +106,7 @@
         </view>
         <view class="detail__bottom-item" @click="onReport">
           <view class="detail__bottom-icon">
-            <image class="detail__bottom-icon-img" src="/static/svg/举报.svg" mode="aspectFit" />
+            <image class="detail__bottom-icon-img" src="/static/svg/report.svg" mode="aspectFit" />
           </view>
           <text class="detail__bottom-label">举报</text>
         </view>

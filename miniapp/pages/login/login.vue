@@ -25,7 +25,7 @@
         <text class="login__section-title">账号登录</text>
 
         <view class="login__field">
-          <image class="login__field-icon" src="/static/svg/手机.svg" mode="aspectFit" />
+          <image class="login__field-icon" src="/static/svg/phone.svg" mode="aspectFit" />
           <input
             class="login__input"
             :value="accountPhone"
@@ -38,7 +38,7 @@
         </view>
 
         <view class="login__field">
-          <image class="login__field-icon" src="/static/svg/密码.svg" mode="aspectFit" />
+          <image class="login__field-icon" src="/static/svg/password.svg" mode="aspectFit" />
           <input
             class="login__input"
             :value="password"
@@ -59,13 +59,13 @@
       <view class="login__other">
         <view class="login__other-item" @click="onWeChatLogin">
           <view class="login__other-icon-wrap">
-            <image class="login__other-icon" src="/static/svg/微信.svg" mode="aspectFit" />
+            <image class="login__other-icon" src="/static/svg/wechat.svg" mode="aspectFit" />
           </view>
           <text class="login__other-text">微信登录</text>
         </view>
         <view class="login__other-item" @click="goSmsLogin">
           <view class="login__other-icon-wrap">
-            <image class="login__other-icon" src="/static/svg/短信验证码-登录.svg" mode="aspectFit" />
+            <image class="login__other-icon" src="/static/svg/sms-login.svg" mode="aspectFit" />
           </view>
           <text class="login__other-text">短信验证码登录</text>
         </view>
