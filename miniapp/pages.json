@@ -91,6 +91,24 @@
 			}
 		},
 		{
+			"path": "pages/auth/history/list",
+			"style": {
+				"navigationBarTitleText": "认证历史"
+			}
+		},
+		{
+			"path": "pages/auth/history/detail",
+			"style": {
+				"navigationBarTitleText": "认证详情"
+			}
+		},
+		{
+			"path": "pages/auth/history/compare",
+			"style": {
+				"navigationBarTitleText": "认证内容对比"
+			}
+		},
+		{
 			"path": "pages/favorite/favorite",
 			"style": {
 				"navigationBarTitleText": "我的收藏"

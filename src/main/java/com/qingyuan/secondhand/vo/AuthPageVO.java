@@ -12,6 +12,7 @@ public class AuthPageVO {
     private String avatarUrl;
     private Long collegeId;
     private String collegeName;
+    private String realName;
     private String studentNo;
     private String className;
     private String certImage;

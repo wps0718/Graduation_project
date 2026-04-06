@@ -134,7 +134,7 @@ async function changeAvatar() {
     const path = res && res.tempFilePaths && res.tempFilePaths[0]
     if (!path) return
     form.value.avatarUrl = path
-    const data = await uploadFile('/common/upload', path, { showLoading: true })
+    const data = await uploadFile('/common/upload', path, { showLoading: true, formData: { type: 'avatar' } })
     if (data && data.url) {
       form.value.avatarUrl = resolveImageUrl(data.url)
     }

@@ -9,9 +9,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class FileUtil {
@@ -24,6 +28,7 @@ public class FileUtil {
 
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png");
     private static final long MAX_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final Set<String> ALLOWED_TYPES = Set.of("common", "product", "auth", "avatar", "banner");
 
     public String upload(MultipartFile file, String type) {
         if (file.isEmpty()) {
@@ -33,6 +38,8 @@ public class FileUtil {
         if (file.getSize() > MAX_SIZE) {
             throw new BusinessException("File size exceeds 5MB limit");
         }
+
+        String safeType = sanitizeType(type);
 
         String originalFilename = file.getOriginalFilename();
         String extension = cn.hutool.core.io.FileUtil.extName(originalFilename).toLowerCase();
@@ -45,20 +52,38 @@ public class FileUtil {
         String datePath = DateUtil.format(new Date(), "yyyy/MM/dd");
         String fileName = uuid + "." + extension;
         
-        // e.g. ./uploads/product/2023/10/01/
-        String relativePath = type + "/" + datePath + "/";
-        File targetDir = new File(uploadPath + relativePath);
-        if (!targetDir.exists()) {
-            targetDir.mkdirs();
+        String relativePath = safeType + "/" + datePath + "/";
+        Path targetDir = Paths.get(uploadPath).toAbsolutePath().normalize().resolve(relativePath);
+        try {
+            Files.createDirectories(targetDir);
+        } catch (IOException e) {
+            throw new BusinessException("File upload failed: " + e.getMessage());
         }
 
         try {
-            file.transferTo(new File(targetDir, fileName));
+            file.transferTo(targetDir.resolve(fileName).toFile());
         } catch (IOException e) {
             throw new BusinessException("File upload failed: " + e.getMessage());
         }
 
         // Return URL path, e.g. /uploads/product/2023/10/01/uuid.jpg
         return urlPrefix + relativePath + fileName;
+    }
+
+    private String sanitizeType(String type) {
+        String value = type == null ? "" : type.trim();
+        while (value.startsWith("/")) {
+            value = value.substring(1);
+        }
+        while (value.endsWith("/")) {
+            value = value.substring(0, value.length() - 1);
+        }
+        if (value.isBlank()) {
+            value = "common";
+        }
+        if (!ALLOWED_TYPES.contains(value)) {
+            throw new BusinessException("Invalid upload type");
+        }
+        return value;
     }
 }

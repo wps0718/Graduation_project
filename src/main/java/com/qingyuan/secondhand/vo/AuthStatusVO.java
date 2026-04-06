@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 @Data
 public class AuthStatusVO {
     private Integer status;
+    private String realName;
     private String collegeName;
     private String studentNo;
     private String className;

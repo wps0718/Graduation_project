@@ -17,6 +17,7 @@ public class CampusAuth {
     private Long id;
     private Long userId;
     private Long collegeId;
+    private String realName;
     private String studentNo;
     private String className;
     private String certImage;

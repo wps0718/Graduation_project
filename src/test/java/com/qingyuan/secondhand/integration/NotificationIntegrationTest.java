@@ -82,8 +82,9 @@ class NotificationIntegrationTest {
         CampusAuthService campusAuthService(CampusAuthMapper campusAuthMapper,
                                             CollegeMapper collegeMapper,
                                             UserMapper userMapper,
-                                            NotificationService notificationService) {
-            return new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService);
+                                            NotificationService notificationService,
+                                            StringRedisTemplate stringRedisTemplate) {
+            return new CampusAuthServiceImpl(campusAuthMapper, collegeMapper, userMapper, notificationService, stringRedisTemplate);
         }
 
         @Bean

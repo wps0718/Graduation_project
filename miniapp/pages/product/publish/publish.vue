@@ -308,7 +308,7 @@ async function chooseImages() {
 }
 
 async function uploadImage(filePath) {
-  const data = await uploadFile('/common/upload', filePath, { showLoading: false })
+  const data = await uploadFile('/common/upload', filePath, { showLoading: false, formData: { type: 'product' } })
   const url = data && data.url ? data.url : ''
   return resolveImageUrl(url)
 }

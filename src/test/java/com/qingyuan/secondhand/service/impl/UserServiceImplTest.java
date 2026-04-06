@@ -656,6 +656,7 @@ class UserServiceImplTest {
 
         Mockito.when(userMapper.selectById(1L)).thenReturn(user);
         Mockito.when(userMapper.selectCampusNameById(2L)).thenReturn("南海北");
+        Mockito.when(userMapper.selectLatestCampusAuthAuditStatus(1L)).thenReturn(null);
 
         UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper());
 
@@ -690,7 +691,8 @@ class UserServiceImplTest {
         ValueOperations<String, String> valueOps = Mockito.mock(ValueOperations.class);
 
         Mockito.when(stringRedisTemplate.opsForValue()).thenReturn(valueOps);
-        Mockito.when(valueOps.get("user:info:2")).thenReturn("{\"id\":2,\"nickName\":\"李四\",\"avatarUrl\":\"x.png\",\"phone\":\"138****8888\",\"gender\":0,\"campusId\":1,\"campusName\":\"新港\",\"authStatus\":2,\"score\":5.0,\"status\":1}");
+        Mockito.when(valueOps.get("user:info:2")).thenReturn("{\"id\":2,\"nickName\":\"李四\",\"avatarUrl\":\"x.png\",\"phone\":\"138****8888\",\"gender\":0,\"campusId\":1,\"campusName\":\"新港\",\"authStatus\":1,\"score\":5.0,\"status\":1}");
+        Mockito.when(userMapper.selectLatestCampusAuthAuditStatus(2L)).thenReturn(1);
 
         UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper());
 
@@ -700,11 +702,13 @@ class UserServiceImplTest {
             Assertions.assertEquals(2L, vo.getId());
             Assertions.assertEquals("138****8888", vo.getPhone());
             Assertions.assertEquals("新港", vo.getCampusName());
+            Assertions.assertEquals(2, vo.getAuthStatus());
         } finally {
             UserContext.removeCurrentUserId();
         }
 
-        Mockito.verifyNoInteractions(userMapper);
+        Mockito.verify(userMapper).selectLatestCampusAuthAuditStatus(2L);
+        Mockito.verify(userMapper, Mockito.never()).selectById(Mockito.anyLong());
     }
 
     @Test
@@ -759,6 +763,7 @@ class UserServiceImplTest {
         user.setStatus(1);
 
         Mockito.when(userMapper.selectById(13L)).thenReturn(user);
+        Mockito.when(userMapper.selectLatestCampusAuthAuditStatus(13L)).thenReturn(null);
 
         UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper());
 
