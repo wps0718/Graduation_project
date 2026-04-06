@@ -15,27 +15,38 @@
       <text class="auth-hero__name">轻院二手</text>
     </view>
 
-    <view v-if="showPending" class="auth-state">
-      <text class="auth-state__title">认证审核中</text>
-      <text class="auth-state__desc">认证审核中，请耐心等待</text>
+    <view class="auth-history-entry" :class="{ 'is-disabled': !canViewHistory }" @click="goAuthHistory">
+      <text class="auth-history-entry__text">认证历史</text>
+      <text class="auth-history-entry__arrow">›</text>
     </view>
 
-    <view v-else-if="showVerified" class="auth-state">
+    <view v-if="showPending" class="auth-state auth-state--clickable" @click="openStatusCompare">
+      <text class="auth-state__title">认证审核中</text>
+      <text class="auth-state__desc">认证审核中，请耐心等待</text>
+      <view class="auth-state__action" @click.stop="startEditFromStatus">修改资料</view>
+    </view>
+
+    <view v-else-if="showVerified" class="auth-state auth-state--clickable" @click="openStatusCompare">
       <text class="auth-state__title">已认证</text>
       <view class="auth-state__info">
+        <view class="auth-state__row">
+          <text class="auth-state__label">姓名</text>
+          <text class="auth-state__value">{{ savedInfo.realName || '-' }}</text>
+        </view>
         <view class="auth-state__row">
           <text class="auth-state__label">学院</text>
           <text class="auth-state__value">{{ savedInfo.collegeName || '-' }}</text>
         </view>
         <view class="auth-state__row">
           <text class="auth-state__label">学号</text>
-          <text class="auth-state__value">{{ savedInfo.studentId || '-' }}</text>
+          <text class="auth-state__value">{{ savedInfo.studentNo || '-' }}</text>
         </view>
         <view class="auth-state__row">
           <text class="auth-state__label">班级</text>
           <text class="auth-state__value">{{ savedInfo.className || '-' }}</text>
         </view>
       </view>
+      <view class="auth-state__action" @click.stop="startEditFromStatus">修改资料</view>
     </view>
 
     <view v-else class="auth-card">
@@ -53,14 +64,24 @@
         </picker>
       </view>
       <view class="auth-field">
+        <text class="auth-field__label">姓名</text>
+        <input
+          class="auth-field__input"
+          :value="form.realName"
+          placeholder="请输入姓名"
+          placeholder-class="auth-field__placeholder"
+          @input="onRealNameInput"
+        />
+      </view>
+      <view class="auth-field">
         <text class="auth-field__label">学号</text>
         <input
           class="auth-field__input"
           type="number"
-          :value="form.studentId"
+          :value="form.studentNo"
           placeholder="请输入学号"
           placeholder-class="auth-field__placeholder"
-          @input="onStudentIdInput"
+          @input="onStudentNoInput"
         />
       </view>
       <view class="auth-field">
@@ -76,7 +97,7 @@
       <view class="auth-upload">
         <text class="auth-upload__label">请上传一卡通或者3.0截图</text>
         <view class="auth-upload__box" @click="chooseMaterial">
-          <image v-if="form.materialUrl" :src="form.materialUrl" class="auth-upload__image" mode="aspectFill" />
+          <image v-if="form.certImage" :src="form.certImage" class="auth-upload__image" mode="aspectFill" />
           <view v-else class="auth-upload__placeholder">
             <text class="auth-upload__icon">↑</text>
             <text class="auth-upload__text">点击上传</text>
@@ -101,18 +122,21 @@ const userStore = useUserStore()
 const colleges = ref([])
 const authStatus = ref(AUTH_STATUS.NONE)
 const rejectRemark = ref('')
+const latestStatusInfo = ref(null)
 
 const form = ref({
   collegeId: null,
   collegeName: '',
-  studentId: '',
+  realName: '',
+  studentNo: '',
   className: '',
-  materialUrl: ''
+  certImage: ''
 })
 
 const savedInfo = ref({
+  realName: '',
   collegeName: '',
-  studentId: '',
+  studentNo: '',
   className: ''
 })
 
@@ -126,15 +150,19 @@ const collegeName = computed(() => form.value.collegeName)
 
 const formTitle = computed(() => (userStore.isLogin ? '校园认证' : '登录并认证'))
 
-const showPending = computed(() => authStatus.value === AUTH_STATUS.PENDING)
-const showVerified = computed(() => authStatus.value === AUTH_STATUS.VERIFIED)
+const forceEditMode = ref(false)
+
+const showPending = computed(() => !forceEditMode.value && authStatus.value === AUTH_STATUS.PENDING)
+const showVerified = computed(() => !forceEditMode.value && authStatus.value === AUTH_STATUS.VERIFIED)
+const canViewHistory = computed(() => authStatus.value !== AUTH_STATUS.NONE)
 
 const canSubmit = computed(() => {
   return (
     !!form.value.collegeId &&
-    !!form.value.studentId &&
+    !!form.value.realName &&
+    !!form.value.studentNo &&
     !!form.value.className &&
-    !!form.value.materialUrl
+    !!form.value.certImage
   )
 })
 
@@ -150,6 +178,15 @@ function ensureLogin() {
   return true
 }
 
+function goAuthHistory() {
+  if (!canViewHistory.value) return
+  uni.navigateTo({ url: '/pages/auth/history/list' })
+}
+
+function openStatusCompare() {
+  uni.navigateTo({ url: '/pages/auth/history/compare' })
+}
+
 function onCollegeChange(e) {
   const index = Number((e && e.detail && e.detail.value) || 0)
   const target = colleges.value[index]
@@ -158,9 +195,13 @@ function onCollegeChange(e) {
   form.value.collegeName = target.name
 }
 
-function onStudentIdInput(e) {
+function onRealNameInput(e) {
+  form.value.realName = String((e && e.detail && e.detail.value) || '').trim()
+}
+
+function onStudentNoInput(e) {
   const value = String((e && e.detail && e.detail.value) || '').replace(/\D/g, '')
-  form.value.studentId = value
+  form.value.studentNo = value
 }
 
 function onClassInput(e) {
@@ -180,12 +221,34 @@ async function loadAuthStatus() {
   if (!ensureLogin()) return
   try {
     const data = await get('/mini/auth/status', {}, { showLoading: true })
+    latestStatusInfo.value = data || null
     authStatus.value = typeof data.status === 'number' ? data.status : AUTH_STATUS.NONE
-    rejectRemark.value = data.remark || ''
+    userStore.setUserInfo({ ...(userStore.userInfo || {}), authStatus: authStatus.value })
+    rejectRemark.value = data.rejectReason || ''
+    savedInfo.value = {
+      realName: data.realName || savedInfo.value.realName || '',
+      collegeName: data.collegeName || savedInfo.value.collegeName || '',
+      studentNo: data.studentNo || savedInfo.value.studentNo || '',
+      className: data.className || savedInfo.value.className || ''
+    }
+    uni.setStorageSync('authInfo', savedInfo.value)
   } catch (error) {
+    latestStatusInfo.value = null
     authStatus.value = AUTH_STATUS.NONE
     rejectRemark.value = ''
   }
+}
+
+function startEditFromStatus() {
+  if (!latestStatusInfo.value) return
+  forceEditMode.value = true
+  form.value.collegeName = latestStatusInfo.value.collegeName || ''
+  form.value.realName = latestStatusInfo.value.realName || ''
+  form.value.studentNo = latestStatusInfo.value.studentNo || ''
+  form.value.className = latestStatusInfo.value.className || ''
+  form.value.certImage = resolveImageUrl(latestStatusInfo.value.certImage || '')
+  const matched = colleges.value.find((item) => item.name === form.value.collegeName)
+  form.value.collegeId = matched ? matched.id : form.value.collegeId
 }
 
 function validateImage(file) {
@@ -218,10 +281,10 @@ async function chooseMaterial() {
     })
     const file = res && res.tempFiles && res.tempFiles[0]
     if (!validateImage(file)) return
-    form.value.materialUrl = file.path
-    const data = await uploadFile('/common/upload', file.path, { showLoading: true })
+    form.value.certImage = file.path
+    const data = await uploadFile('/common/upload', file.path, { showLoading: true, formData: { type: 'auth' } })
     if (data && data.url) {
-      form.value.materialUrl = resolveImageUrl(data.url)
+      form.value.certImage = resolveImageUrl(data.url)
     }
   } catch (error) {
     showToast('上传失败，请重试')
@@ -234,11 +297,15 @@ async function submitAuth() {
     showToast('请选择学院')
     return
   }
-  if (!form.value.studentId) {
+  if (!form.value.realName) {
+    showToast('请输入姓名')
+    return
+  }
+  if (!form.value.studentNo) {
     showToast('请输入学号')
     return
   }
-  if (!/^\d+$/.test(form.value.studentId)) {
+  if (!/^\d+$/.test(form.value.studentNo)) {
     showToast('学号需为纯数字')
     return
   }
@@ -246,28 +313,32 @@ async function submitAuth() {
     showToast('请输入班级')
     return
   }
-  if (!form.value.materialUrl) {
+  if (!form.value.certImage) {
     showToast('请上传认证材料')
     return
   }
   try {
     await post('/mini/auth/submit', {
       collegeId: form.value.collegeId,
-      studentId: form.value.studentId,
+      realName: form.value.realName,
+      studentNo: form.value.studentNo,
       className: form.value.className,
-      materialUrl: form.value.materialUrl
+      certImage: form.value.certImage
     })
     savedInfo.value = {
+      realName: form.value.realName,
       collegeName: form.value.collegeName,
-      studentId: form.value.studentId,
+      studentNo: form.value.studentNo,
       className: form.value.className
     }
     uni.setStorageSync('authInfo', savedInfo.value)
     authStatus.value = AUTH_STATUS.PENDING
+    userStore.setUserInfo({ ...(userStore.userInfo || {}), authStatus: AUTH_STATUS.PENDING })
+    forceEditMode.value = false
     rejectRemark.value = ''
     showToast('提交成功，请等待审核')
   } catch (error) {
-    showToast('提交失败，请稍后重试')
+    showToast((error && error.msg) || '提交失败，请稍后重试')
   }
 }
 
@@ -275,15 +346,32 @@ function loadSavedInfo() {
   const info = uni.getStorageSync('authInfo')
   if (!info) return
   savedInfo.value = {
+    realName: info.realName || '',
     collegeName: info.collegeName || '',
-    studentId: info.studentId || '',
+    studentNo: info.studentNo || '',
     className: info.className || ''
   }
 }
 
-onLoad(() => {
+function loadEditDraft() {
+  const draft = uni.getStorageSync('authEditDraft')
+  if (!draft) return
+  forceEditMode.value = true
+  form.value.collegeId = draft.collegeId || null
+  form.value.collegeName = draft.collegeName || ''
+  form.value.realName = draft.realName || ''
+  form.value.studentNo = draft.studentNo || ''
+  form.value.className = draft.className || ''
+  form.value.certImage = draft.certImage || ''
+  uni.removeStorageSync('authEditDraft')
+}
+
+onLoad((options) => {
   loadColleges()
   loadSavedInfo()
+  if (options && options.edit === '1') {
+    loadEditDraft()
+  }
 })
 
 onShow(() => {
@@ -357,6 +445,32 @@ onShow(() => {
   font-size: var(--font-lg);
   color: var(--text-primary);
   font-weight: 600;
+}
+
+.auth-history-entry {
+  margin-top: var(--spacing-md);
+  background-color: var(--bg-white);
+  border-radius: var(--radius-lg);
+  padding: 0 var(--spacing-md);
+  height: 84rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auth-history-entry.is-disabled {
+  opacity: 0.5;
+}
+
+.auth-history-entry__text {
+  color: var(--text-primary);
+  font-size: var(--font-md);
+  font-weight: 500;
+}
+
+.auth-history-entry__arrow {
+  color: var(--text-secondary);
+  font-size: 32rpx;
 }
 
 .auth-card {
@@ -501,6 +615,10 @@ onShow(() => {
   gap: var(--spacing-sm);
 }
 
+.auth-state--clickable {
+  cursor: pointer;
+}
+
 .auth-state__title {
   font-size: var(--font-lg);
   font-weight: 600;
@@ -533,5 +651,18 @@ onShow(() => {
 .auth-state__value {
   font-size: var(--font-md);
   color: var(--text-primary);
+}
+
+.auth-state__action {
+  margin-top: var(--spacing-sm);
+  width: 180rpx;
+  height: 64rpx;
+  border-radius: 999rpx;
+  background-color: var(--primary-color);
+  color: var(--text-white);
+  font-size: var(--font-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

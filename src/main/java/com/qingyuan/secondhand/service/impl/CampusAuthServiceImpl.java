@@ -3,11 +3,13 @@ package com.qingyuan.secondhand.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qingyuan.secondhand.common.context.UserContext;
+import com.qingyuan.secondhand.common.constant.RedisConstant;
 import com.qingyuan.secondhand.common.enums.AuthStatus;
 import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.dto.AuthSubmitDTO;
 import com.qingyuan.secondhand.entity.CampusAuth;
+import com.qingyuan.secondhand.entity.CampusAuthHistory;
 import com.qingyuan.secondhand.entity.College;
 import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.mapper.CampusAuthMapper;
@@ -16,13 +18,17 @@ import com.qingyuan.secondhand.mapper.UserMapper;
 import com.qingyuan.secondhand.service.CampusAuthService;
 import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.AuthPageVO;
+import com.qingyuan.secondhand.vo.AuthHistoryVO;
 import com.qingyuan.secondhand.vo.AuthStatusVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -33,6 +39,7 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
     private final CollegeMapper collegeMapper;
     private final UserMapper userMapper;
     private final NotificationService notificationService;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     @Transactional
@@ -43,9 +50,6 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
         }
 
         CampusAuth existing = campusAuthMapper.selectByUserId(userId);
-        if (existing != null && (Integer.valueOf(0).equals(existing.getStatus()) || Integer.valueOf(1).equals(existing.getStatus()))) {
-            throw new BusinessException("认证审核中或已通过，无法重复提交");
-        }
 
         CampusAuth studentNoRecord = campusAuthMapper.selectByStudentNo(dto.getStudentNo());
         if (studentNoRecord != null && studentNoRecord.getUserId() != null && !studentNoRecord.getUserId().equals(userId)) {
@@ -53,10 +57,12 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
         }
 
         LocalDateTime now = LocalDateTime.now();
+        Long authId;
         if (existing == null) {
             CampusAuth auth = new CampusAuth();
             auth.setUserId(userId);
             auth.setCollegeId(dto.getCollegeId());
+            auth.setRealName(dto.getRealName());
             auth.setStudentNo(dto.getStudentNo());
             auth.setClassName(dto.getClassName());
             auth.setCertImage(dto.getCertImage());
@@ -71,11 +77,13 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
             if (inserted <= 0) {
                 throw new BusinessException("提交失败");
             }
+            authId = auth.getId();
         } else {
             CampusAuth auth = new CampusAuth();
             auth.setId(existing.getId());
             auth.setUserId(userId);
             auth.setCollegeId(dto.getCollegeId());
+            auth.setRealName(dto.getRealName());
             auth.setStudentNo(dto.getStudentNo());
             auth.setClassName(dto.getClassName());
             auth.setCertImage(dto.getCertImage());
@@ -89,6 +97,7 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
             if (updated <= 0) {
                 throw new BusinessException("提交失败");
             }
+            authId = existing.getId();
         }
 
         User userUpdate = new User();
@@ -97,6 +106,27 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
         userUpdate.setUpdateTime(now);
         int updatedUser = userMapper.updateById(userUpdate);
         if (updatedUser <= 0) {
+            throw new BusinessException("提交失败");
+        }
+        stringRedisTemplate.delete(RedisConstant.USER_INFO + userId);
+        stringRedisTemplate.delete(RedisConstant.USER_STATS + userId);
+
+        CampusAuthHistory history = new CampusAuthHistory();
+        history.setUserId(userId);
+        history.setAuthId(authId);
+        history.setCollegeId(dto.getCollegeId());
+        history.setRealName(dto.getRealName());
+        history.setStudentNo(dto.getStudentNo());
+        history.setClassName(dto.getClassName());
+        history.setCertImage(dto.getCertImage());
+        history.setStatus(0);
+        history.setRejectReason(null);
+        history.setReviewTime(null);
+        history.setReviewerId(null);
+        history.setCreateTime(now);
+        history.setUpdateTime(now);
+        int insertedHistory = campusAuthMapper.insertHistory(history);
+        if (insertedHistory <= 0) {
             throw new BusinessException("提交失败");
         }
     }
@@ -110,13 +140,24 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
 
         CampusAuth auth = campusAuthMapper.selectByUserId(userId);
         if (auth == null) {
-            throw new BusinessException("未提交认证");
+            AuthStatusVO vo = new AuthStatusVO();
+            vo.setStatus(AuthStatus.UNAUTHENTICATED.getCode());
+            return vo;
         }
 
         College college = auth.getCollegeId() == null ? null : collegeMapper.selectById(auth.getCollegeId());
 
         AuthStatusVO vo = new AuthStatusVO();
-        vo.setStatus(auth.getStatus());
+        Integer mappedStatus = AuthStatus.UNAUTHENTICATED.getCode();
+        if (Integer.valueOf(0).equals(auth.getStatus())) {
+            mappedStatus = AuthStatus.PENDING.getCode();
+        } else if (Integer.valueOf(1).equals(auth.getStatus())) {
+            mappedStatus = AuthStatus.AUTHENTICATED.getCode();
+        } else if (Integer.valueOf(2).equals(auth.getStatus())) {
+            mappedStatus = AuthStatus.REJECTED.getCode();
+        }
+        vo.setStatus(mappedStatus);
+        vo.setRealName(auth.getRealName());
         vo.setCollegeName(college == null ? null : college.getName());
         vo.setStudentNo(auth.getStudentNo());
         vo.setClassName(auth.getClassName());
@@ -124,6 +165,48 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
         vo.setRejectReason(auth.getRejectReason());
         vo.setReviewTime(auth.getReviewTime());
         return vo;
+    }
+
+    @Override
+    public List<AuthHistoryVO> listAuthHistory() {
+        Long userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException("未登录");
+        }
+        List<AuthHistoryVO> records = campusAuthMapper.selectHistoryListByUserId(userId);
+        if (records == null) {
+            return new ArrayList<>();
+        }
+        for (AuthHistoryVO record : records) {
+            record.setStatus(mapAuditStatusToMiniStatus(record.getStatus()));
+        }
+        return records;
+    }
+
+    @Override
+    public AuthHistoryVO getAuthHistoryDetail(Long id) {
+        if (id == null) {
+            throw new BusinessException("认证历史记录ID不能为空");
+        }
+        Long userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException("未登录");
+        }
+        AuthHistoryVO record = campusAuthMapper.selectHistoryDetailByIdAndUserId(id, userId);
+        if (record == null) {
+            throw new BusinessException("认证历史记录不存在");
+        }
+        record.setStatus(mapAuditStatusToMiniStatus(record.getStatus()));
+        return record;
+    }
+
+    @Override
+    public List<AuthHistoryVO> listAuthHistoryByAuthId(Long authId) {
+        if (authId == null) {
+            throw new BusinessException("认证记录ID不能为空");
+        }
+        List<AuthHistoryVO> records = campusAuthMapper.selectHistoryListByAuthId(authId);
+        return records == null ? new ArrayList<>() : records;
     }
 
     @Override
@@ -177,6 +260,26 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
         if (updatedUser <= 0) {
             throw new BusinessException("审核失败");
         }
+        stringRedisTemplate.delete(RedisConstant.USER_INFO + auth.getUserId());
+        stringRedisTemplate.delete(RedisConstant.USER_STATS + auth.getUserId());
+        int updatedHistory = campusAuthMapper.updateLatestHistoryReviewByAuthId(auth.getId(), 1, null, now, reviewerId, now);
+        if (updatedHistory <= 0) {
+            CampusAuthHistory history = new CampusAuthHistory();
+            history.setUserId(auth.getUserId());
+            history.setAuthId(auth.getId());
+            history.setCollegeId(auth.getCollegeId());
+            history.setRealName(auth.getRealName());
+            history.setStudentNo(auth.getStudentNo());
+            history.setClassName(auth.getClassName());
+            history.setCertImage(auth.getCertImage());
+            history.setStatus(1);
+            history.setRejectReason(null);
+            history.setReviewTime(now);
+            history.setReviewerId(reviewerId);
+            history.setCreateTime(now);
+            history.setUpdateTime(now);
+            campusAuthMapper.insertHistory(history);
+        }
         notificationService.send(
                 auth.getUserId(),
                 NotificationType.AUTH_PASS,
@@ -226,6 +329,26 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
         if (updatedUser <= 0) {
             throw new BusinessException("审核失败");
         }
+        stringRedisTemplate.delete(RedisConstant.USER_INFO + auth.getUserId());
+        stringRedisTemplate.delete(RedisConstant.USER_STATS + auth.getUserId());
+        int updatedHistory = campusAuthMapper.updateLatestHistoryReviewByAuthId(auth.getId(), 2, rejectReason, now, reviewerId, now);
+        if (updatedHistory <= 0) {
+            CampusAuthHistory history = new CampusAuthHistory();
+            history.setUserId(auth.getUserId());
+            history.setAuthId(auth.getId());
+            history.setCollegeId(auth.getCollegeId());
+            history.setRealName(auth.getRealName());
+            history.setStudentNo(auth.getStudentNo());
+            history.setClassName(auth.getClassName());
+            history.setCertImage(auth.getCertImage());
+            history.setStatus(2);
+            history.setRejectReason(rejectReason);
+            history.setReviewTime(now);
+            history.setReviewerId(reviewerId);
+            history.setCreateTime(now);
+            history.setUpdateTime(now);
+            campusAuthMapper.insertHistory(history);
+        }
         notificationService.send(
                 auth.getUserId(),
                 NotificationType.AUTH_REJECT,
@@ -234,5 +357,18 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
                 3,
                 2
         );
+    }
+
+    private Integer mapAuditStatusToMiniStatus(Integer status) {
+        if (Integer.valueOf(0).equals(status)) {
+            return AuthStatus.PENDING.getCode();
+        }
+        if (Integer.valueOf(1).equals(status)) {
+            return AuthStatus.AUTHENTICATED.getCode();
+        }
+        if (Integer.valueOf(2).equals(status)) {
+            return AuthStatus.REJECTED.getCode();
+        }
+        return AuthStatus.UNAUTHENTICATED.getCode();
     }
 }

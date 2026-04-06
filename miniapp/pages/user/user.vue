@@ -203,9 +203,21 @@ async function loadUnreadCount() {
   unreadCount.value = (data && data.total) || 0
 }
 
+async function refreshAuthStatus() {
+  if (!isLogin.value) {
+    return
+  }
+  try {
+    const data = await get('/mini/auth/status', {}, { showLoading: false })
+    const status = typeof (data && data.status) === 'number' ? data.status : AUTH_STATUS.NONE
+    userStore.setUserInfo({ ...(userStore.userInfo || {}), authStatus: status })
+  } catch (error) {
+  }
+}
+
 onShow(async () => {
   if (isLogin.value) {
-    await Promise.all([userStore.fetchUserInfo(), userStore.updateStats(), loadUnreadCount()])
+    await Promise.all([userStore.fetchUserInfo(), refreshAuthStatus(), userStore.updateStats(), loadUnreadCount()])
   } else {
     unreadCount.value = 0
   }

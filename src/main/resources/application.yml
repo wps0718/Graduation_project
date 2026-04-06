@@ -29,7 +29,7 @@ jwt:
   admin-expiration: 86400000
 # 文件上传配置
 upload:
-  path: ./uploads/
+  path: "G:/Code/Graduation_project/uploads/"
   url-prefix: /uploads/
 wx:
   appId: "wx39b09d716cef8023"

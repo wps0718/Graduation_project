@@ -45,6 +45,9 @@ public interface UserMapper extends BaseMapper<User> {
     @Select("select count(1) from favorite where user_id = #{userId}")
     Integer countFavoriteProducts(Long userId);
 
+    @Select("select status from campus_auth where user_id = #{userId} order by id desc limit 1")
+    Integer selectLatestCampusAuthAuditStatus(Long userId);
+
     @Select("SELECT COUNT(1) FROM trade_order WHERE (buyer_id = #{userId} OR seller_id = #{userId}) AND status = 1")
     Integer countActiveOrders(Long userId);
 

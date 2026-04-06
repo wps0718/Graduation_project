@@ -11,6 +11,7 @@
             u.avatar_url AS avatarUrl,
             ca.college_id AS collegeId,
             c.name AS collegeName,
+            ca.real_name AS realName,
             ca.student_no AS studentNo,
             ca.class_name AS className,
             ca.cert_image AS certImage,
@@ -33,6 +34,119 @@
             </if>
         </where>
         ORDER BY ca.create_time DESC
+    </select>
+
+    <insert id="insertHistory" parameterType="com.qingyuan.secondhand.entity.CampusAuthHistory" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO campus_auth_history (
+            user_id,
+            auth_id,
+            college_id,
+            real_name,
+            student_no,
+            class_name,
+            cert_image,
+            status,
+            reject_reason,
+            review_time,
+            reviewer_id,
+            create_time,
+            update_time
+        ) VALUES (
+            #{userId},
+            #{authId},
+            #{collegeId},
+            #{realName},
+            #{studentNo},
+            #{className},
+            #{certImage},
+            #{status},
+            #{rejectReason},
+            #{reviewTime},
+            #{reviewerId},
+            #{createTime},
+            #{updateTime}
+        )
+    </insert>
+
+    <update id="updateLatestHistoryReviewByAuthId">
+        UPDATE campus_auth_history
+        SET
+            status = #{status},
+            reject_reason = #{rejectReason},
+            review_time = #{reviewTime},
+            reviewer_id = #{reviewerId},
+            update_time = #{updateTime}
+        WHERE id = (
+            SELECT id
+            FROM (
+                SELECT id
+                FROM campus_auth_history
+                WHERE auth_id = #{authId}
+                ORDER BY id DESC
+                LIMIT 1
+            ) latest
+        )
+    </update>
+
+    <select id="selectHistoryListByUserId" resultType="com.qingyuan.secondhand.vo.AuthHistoryVO">
+        SELECT
+            h.id,
+            h.auth_id AS authId,
+            h.college_id AS collegeId,
+            c.name AS collegeName,
+            h.real_name AS realName,
+            h.student_no AS studentNo,
+            h.class_name AS className,
+            h.cert_image AS certImage,
+            h.status,
+            h.reject_reason AS rejectReason,
+            h.review_time AS reviewTime,
+            h.create_time AS createTime
+        FROM campus_auth_history h
+        LEFT JOIN college c ON h.college_id = c.id
+        WHERE h.user_id = #{userId}
+        ORDER BY h.id DESC
+    </select>
+
+    <select id="selectHistoryListByAuthId" resultType="com.qingyuan.secondhand.vo.AuthHistoryVO">
+        SELECT
+            h.id,
+            h.auth_id AS authId,
+            h.college_id AS collegeId,
+            c.name AS collegeName,
+            h.real_name AS realName,
+            h.student_no AS studentNo,
+            h.class_name AS className,
+            h.cert_image AS certImage,
+            h.status,
+            h.reject_reason AS rejectReason,
+            h.review_time AS reviewTime,
+            h.create_time AS createTime
+        FROM campus_auth_history h
+        LEFT JOIN college c ON h.college_id = c.id
+        WHERE h.auth_id = #{authId}
+        ORDER BY h.id DESC
+    </select>
+
+    <select id="selectHistoryDetailByIdAndUserId" resultType="com.qingyuan.secondhand.vo.AuthHistoryVO">
+        SELECT
+            h.id,
+            h.auth_id AS authId,
+            h.college_id AS collegeId,
+            c.name AS collegeName,
+            h.real_name AS realName,
+            h.student_no AS studentNo,
+            h.class_name AS className,
+            h.cert_image AS certImage,
+            h.status,
+            h.reject_reason AS rejectReason,
+            h.review_time AS reviewTime,
+            h.create_time AS createTime
+        FROM campus_auth_history h
+        LEFT JOIN college c ON h.college_id = c.id
+        WHERE h.id = #{id}
+          AND h.user_id = #{userId}
+        LIMIT 1
     </select>
 
 </mapper>

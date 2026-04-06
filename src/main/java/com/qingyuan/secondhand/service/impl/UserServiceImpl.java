@@ -260,7 +260,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String cached = stringRedisTemplate.opsForValue().get(cacheKey);
         if (StringUtils.hasText(cached)) {
             try {
-                return objectMapper.readValue(cached, UserInfoVO.class);
+                UserInfoVO vo = objectMapper.readValue(cached, UserInfoVO.class);
+                Integer auditStatus = userMapper.selectLatestCampusAuthAuditStatus(userId);
+                Integer mappedAuthStatus = mapCampusAuthAuditStatus(auditStatus);
+                if (mappedAuthStatus != null) {
+                    vo.setAuthStatus(mappedAuthStatus);
+                }
+                return vo;
             } catch (Exception e) {
                 stringRedisTemplate.delete(cacheKey);
             }
@@ -287,6 +293,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         vo.setAuthStatus(user.getAuthStatus());
         vo.setScore(user.getScore());
         vo.setStatus(user.getStatus());
+        Integer auditStatus = userMapper.selectLatestCampusAuthAuditStatus(userId);
+        Integer mappedAuthStatus = mapCampusAuthAuditStatus(auditStatus);
+        if (mappedAuthStatus != null) {
+            vo.setAuthStatus(mappedAuthStatus);
+        }
 
         try {
             String json = objectMapper.writeValueAsString(vo);
@@ -296,6 +307,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         return vo;
+    }
+
+    private Integer mapCampusAuthAuditStatus(Integer auditStatus) {
+        if (auditStatus == null) {
+            return null;
+        }
+        if (Integer.valueOf(0).equals(auditStatus)) {
+            return AuthStatus.PENDING.getCode();
+        }
+        if (Integer.valueOf(1).equals(auditStatus)) {
+            return AuthStatus.AUTHENTICATED.getCode();
+        }
+        if (Integer.valueOf(2).equals(auditStatus)) {
+            return AuthStatus.REJECTED.getCode();
+        }
+        return AuthStatus.UNAUTHENTICATED.getCode();
     }
 
     @Override

@@ -36,7 +36,7 @@
           :key="item.id"
           @click="handleBannerClick(item)"
         >
-          <image :src="item.image" mode="aspectFill" class="banner-image" />
+          <image :src="item.image" mode="aspectFill" class="banner-image" @error="handleBannerImageError(item)" />
         </swiper-item>
       </swiper>
     </view>
@@ -144,6 +144,12 @@ const CATEGORY_ICON_BY_ID = {
   6: '/static/svg/hobby.svg',
   7: '/static/svg/bicycle.svg'
 }
+const LOCAL_BANNERS = [
+  { id: 'local-nhb', image: '/static/pic/推广（南海北）.webp' },
+  { id: 'local-gz', image: '/static/pic/推广（广州）.webp' }
+]
+const remoteBannerList = ref([])
+const useRemoteBanners = ref(false)
 
 onLoad(async () => {
   try {
@@ -235,12 +241,33 @@ function handleCategoryIconError(item) {
 }
 
 async function loadBanners() {
+  useRemoteBanners.value = false
+  bannerList.value = LOCAL_BANNERS
   if (!appStore.currentCampusId) return
   try {
     const res = await get('/mini/banner/list', { campusId: appStore.currentCampusId }, { showLoading: false })
-    bannerList.value = res || []
+    remoteBannerList.value = Array.isArray(res) ? res : []
   } catch (e) {
     console.error('加载Banner失败', e)
+  }
+}
+
+async function handleBannerImageError(item) {
+  if (useRemoteBanners.value) return
+  const id = String(item?.id || '')
+  if (!id.startsWith('local-')) return
+  if (!appStore.currentCampusId) return
+  if (!remoteBannerList.value || remoteBannerList.value.length === 0) {
+    try {
+      const res = await get('/mini/banner/list', { campusId: appStore.currentCampusId }, { showLoading: false })
+      remoteBannerList.value = Array.isArray(res) ? res : []
+    } catch (e) {
+      return
+    }
+  }
+  if (remoteBannerList.value && remoteBannerList.value.length > 0) {
+    useRemoteBanners.value = true
+    bannerList.value = remoteBannerList.value
   }
 }
 

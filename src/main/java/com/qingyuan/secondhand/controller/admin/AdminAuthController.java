@@ -5,6 +5,7 @@ import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.common.result.Result;
 import com.qingyuan.secondhand.service.CampusAuthService;
 import com.qingyuan.secondhand.vo.AuthPageVO;
+import com.qingyuan.secondhand.vo.AuthHistoryVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -37,6 +39,11 @@ public class AdminAuthController {
     public Result<AuthPageVO> getAuthDetail(@PathVariable Long id) {
         AuthPageVO vo = campusAuthService.getAuthDetail(id);
         return Result.success(vo);
+    }
+
+    @GetMapping("/history/{authId}")
+    public Result<List<AuthHistoryVO>> listAuthHistory(@PathVariable Long authId) {
+        return Result.success(campusAuthService.listAuthHistoryByAuthId(authId));
     }
 
     @PostMapping("/approve")
