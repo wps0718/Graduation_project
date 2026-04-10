@@ -22,4 +22,7 @@ public class UserUpdateDTO {
     private Integer gender;
 
     private Long campusId;
+
+    @Size(max = 200, message = "个人简介不能超过200字")
+    private String bio;
 }

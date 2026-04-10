@@ -86,6 +86,94 @@
           <text class="detail__seller-arrow">›</text>
         </view>
       </view>
+
+      <view class="detail__section comment-section">
+        <view class="comment-section__header">
+          <text class="detail__section-title">全部留言</text>
+          <text class="comment-section__count">{{ commentCount }}</text>
+        </view>
+        
+        <view v-if="comments.length > 0" class="comment-list">
+          <view v-for="comment in comments" :key="comment.id" class="comment-item">
+            <view class="comment-item__main">
+              <view class="comment-item__avatar">
+                <UserAvatar :src="comment.avatarUrl" :size="64" />
+              </view>
+              <view class="comment-item__content-wrap">
+                <view class="comment-item__user-row">
+                  <text class="comment-item__user-name">{{ comment.nickName }}</text>
+                  <text v-if="comment.userId === seller.id" class="comment-item__seller-tag">卖家</text>
+                </view>
+                <text class="comment-item__text">{{ comment.content }}</text>
+                <view class="comment-item__footer">
+                  <text class="comment-item__time">{{ formatCommentTime(comment.createTime) }}</text>
+                  <view class="comment-item__actions">
+                    <text class="comment-item__action" @click="onReply(comment)">回复</text>
+                    <text v-if="comment.userId === userStore.userInfo?.id" class="comment-item__action is-danger" @click="onDeleteComment(comment.id)">删除</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+
+            <view v-if="comment.replies && comment.replies.length > 0" class="comment-replies">
+              <view v-for="reply in comment.replies" :key="reply.id" class="reply-item">
+                <view class="reply-item__avatar">
+                  <UserAvatar :src="reply.avatarUrl" :size="48" />
+                </view>
+                <view class="reply-item__content-wrap">
+                  <view class="reply-item__user-row">
+                    <text class="reply-item__user-name">{{ reply.nickName }}</text>
+                    <text v-if="reply.userId === seller.id" class="reply-item__seller-tag">卖家</text>
+                    <text v-if="reply.replyToNickName" class="reply-item__to-user">回复 {{ reply.replyToNickName }}</text>
+                  </view>
+                  <text class="reply-item__text">{{ reply.content }}</text>
+                  <view class="reply-item__footer">
+                    <text class="reply-item__time">{{ formatCommentTime(reply.createTime) }}</text>
+                    <view class="reply-item__actions">
+                      <text class="reply-item__action" @click="onReply(reply)">回复</text>
+                      <text v-if="reply.userId === userStore.userInfo?.id" class="reply-item__action is-danger" @click="onDeleteComment(reply.id)">删除</text>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view v-else class="comment-empty">
+          <text class="comment-empty__text">暂无留言，快来抢沙发吧~</text>
+        </view>
+
+        <view class="comment-bar" @click="onOpenComment">
+          <view class="comment-bar__input-placeholder">
+            <text class="comment-bar__text">问问更多细节...</text>
+          </view>
+          <button class="comment-bar__btn">留言</button>
+        </view>
+      </view>
+    </view>
+
+    <!-- 留言输入弹窗 -->
+    <view v-if="showCommentInput" class="comment-popup" @touchmove.stop.prevent>
+      <view class="comment-popup__mask" @click="onCloseComment"></view>
+      <view class="comment-popup__content">
+        <view class="comment-popup__header">
+          <text class="comment-popup__title">{{ replyTo ? `回复 ${replyTo.nickName}` : '发表留言' }}</text>
+          <text class="comment-popup__cancel" @click="onCloseComment">取消</text>
+        </view>
+        <textarea
+          class="comment-popup__textarea"
+          v-model="commentContent"
+          :placeholder="replyTo ? '回复内容...' : '问问更多细节...'"
+          :focus="showCommentInput"
+          maxlength="300"
+          fixed
+          show-confirm-bar
+        ></textarea>
+        <view class="comment-popup__footer">
+          <text class="comment-popup__count">{{ commentContent.length }}/300</text>
+          <button class="comment-popup__submit" :disabled="!commentContent.trim()" @click="submitComment">发送</button>
+        </view>
+      </view>
     </view>
 
     <view v-else class="detail__empty">
@@ -144,6 +232,20 @@ const loading = ref(false)
 const currentIndex = ref(0)
 const isFavorited = ref(false)
 
+// 留言相关
+const comments = ref([])
+const showCommentInput = ref(false)
+const commentContent = ref('')
+const replyTo = ref(null)
+
+const commentCount = computed(() => {
+  let count = comments.value.length
+  comments.value.forEach(c => {
+    if (c.replies) count += c.replies.length
+  })
+  return count
+})
+
 const userStore = useUserStore()
 
 const imageList = computed(() => {
@@ -173,7 +275,22 @@ const tagList = computed(() => {
   return categoryName ? [categoryName] : []
 })
 
-const seller = computed(() => (detail.value && detail.value.seller) || {})
+const seller = computed(() => {
+  if (!detail.value) return {}
+  const fromObject = detail.value.seller
+  if (fromObject && typeof fromObject === 'object') {
+    return fromObject
+  }
+  const id = detail.value.sellerId
+  if (!id) return {}
+  return {
+    id,
+    nickName: detail.value.sellerNickName,
+    avatarUrl: detail.value.sellerAvatarUrl,
+    score: detail.value.sellerScore,
+    authStatus: detail.value.sellerAuthStatus
+  }
+})
 
 const productDescription = computed(() => {
   if (!detail.value) return ''
@@ -242,11 +359,96 @@ async function fetchDetail(id) {
     if (isLogin()) {
       await checkFavorite(id)
     }
+    fetchComments(id)
   } catch (error) {
     showToast('加载失败，请重试')
   } finally {
     loading.value = false
   }
+}
+
+async function fetchComments(productId) {
+  try {
+    const data = await get(`/mini/product/comment/list/${productId}`)
+    comments.value = data || []
+  } catch (error) {
+    console.error('Fetch comments error:', error)
+  }
+}
+
+function onOpenComment() {
+  if (!isLogin()) {
+    promptLogin()
+    return
+  }
+  replyTo.value = null
+  showCommentInput.value = true
+}
+
+function onCloseComment() {
+  showCommentInput.value = false
+  commentContent.value = ''
+  replyTo.value = null
+}
+
+function onReply(comment) {
+  if (!isLogin()) {
+    promptLogin()
+    return
+  }
+  replyTo.value = {
+    id: comment.id,
+    nickName: comment.nickName
+  }
+  showCommentInput.value = true
+}
+
+async function submitComment() {
+  if (!commentContent.value.trim()) return
+  try {
+    await post('/mini/product/comment/add', {
+      productId: detail.value.id,
+      parentId: replyTo.value ? replyTo.value.id : null,
+      content: commentContent.value
+    })
+    showToast('留言成功')
+    onCloseComment()
+    fetchComments(detail.value.id)
+  } catch (error) {
+    showToast('留言失败，请重试')
+  }
+}
+
+async function onDeleteComment(commentId) {
+  const confirm = await showConfirm('确认删除这条留言吗？')
+  if (!confirm) return
+  try {
+    await post(`/mini/product/comment/delete/${commentId}`)
+    showToast('已删除')
+    fetchComments(detail.value.id)
+  } catch (error) {
+    showToast('删除失败')
+  }
+}
+
+function formatCommentTime(timeStr) {
+  if (!timeStr) return ''
+  const date = new Date(timeStr.replace('T', ' ').replace(/-/g, '/'))
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  
+  const minute = 60 * 1000
+  const hour = 60 * minute
+  const day = 24 * hour
+  
+  if (diff < minute) return '刚刚'
+  if (diff < hour) return Math.floor(diff / minute) + '分钟前'
+  if (diff < day) return Math.floor(diff / hour) + '小时前'
+  if (diff < 2 * day) return '昨天'
+  
+  const m = (date.getMonth() + 1).toString().padStart(2, '0')
+  const d = date.getDate().toString().padStart(2, '0')
+  return `${m}-${d}`
 }
 
 async function checkFavorite(id) {
@@ -698,7 +900,325 @@ onShareAppMessage(() => {
 .detail__bottom-action-text {
   font-size: var(--font-md);
   color: var(--text-white);
-  font-weight: 600;
+  font-weight: bold;
+}
+
+// 留言板块样式
+.comment-section {
+  padding-bottom: 30rpx;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 24rpx;
+  }
+
+  &__count {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    margin-left: 12rpx;
+  }
+}
+
+.comment-list {
+  margin-bottom: 30rpx;
+}
+
+.comment-item {
+  margin-bottom: 32rpx;
+
+  &__main {
+    display: flex;
+  }
+
+  &__avatar {
+    flex-shrink: 0;
+    margin-right: 20rpx;
+  }
+
+  &__content-wrap {
+    flex: 1;
+    border-bottom: 1rpx solid var(--border-light);
+    padding-bottom: 24rpx;
+  }
+
+  &__user-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8rpx;
+  }
+
+  &__user-name {
+    font-size: var(--font-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  &__seller-tag {
+    font-size: 20rpx;
+    color: var(--primary-color);
+    background: rgba(74, 144, 226, 0.1);
+    padding: 2rpx 8rpx;
+    border-radius: 4rpx;
+    margin-left: 12rpx;
+  }
+
+  &__text {
+    font-size: var(--font-md);
+    color: var(--text-primary);
+    line-height: 1.5;
+    word-break: break-all;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12rpx;
+  }
+
+  &__time {
+    font-size: 22rpx;
+    color: var(--text-placeholder);
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 24rpx;
+  }
+
+  &__action {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+
+    &.is-danger {
+      color: var(--error-color);
+    }
+  }
+}
+
+.comment-replies {
+  margin-top: 20rpx;
+  padding-left: 84rpx;
+}
+
+.reply-item {
+  display: flex;
+  margin-bottom: 24rpx;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  &__avatar {
+    flex-shrink: 0;
+    margin-right: 16rpx;
+  }
+
+  &__content-wrap {
+    flex: 1;
+  }
+
+  &__user-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 4rpx;
+  }
+
+  &__user-name {
+    font-size: 24rpx;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  &__seller-tag {
+    font-size: 18rpx;
+    color: var(--primary-color);
+    background: rgba(74, 144, 226, 0.1);
+    padding: 2rpx 6rpx;
+    border-radius: 4rpx;
+    margin-left: 8rpx;
+  }
+
+  &__to-user {
+    font-size: 24rpx;
+    color: var(--text-secondary);
+    margin-left: 12rpx;
+
+    &::before {
+      content: '';
+      display: inline-block;
+    }
+  }
+
+  &__text {
+    font-size: 26rpx;
+    color: var(--text-primary);
+    line-height: 1.4;
+    word-break: break-all;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8rpx;
+  }
+
+  &__time {
+    font-size: 20rpx;
+    color: var(--text-placeholder);
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 20rpx;
+  }
+
+  &__action {
+    font-size: 24rpx;
+    color: var(--text-secondary);
+
+    &.is-danger {
+      color: var(--error-color);
+    }
+  }
+}
+
+.comment-empty {
+  padding: 40rpx 0;
+  text-align: center;
+
+  &__text {
+    font-size: var(--font-sm);
+    color: var(--text-placeholder);
+  }
+}
+
+.comment-bar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-grey);
+  border-radius: 999rpx;
+  padding: 12rpx 12rpx 12rpx 30rpx;
+  margin-top: 20rpx;
+
+  &__input-placeholder {
+    flex: 1;
+  }
+
+  &__text {
+    font-size: var(--font-sm);
+    color: var(--text-placeholder);
+  }
+
+  &__btn {
+    min-width: 120rpx;
+    height: 64rpx;
+    line-height: 64rpx;
+    background: var(--primary-color);
+    color: var(--text-white);
+    font-size: var(--font-sm);
+    border-radius: 999rpx;
+    padding: 0 30rpx;
+    margin: 0;
+
+    &::after {
+      border: none;
+    }
+  }
+}
+
+// 留言弹窗
+.comment-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  &__mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  &__content {
+    position: relative;
+    background: var(--bg-white);
+    border-radius: 32rpx 32rpx 0 0;
+    padding: 30rpx 30rpx calc(30rpx + var(--safe-area-inset-bottom));
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30rpx;
+  }
+
+  &__title {
+    font-size: var(--font-md);
+    font-weight: bold;
+    color: var(--text-primary);
+  }
+
+  &__cancel {
+    font-size: var(--font-md);
+    color: var(--text-secondary);
+  }
+
+  &__textarea {
+    width: 100%;
+    height: 240rpx;
+    background: var(--bg-grey);
+    border-radius: 16rpx;
+    padding: 20rpx;
+    box-sizing: border-box;
+    font-size: var(--font-md);
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20rpx;
+  }
+
+  &__count {
+    font-size: var(--font-sm);
+    color: var(--text-placeholder);
+  }
+
+  &__submit {
+    min-width: 160rpx;
+    height: 72rpx;
+    line-height: 72rpx;
+    background: var(--primary-color);
+    color: var(--text-white);
+    font-size: var(--font-md);
+    border-radius: 999rpx;
+    margin: 0;
+
+    &[disabled] {
+      background: var(--border-color);
+      color: var(--text-placeholder);
+    }
+
+    &::after {
+      border: none;
+    }
+  }
 }
 
 .detail__empty {

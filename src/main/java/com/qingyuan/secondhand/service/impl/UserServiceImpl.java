@@ -17,11 +17,13 @@ import com.qingyuan.secondhand.dto.UserUpdateDTO;
 import com.qingyuan.secondhand.dto.WxLoginDTO;
 import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.mapper.UserMapper;
+import com.qingyuan.secondhand.service.FollowService;
 import com.qingyuan.secondhand.service.UserService;
 import com.qingyuan.secondhand.vo.AdminUserDetailVO;
 import com.qingyuan.secondhand.vo.AdminUserPageVO;
 import com.qingyuan.secondhand.vo.LoginVO;
-import com.qingyuan.secondhand.vo.ProductSimpleVO;
+import com.qingyuan.secondhand.vo.FollowStatsVO;
+import com.qingyuan.secondhand.vo.SellerProductVO;
 import com.qingyuan.secondhand.vo.UserInfoVO;
 import com.qingyuan.secondhand.vo.UserProfileVO;
 import com.qingyuan.secondhand.vo.UserStatsVO;
@@ -35,14 +37,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadLocalRandom;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -56,6 +63,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final StringRedisTemplate stringRedisTemplate;
     private final BCryptPasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
+    private final FollowService followService;
 
     @Override
     public LoginVO wxLogin(WxLoginDTO dto) {
@@ -84,6 +92,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
             user.setSessionKey(sessionKey);
             user.setLastLoginTime(LocalDateTime.now());
+            user.setIpRegion(resolveClientIpRegion());
             user.setUpdateTime(LocalDateTime.now());
             updateById(user);
         }
@@ -147,6 +156,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         LocalDateTime now = LocalDateTime.now();
         user.setLastLoginTime(now);
+        user.setIpRegion(resolveClientIpRegion());
         user.setUpdateTime(now);
         updateById(user);
 
@@ -231,6 +241,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         LocalDateTime now = LocalDateTime.now();
         user.setLastLoginTime(now);
+        user.setIpRegion(resolveClientIpRegion());
         user.setUpdateTime(now);
         updateById(user);
 
@@ -293,6 +304,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         vo.setAuthStatus(user.getAuthStatus());
         vo.setScore(user.getScore());
         vo.setStatus(user.getStatus());
+        vo.setBio(user.getBio());
         Integer auditStatus = userMapper.selectLatestCampusAuthAuditStatus(userId);
         Integer mappedAuthStatus = mapCampusAuthAuditStatus(auditStatus);
         if (mappedAuthStatus != null) {
@@ -343,6 +355,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setAvatarUrl(dto.getAvatarUrl());
         user.setGender(dto.getGender());
         user.setCampusId(dto.getCampusId());
+        user.setBio(dto.getBio());
         user.setUpdateTime(LocalDateTime.now());
 
         int updated = userMapper.updateById(user);
@@ -400,17 +413,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Integer onSaleCount = userMapper.countOnSaleProducts(userId);
         Integer soldCount = userMapper.countSoldOrders(userId);
 
-        Page<Map<String, Object>> productPage = userMapper.pageOnSaleProducts(new Page<>(page, pageSize), userId);
-        List<ProductSimpleVO> products = (productPage == null || productPage.getRecords() == null)
-                ? List.of()
-                : productPage.getRecords().stream().map(this::mapToProductSimpleVO).toList();
+        Page<SellerProductVO> productsPage = userMapper.pageOnSaleSellerProducts(new Page<>(page, pageSize), userId);
+        if (productsPage != null && productsPage.getRecords() != null) {
+            productsPage.getRecords().forEach(item -> item.setCoverImage(parseCoverImage(item.getCoverImage())));
+        } else {
+            productsPage = new Page<>(page, pageSize, 0);
+        }
 
-        Page<ProductSimpleVO> productsPage = new Page<>(
-                productPage == null ? page : productPage.getCurrent(),
-                productPage == null ? pageSize : productPage.getSize(),
-                productPage == null ? 0 : productPage.getTotal()
-        );
-        productsPage.setRecords(products);
+        FollowStatsVO stats = followService.getFollowStats(userId);
+        Integer lastActiveDays = calculateLastActiveDays(user.getLastLoginTime());
+        String lastActiveText = buildLastActiveText(lastActiveDays, user.getLastLoginTime());
 
         UserProfileVO vo = new UserProfileVO();
         vo.setId(user.getId());
@@ -418,10 +430,100 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         vo.setAvatarUrl(user.getAvatarUrl());
         vo.setAuthStatus(user.getAuthStatus());
         vo.setScore(user.getScore());
+        vo.setBio(user.getBio());
+        vo.setIpRegion(user.getIpRegion());
+        vo.setLastActiveDays(lastActiveDays);
+        vo.setLastActiveText(lastActiveText);
+        vo.setFollowerCount(stats == null ? 0L : stats.getFollowerCount());
+        vo.setFollowingCount(stats == null ? 0L : stats.getFollowingCount());
         vo.setOnSaleCount(onSaleCount == null ? 0 : onSaleCount);
         vo.setSoldCount(soldCount == null ? 0 : soldCount);
         vo.setProducts(productsPage);
         return vo;
+    }
+
+    private Integer calculateLastActiveDays(LocalDateTime lastLoginTime) {
+        if (lastLoginTime == null) {
+            return null;
+        }
+        LocalDate last = lastLoginTime.toLocalDate();
+        LocalDate now = LocalDate.now();
+        long days = ChronoUnit.DAYS.between(last, now);
+        if (days < 0) {
+            return 0;
+        }
+        if (days > Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+        return (int) days;
+    }
+
+    private String buildLastActiveText(Integer days, LocalDateTime lastLoginTime) {
+        if (lastLoginTime == null) {
+            return "很久以前来过";
+        }
+        if (days == null) {
+            return "很久以前来过";
+        }
+        if (days <= 0) {
+            return "今天来过";
+        }
+        return days + "天前来过";
+    }
+
+    private String parseCoverImage(String imagesJson) {
+        if (!StringUtils.hasText(imagesJson)) {
+            return null;
+        }
+        try {
+            List<String> images = objectMapper.readValue(imagesJson, new TypeReference<List<String>>() {
+            });
+            if (images == null || images.isEmpty()) {
+                return null;
+            }
+            return images.get(0);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String resolveClientIpRegion() {
+        HttpServletRequest request = getCurrentRequest();
+        if (request == null) {
+            return null;
+        }
+        String ip = extractClientIp(request);
+        if (!StringUtils.hasText(ip)) {
+            return null;
+        }
+        if (ip.startsWith("127.") || "0:0:0:0:0:0:0:1".equals(ip) || "localhost".equalsIgnoreCase(ip)) {
+            return "本地";
+        }
+        return "未知";
+    }
+
+    private HttpServletRequest getCurrentRequest() {
+        try {
+            ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            return attrs == null ? null : attrs.getRequest();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (StringUtils.hasText(forwarded)) {
+            String first = forwarded.split(",")[0].trim();
+            if (StringUtils.hasText(first)) {
+                return first;
+            }
+        }
+        String realIp = request.getHeader("X-Real-IP");
+        if (StringUtils.hasText(realIp)) {
+            return realIp.trim();
+        }
+        return request.getRemoteAddr();
     }
 
     @Override
@@ -602,73 +704,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         stringRedisTemplate.delete(RedisConstant.USER_STATS + userId);
     }
 
-    private ProductSimpleVO mapToProductSimpleVO(Map<String, Object> row) {
-        ProductSimpleVO vo = new ProductSimpleVO();
-        vo.setId(parseLong(row.get("id")));
-        vo.setTitle(row.get("title") == null ? null : String.valueOf(row.get("title")));
-        vo.setPrice(parseBigDecimal(row.get("price")));
-
-        String imagesJson = row.get("images") == null ? null : String.valueOf(row.get("images"));
-        if (!StringUtils.hasText(imagesJson)) {
-            vo.setImages(List.of());
-        } else {
-            try {
-                vo.setImages(objectMapper.readValue(imagesJson, new TypeReference<List<String>>() {
-                }));
-            } catch (Exception e) {
-                vo.setImages(List.of());
-            }
-        }
-
-        Object createTimeObj = row.containsKey("createTime") ? row.get("createTime") : row.get("create_time");
-        vo.setCreateTime(parseLocalDateTime(createTimeObj));
-        return vo;
-    }
-
-    private Long parseLong(Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof Number number) {
-            return number.longValue();
-        }
-        try {
-            return Long.parseLong(String.valueOf(value));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private BigDecimal parseBigDecimal(Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof BigDecimal bigDecimal) {
-            return bigDecimal;
-        }
-        if (value instanceof Number number) {
-            return BigDecimal.valueOf(number.doubleValue());
-        }
-        try {
-            return new BigDecimal(String.valueOf(value));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private LocalDateTime parseLocalDateTime(Object value) {
-        if (value == null) {
-            return null;
-        }
-        if (value instanceof LocalDateTime localDateTime) {
-            return localDateTime;
-        }
-        if (value instanceof java.sql.Timestamp timestamp) {
-            return timestamp.toLocalDateTime();
-        }
-        return null;
-    }
-
     private User buildNewWxUser(String openId, String sessionKey) {
         LocalDateTime now = LocalDateTime.now();
         User user = new User();
@@ -676,6 +711,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setSessionKey(sessionKey);
         user.setNickName("微信用户");
         user.setAvatarUrl("");
+        user.setIpRegion(resolveClientIpRegion());
         user.setGender(0);
         user.setAuthStatus(AuthStatus.UNAUTHENTICATED.getCode());
         user.setScore(BigDecimal.valueOf(5.0));
@@ -694,6 +730,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setUsername(phone);
         user.setNickName("用户" + phone.substring(phone.length() - 4));
         user.setAvatarUrl("");
+        user.setIpRegion(resolveClientIpRegion());
         user.setGender(0);
         user.setAuthStatus(AuthStatus.UNAUTHENTICATED.getCode());
         user.setScore(BigDecimal.valueOf(5.0));

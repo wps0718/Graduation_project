@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.vo.AdminUserDetailVO;
 import com.qingyuan.secondhand.vo.AdminUserPageVO;
+import com.qingyuan.secondhand.vo.SellerProductVO;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
@@ -61,6 +62,23 @@ public interface UserMapper extends BaseMapper<User> {
             order by create_time desc
             """)
     Page<Map<String, Object>> pageOnSaleProducts(Page<Map<String, Object>> page, @Param("userId") Long userId);
+
+    @Select("""
+            select
+                p.id,
+                p.title,
+                p.price,
+                p.original_price as originalPrice,
+                p.condition_level as conditionLevel,
+                p.images as coverImage,
+                ca.name as campusName,
+                p.create_time as createTime
+            from product p
+            left join campus ca on p.campus_id = ca.id
+            where p.user_id = #{userId} and p.status = 1 and p.is_deleted = 0
+            order by p.create_time desc
+            """)
+    Page<SellerProductVO> pageOnSaleSellerProducts(Page<SellerProductVO> page, @Param("userId") Long userId);
 
     Page<AdminUserPageVO> getAdminUserPage(Page<AdminUserPageVO> page,
                                            @Param("keyword") String keyword,

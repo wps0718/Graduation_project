@@ -55,13 +55,22 @@
 		{
 			"path": "pages/chat/list/list",
 			"style": {
-				"navigationBarTitleText": "消息"
+				"navigationBarTitleText": "消息",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": true
 			}
 		},
 		{
 			"path": "pages/chat/detail/detail",
 			"style": {
 				"navigationBarTitleText": "聊天详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/chat/settings/settings",
+			"style": {
+				"navigationBarTitleText": "消息设置",
 				"navigationStyle": "custom"
 			}
 		},
@@ -123,8 +132,19 @@
 		{
 			"path": "pages/notification/notification",
 			"style": {
-				"navigationBarTitleText": "消息中心",
-				"navigationStyle": "custom"
+				"navigationBarTitleText": "系统消息"
+			}
+		},
+		{
+			"path": "pages/notification/received-replies",
+			"style": {
+				"navigationBarTitleText": "收到回复"
+			}
+		},
+		{
+			"path": "pages/notification/received-favorites",
+			"style": {
+				"navigationBarTitleText": "收到收藏"
 			}
 		},
 		{

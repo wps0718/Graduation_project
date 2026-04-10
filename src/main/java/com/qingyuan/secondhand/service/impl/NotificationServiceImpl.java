@@ -12,6 +12,7 @@ import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.entity.Notification;
 import com.qingyuan.secondhand.mapper.NotificationMapper;
 import com.qingyuan.secondhand.service.NotificationService;
+import com.qingyuan.secondhand.vo.FavoriteNotificationVO;
 import com.qingyuan.secondhand.vo.NotificationVO;
 import com.qingyuan.secondhand.vo.UnreadCountVO;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +52,16 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
             return new Page<>(page, pageSize, 0);
         }
         return result.convert(this::toNotificationVO);
+    }
+
+    @Override
+    public IPage<FavoriteNotificationVO> getFavoriteNotificationList(Integer page, Integer pageSize) {
+        Long userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException("未登录");
+        }
+        Page<FavoriteNotificationVO> pageObj = new Page<>(page, pageSize);
+        return notificationMapper.selectFavoriteNotifications(pageObj, userId);
     }
 
     @Override

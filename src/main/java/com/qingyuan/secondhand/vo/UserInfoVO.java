@@ -16,4 +16,5 @@ public class UserInfoVO {
     private Integer authStatus;
     private BigDecimal score;
     private Integer status;
+    private String bio;
 }

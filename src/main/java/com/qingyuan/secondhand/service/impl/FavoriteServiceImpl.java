@@ -61,6 +61,7 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
         if (count != null && count > 0) {
             throw new BusinessException("已收藏该商品");
         }
+        // 插入收藏记录
         Favorite favorite = new Favorite();
         favorite.setUserId(userId);
         favorite.setProductId(productId);
@@ -73,6 +74,7 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
             throw new BusinessException("已收藏该商品");
         }
 
+        // 更新商品的收藏数
         int existingCount = product.getFavoriteCount() == null ? 0 : product.getFavoriteCount();
         Product update = new Product();
         update.setId(productId);
@@ -81,37 +83,17 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
         if (updated <= 0) {
             throw new BusinessException("收藏失败");
         }
+
+        // 发送收藏通知 (不聚合，每条收藏都是独立通知)
         String productName = product.getTitle() == null ? "商品" : product.getTitle();
-        LocalDateTime todayStart = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
-        Notification existingNotification = notificationMapper.selectOne(new LambdaQueryWrapper<Notification>()
-                .eq(Notification::getUserId, product.getUserId())
-                .eq(Notification::getType, NotificationType.BE_FAVORITED.getCode())
-                .eq(Notification::getRelatedId, productId)
-                .ge(Notification::getCreateTime, todayStart)
-                .orderByDesc(Notification::getCreateTime)
-                .last("LIMIT 1"));
-        if (existingNotification != null) {
-            int countValue = extractFavoriteCount(existingNotification.getContent()) + 1;
-            Map<String, String> params = Map.of("productName", productName, "count", String.valueOf(countValue));
-            Notification updateNotification = new Notification();
-            updateNotification.setId(existingNotification.getId());
-            updateNotification.setContent(NotificationType.BE_FAVORITED.formatContent(params));
-            updateNotification.setIsRead(0);
-            updateNotification.setUpdateTime(LocalDateTime.now());
-            int updatedNotification = notificationMapper.updateById(updateNotification);
-            if (updatedNotification <= 0) {
-                throw new BusinessException("更新通知失败");
-            }
-        } else {
-            notificationService.send(
-                    product.getUserId(),
-                    NotificationType.BE_FAVORITED,
-                    Map.of("productName", productName, "count", "1"),
-                    product.getId(),
-                    1,
-                    NotificationCategory.SYSTEM.getCode()
-            );
-        }
+        notificationService.send(
+                product.getUserId(),
+                NotificationType.BE_FAVORITED,
+                Map.of("productName", productName, "count", "1"),
+                favorite.getId(), // 关联收藏记录ID
+                1, // 关联类型为商品相关
+                NotificationCategory.SYSTEM.getCode()
+        );
     }
 
     @Override

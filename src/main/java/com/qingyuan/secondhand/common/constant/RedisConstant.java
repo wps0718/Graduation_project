@@ -23,4 +23,6 @@ public class RedisConstant {
     public static final String IM_HEARTBEAT = "im:heartbeat:";
     public static final String IM_UNREAD = "im:unread:";
     public static final String IM_SESSION_UNREAD = "im:session:unread:";
+    public static final String FOLLOW_STATS = "follow:stats:";
+    public static final String FOLLOW_CHECK = "follow:check:";
 }

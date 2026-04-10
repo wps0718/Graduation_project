@@ -158,7 +158,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { get, post, uploadFile } from '@/utils/request'
 import { resolveImageUrl } from '@/utils/image'
 import { useAppStore } from '@/store/app'
@@ -168,6 +168,7 @@ const appStore = useAppStore()
 const statusBarHeight = ref(0)
 const navBarHeight = ref(44)
 const maxImages = 9
+const resetAfterSuccessKey = 'publish_reset_after_success'
 
 const imageList = ref([])
 const uploadLoading = ref(false)
@@ -175,17 +176,21 @@ const customMeeting = ref(false)
 const meetingPointList = ref([])
 const submitting = ref(false)
 
-const form = ref({
-  title: '',
-  price: '',
-  originalPrice: '',
-  categoryId: null,
-  conditionLevel: null,
-  description: '',
-  campusId: null,
-  meetingPointId: null,
-  meetingPointName: ''
-})
+function getInitialForm() {
+  return {
+    title: '',
+    price: '',
+    originalPrice: '',
+    categoryId: null,
+    conditionLevel: null,
+    description: '',
+    campusId: null,
+    meetingPointId: null,
+    meetingPointName: ''
+  }
+}
+
+const form = ref(getInitialForm())
 
 const campusList = computed(() => appStore.campusList || [])
 const categoryList = computed(() => appStore.categoryList || [])
@@ -217,6 +222,19 @@ const submitDisabled = computed(() => submitting.value)
 
 function showToast(title) {
   uni.showToast({ title, icon: 'none' })
+}
+
+function resetForm() {
+  form.value = getInitialForm()
+  imageList.value = []
+  meetingPointList.value = []
+  customMeeting.value = false
+  uploadLoading.value = false
+  submitting.value = false
+
+  if (appStore.currentCampusId) {
+    form.value.campusId = appStore.currentCampusId
+  }
 }
 
 function goBack() {
@@ -356,6 +374,8 @@ async function submitPublish() {
   try {
     await post('/mini/product/publish', payload, { showLoading: true })
     showToast('发布成功，等待审核')
+    uni.setStorageSync(resetAfterSuccessKey, '1')
+    resetForm()
     setTimeout(() => {
       uni.switchTab({ url: '/pages/index/index' })
     }, 300)
@@ -398,6 +418,14 @@ onLoad(async () => {
   if (!form.value.campusId && appStore.currentCampusId) {
     form.value.campusId = appStore.currentCampusId
   }
+  await loadMeetingPoints()
+})
+
+onShow(async () => {
+  const flag = uni.getStorageSync(resetAfterSuccessKey)
+  if (!flag) return
+  uni.removeStorageSync(resetAfterSuccessKey)
+  resetForm()
   await loadMeetingPoints()
 })
 </script>

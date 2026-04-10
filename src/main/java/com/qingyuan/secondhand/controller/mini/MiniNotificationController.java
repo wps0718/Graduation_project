@@ -3,12 +3,15 @@ package com.qingyuan.secondhand.controller.mini;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.qingyuan.secondhand.common.result.Result;
 import com.qingyuan.secondhand.service.NotificationService;
+import com.qingyuan.secondhand.dto.NotificationReadDTO;
+import com.qingyuan.secondhand.vo.FavoriteNotificationVO;
 import com.qingyuan.secondhand.vo.NotificationVO;
 import com.qingyuan.secondhand.vo.UnreadCountVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,9 +29,15 @@ public class MiniNotificationController {
         return Result.success(notificationService.getNotificationList(page, pageSize, category));
     }
 
+    @GetMapping("/favorite-list")
+    public Result<IPage<FavoriteNotificationVO>> favoriteList(@RequestParam(defaultValue = "1") Integer page,
+                                                               @RequestParam(defaultValue = "20") Integer pageSize) {
+        return Result.success(notificationService.getFavoriteNotificationList(page, pageSize));
+    }
+
     @PostMapping("/read")
-    public Result<Void> read(@RequestParam Long id) {
-        notificationService.markAsRead(id);
+    public Result<Void> read(@RequestBody NotificationReadDTO dto) {
+        notificationService.markAsRead(dto.getId());
         return Result.success();
     }
 

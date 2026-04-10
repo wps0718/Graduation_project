@@ -76,12 +76,24 @@ function realRequest(url, method, data, options) {
       mask: true
     })
   }
+
+  // 过滤 undefined 和 null 参数，防止后端转换错误
+  const cleanData = {}
+  if (data && typeof data === 'object') {
+    Object.keys(data).forEach(key => {
+      const val = data[key]
+      if (val !== undefined && val !== null && val !== '') {
+        cleanData[key] = val
+      }
+    })
+  }
+
   const token = getToken()
   return new Promise((resolve, reject) => {
     uni.request({
       url: BASE_URL + url,
       method,
-      data,
+      data: cleanData,
       header: {
         Authorization: token ? `Bearer ${token}` : ''
       },
