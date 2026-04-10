@@ -13,10 +13,25 @@
           />
           <view class="seller-profile__info">
             <view class="seller-profile__name-row">
-              <text class="seller-profile__name">{{ profile.nickName || '未命名卖家' }}</text>
-              <StatusTag type="auth" :value="profile.authStatus || 0" />
+              <view class="seller-profile__name-left">
+                <text class="seller-profile__name">{{ profile.nickName || '未命名卖家' }}</text>
+                <StatusTag type="auth" :value="profile.authStatus || 0" />
+              </view>
+              <view
+                v-if="!isSelf"
+                class="seller-profile__follow-btn"
+                :class="{ 'is-following': isFollowing }"
+                @click.stop="toggleFollow"
+              >
+                <text class="seller-profile__follow-text">{{ isFollowing ? '已关注' : '关注' }}</text>
+              </view>
             </view>
             <text class="seller-profile__score">综合评分 {{ profile.score || 0 }}</text>
+            <view class="seller-profile__meta">
+              <text class="seller-profile__meta-text">IP属地 {{ profile.ipRegion || '未知' }}</text>
+              <text class="seller-profile__meta-dot">·</text>
+              <text class="seller-profile__meta-text">{{ profile.lastActiveText || '最近活跃未知' }}</text>
+            </view>
             <view class="seller-profile__stats">
               <view class="seller-profile__stat">
                 <text class="seller-profile__stat-value">{{ profile.onSaleCount || 0 }}</text>
@@ -27,9 +42,27 @@
                 <text class="seller-profile__stat-value">{{ profile.soldCount || 0 }}</text>
                 <text class="seller-profile__stat-label">已成交</text>
               </view>
+              <view class="seller-profile__divider"></view>
+              <view class="seller-profile__stat">
+                <text class="seller-profile__stat-value">{{ profile.followerCount || 0 }}</text>
+                <text class="seller-profile__stat-label">粉丝</text>
+              </view>
+              <view class="seller-profile__divider"></view>
+              <view class="seller-profile__stat">
+                <text class="seller-profile__stat-value">{{ profile.followingCount || 0 }}</text>
+                <text class="seller-profile__stat-label">关注</text>
+              </view>
             </view>
           </view>
         </view>
+      </view>
+
+      <view v-if="profile.bio" class="seller-profile__bio">
+        <text class="seller-profile__bio-label">简介</text>
+        <text class="seller-profile__bio-text">{{ bioText }}</text>
+        <text v-if="showBioToggle" class="seller-profile__bio-toggle" @click="toggleBio">
+          {{ bioExpanded ? '收起' : '展开' }}
+        </text>
       </view>
 
       <view class="seller-profile__list">
@@ -47,10 +80,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onLoad, onReachBottom } from '@dcloudio/uni-app'
-import { get } from '@/utils/request'
+import { get, post } from '@/utils/request'
 import { useUserStore } from '@/store/user'
+import { CONDITION_LEVELS } from '@/utils/constant'
 import Navbar from '@/components/navbar/navbar.vue'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import StatusTag from '@/components/status-tag/status-tag.vue'
@@ -61,13 +95,33 @@ const userStore = useUserStore()
 
 const profile = ref({})
 const productList = ref([])
-const allProducts = ref([])
 const page = ref(1)
-const pageSize = 6
-const hasMore = ref(true)
+const pageSize = 8
+const total = ref(0)
+const hasMore = computed(() => productList.value.length < total.value)
 const loading = ref(false)
 const loadingMore = ref(false)
 const sellerId = ref(null)
+const isFollowing = ref(false)
+const followLoading = ref(false)
+const bioExpanded = ref(false)
+
+const isSelf = computed(() => {
+  return !!(userStore.userInfo && sellerId.value && userStore.userInfo.id === sellerId.value)
+})
+
+const showBioToggle = computed(() => {
+  const bio = String((profile.value && profile.value.bio) || '')
+  return bio.length > 36
+})
+
+const bioText = computed(() => {
+  const bio = String((profile.value && profile.value.bio) || '')
+  if (bioExpanded.value || bio.length <= 36) {
+    return bio
+  }
+  return `${bio.slice(0, 36)}...`
+})
 
 function showToast(title) {
   uni.showToast({ title, icon: 'none' })
@@ -89,6 +143,17 @@ function getIds(key) {
 
 function saveIds(key, list) {
   uni.setStorageSync(key, list)
+}
+
+function ensureLogin() {
+  if (!userStore.isLogin) {
+    showToast('请先登录')
+    setTimeout(() => {
+      uni.navigateTo({ url: '/pages/login/login' })
+    }, 300)
+    return false
+  }
+  return true
 }
 
 async function confirmBlock() {
@@ -114,30 +179,55 @@ async function confirmBlock() {
   showToast('已拉黑')
 }
 
-function buildList(reset = false) {
-  const start = (page.value - 1) * pageSize
-  const next = allProducts.value.slice(start, start + pageSize)
-  if (reset) {
-    productList.value = next
-  } else {
-    productList.value = [...productList.value, ...next]
-  }
-  hasMore.value = productList.value.length < allProducts.value.length
+function getConditionText(value) {
+  const found = CONDITION_LEVELS.find((item) => item.value === value)
+  return found ? found.label : ''
 }
 
-async function fetchProfile(id) {
+function normalizeProducts(records) {
+  const list = Array.isArray(records) ? records : []
+  return list.map((item) => {
+    const conditionLevel = item && typeof item.conditionLevel === 'number' ? item.conditionLevel : null
+    return {
+      ...item,
+      conditionText: getConditionText(conditionLevel)
+    }
+  })
+}
+
+async function fetchFollowState() {
+  if (!userStore.isLogin || !sellerId.value) {
+    isFollowing.value = false
+    return
+  }
+  try {
+    const data = await get(`/mini/follow/check/${sellerId.value}`, {}, { showLoading: false })
+    isFollowing.value = !!data
+  } catch (e) {
+    isFollowing.value = false
+  }
+}
+
+async function fetchProfile(id, reset = true) {
   if (loading.value) return
   loading.value = true
   try {
-    const data = await get(`/mini/user/profile/${id}`, {}, { showLoading: true })
-    profile.value = data || {}
-    const products = (data && data.products && data.products.records) || []
-    const filtered = Array.isArray(products)
-      ? products.filter((item) => item.seller && item.seller.id === sellerId.value)
-      : []
-    allProducts.value = filtered
-    page.value = 1
-    buildList(true)
+    const params = { page: page.value, pageSize }
+    const data = await get(`/mini/user/profile/${id}`, params, { showLoading: reset })
+    if (reset) {
+      profile.value = data || {}
+      bioExpanded.value = false
+      await fetchFollowState()
+    }
+    const products = (data && data.products) || {}
+    const records = (products && products.records) || []
+    total.value = Number((products && products.total) || 0)
+    const mapped = normalizeProducts(records)
+    if (reset) {
+      productList.value = mapped
+    } else {
+      productList.value = [...productList.value, ...mapped]
+    }
   } catch (e) {
     showToast('加载失败，请稍后重试')
   } finally {
@@ -148,9 +238,49 @@ async function fetchProfile(id) {
 async function loadMore() {
   if (loadingMore.value || !hasMore.value) return
   loadingMore.value = true
-  page.value += 1
-  buildList(false)
-  loadingMore.value = false
+  try {
+    page.value += 1
+    await fetchProfile(sellerId.value, false)
+  } finally {
+    loadingMore.value = false
+  }
+}
+
+function toggleBio() {
+  bioExpanded.value = !bioExpanded.value
+}
+
+async function toggleFollow() {
+  if (followLoading.value) return
+  if (!ensureLogin()) return
+  if (!sellerId.value) return
+  followLoading.value = true
+  try {
+    if (isFollowing.value) {
+      await post('/mini/follow/unfollow', { userId: sellerId.value }, { showLoading: true })
+    } else {
+      await post('/mini/follow/follow', { userId: sellerId.value }, { showLoading: true })
+    }
+    isFollowing.value = !isFollowing.value
+    try {
+      const stats = await get(`/mini/follow/stats/${sellerId.value}`, {}, { showLoading: false })
+      profile.value = {
+        ...profile.value,
+        followerCount: stats && typeof stats.followerCount === 'number' ? stats.followerCount : profile.value.followerCount,
+        followingCount: stats && typeof stats.followingCount === 'number' ? stats.followingCount : profile.value.followingCount
+      }
+    } catch (e) {
+      const followerCount = Number(profile.value.followerCount || 0)
+      profile.value = {
+        ...profile.value,
+        followerCount: Math.max(0, followerCount + (isFollowing.value ? 1 : -1))
+      }
+    }
+  } catch (e) {
+    showToast('操作失败，请稍后重试')
+  } finally {
+    followLoading.value = false
+  }
 }
 
 onLoad(async (options = {}) => {
@@ -166,7 +296,10 @@ onLoad(async (options = {}) => {
     uni.switchTab({ url: '/pages/user/user' })
     return
   }
-  await fetchProfile(id)
+  page.value = 1
+  productList.value = []
+  total.value = 0
+  await fetchProfile(id, true)
 })
 
 onReachBottom(() => {
@@ -194,7 +327,7 @@ onReachBottom(() => {
   gap: var(--spacing-md);
   padding: var(--spacing-lg);
   border-radius: 24rpx;
-  background: linear-gradient(135deg, #4a90d9 0%, #6ba3e0 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
   color: var(--text-white);
 }
 
@@ -209,6 +342,13 @@ onReachBottom(() => {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  justify-content: space-between;
+}
+
+.seller-profile__name-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
 }
 
 .seller-profile__name {
@@ -216,15 +356,48 @@ onReachBottom(() => {
   font-weight: 600;
 }
 
+.seller-profile__follow-btn {
+  padding: 10rpx 22rpx;
+  border-radius: var(--radius-round);
+  background-color: var(--text-white);
+  opacity: 0.95;
+}
+
+.seller-profile__follow-btn.is-following {
+  background-color: var(--primary-bg);
+}
+
+.seller-profile__follow-text {
+  font-size: var(--font-sm);
+  color: var(--primary-color);
+}
+
 .seller-profile__score {
   font-size: var(--font-sm);
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-white-85);
+}
+
+.seller-profile__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.seller-profile__meta-text {
+  font-size: var(--font-xs);
+  color: var(--text-white-85);
+}
+
+.seller-profile__meta-dot {
+  font-size: var(--font-xs);
+  color: var(--text-white-85);
 }
 
 .seller-profile__stats {
   display: flex;
   align-items: center;
   gap: var(--spacing-lg);
+  flex-wrap: wrap;
 }
 
 .seller-profile__stat {
@@ -246,7 +419,34 @@ onReachBottom(() => {
 .seller-profile__divider {
   width: 2rpx;
   height: 48rpx;
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: var(--text-white-30);
+}
+
+.seller-profile__bio {
+  margin-top: calc(var(--spacing-lg) * -0.5);
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md);
+  border-radius: 24rpx;
+  background-color: var(--bg-white);
+}
+
+.seller-profile__bio-label {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: var(--spacing-xs);
+}
+
+.seller-profile__bio-text {
+  font-size: var(--font-md);
+  color: var(--text-primary);
+}
+
+.seller-profile__bio-toggle {
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-sm);
+  color: var(--primary-color);
+  display: inline-block;
 }
 
 .seller-profile__list {

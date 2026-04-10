@@ -13,6 +13,8 @@ CREATE TABLE IF NOT EXISTS `user` (
   `username` varchar(50) DEFAULT NULL COMMENT '用户名（手机号）',
   `password` varchar(255) DEFAULT NULL COMMENT '密码（BCrypt加密）',
   `avatar_url` varchar(255) DEFAULT NULL COMMENT '头像URL',
+  `bio` varchar(200) DEFAULT NULL COMMENT '个人简介',
+  `ip_region` varchar(64) DEFAULT NULL COMMENT 'IP属地',
   `gender` tinyint(2) DEFAULT 0 COMMENT '性别 0-未知 1-男 2-女',
   `phone` varchar(11) DEFAULT NULL COMMENT '手机号',
   `campus_id` bigint(20) DEFAULT NULL COMMENT '所在校区ID',
@@ -31,6 +33,20 @@ CREATE TABLE IF NOT EXISTS `user` (
   KEY `idx_campus_id` (`campus_id`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+-- -----------------------------------------------------
+-- 1.1 用户关注表（user_follow）
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `user_follow` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `follower_id` bigint(20) NOT NULL COMMENT '关注者用户ID',
+  `followee_id` bigint(20) NOT NULL COMMENT '被关注用户ID',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_follower_followee` (`follower_id`, `followee_id`),
+  KEY `idx_followee_id` (`followee_id`),
+  KEY `idx_follower_id` (`follower_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户关注表';
 -- -----------------------------------------------------
 -- 2. 管理员表（employee）
 -- -----------------------------------------------------

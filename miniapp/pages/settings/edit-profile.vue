@@ -34,6 +34,18 @@
         <text class="edit-label">手机号</text>
         <text class="edit-value edit-value--muted">{{ form.phone || '未绑定' }}</text>
       </view>
+      <view class="edit-divider"></view>
+      <view class="edit-item edit-item--bio">
+        <text class="edit-label">个人简介</text>
+        <textarea
+          class="edit-textarea"
+          :value="form.bio"
+          placeholder="简单介绍一下自己吧"
+          placeholder-class="edit-placeholder"
+          maxlength="200"
+          @input="onBioInput"
+        />
+      </view>
     </view>
 
     <view class="edit-footer safe-area-bottom">
@@ -55,7 +67,8 @@ const form = ref({
   avatarUrl: '',
   nickName: '',
   gender: 0,
-  phone: ''
+  phone: '',
+  bio: ''
 })
 
 const genderOptions = ['男', '女', '保密']
@@ -99,6 +112,10 @@ function onGenderChange(e) {
   }
 }
 
+function onBioInput(e) {
+  form.value.bio = String((e && e.detail && e.detail.value) || '').trim()
+}
+
 async function loadProfile() {
   if (!ensureLogin()) return
   try {
@@ -107,7 +124,8 @@ async function loadProfile() {
       avatarUrl: data.avatarUrl || '',
       nickName: data.nickName || '',
       gender: typeof data.gender === 'number' ? data.gender : 0,
-      phone: data.phone || ''
+      phone: data.phone || '',
+      bio: data.bio || ''
     }
     userStore.setUserInfo(data)
   } catch (error) {
@@ -152,7 +170,8 @@ async function saveProfile() {
   const payload = {
     avatarUrl: form.value.avatarUrl,
     nickName: form.value.nickName,
-    gender: form.value.gender
+    gender: form.value.gender,
+    bio: form.value.bio
   }
   try {
     await post('/mini/user/update', payload, { showLoading: true })
@@ -245,6 +264,20 @@ onShow(() => {
   height: 1rpx;
   background-color: var(--border-light);
   margin: 0 var(--spacing-md);
+}
+
+.edit-item--bio {
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+}
+
+.edit-textarea {
+  flex: 1;
+  min-height: 160rpx;
+  text-align: right;
+  font-size: var(--font-md);
+  color: var(--text-primary);
+  line-height: 1.5;
 }
 
 .edit-footer {

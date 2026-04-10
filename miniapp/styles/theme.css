@@ -20,6 +20,8 @@ page {
   --text-secondary: #999999;
   --text-placeholder: #CCCCCC;
   --text-white: #FFFFFF;
+  --text-white-85: rgba(255, 255, 255, 0.85);
+  --text-white-30: rgba(255, 255, 255, 0.3);
   
   /* 背景色 */
   --bg-page: #F5F5F5;

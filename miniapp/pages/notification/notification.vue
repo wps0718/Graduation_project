@@ -74,6 +74,7 @@ const tabs = [
 ]
 
 const activeTab = ref(0)
+const filterType = ref(null)
 const messageList = ref([])
 const page = ref(1)
 const pageSize = 20
@@ -141,6 +142,17 @@ function applyCategoryFilter(list, category) {
   return list.filter((item) => item && Number(item.category) === Number(category))
 }
 
+function applyTypeFilter(list) {
+  if (!filterType.value) return list
+  const raw = String(filterType.value || '')
+  const parts = raw
+    .split(',')
+    .map((v) => Number(v))
+    .filter((v) => Number.isFinite(v) && v > 0)
+  if (!parts.length) return list
+  return list.filter((item) => item && parts.includes(Number(item.type)))
+}
+
 async function fetchNotifications(targetPage, refresh = false) {
   if (!ensureLogin()) return
   if (loading.value) return
@@ -151,13 +163,13 @@ async function fetchNotifications(targetPage, refresh = false) {
       {
         page: targetPage,
         pageSize,
-        category: activeTab.value || undefined
+        category: activeTab.value > 0 ? activeTab.value : undefined
       },
       { showLoading: refresh || targetPage === 1 }
     )
     const records = Array.isArray(data) ? data : (data.records || [])
     const total = Array.isArray(data) ? records.length : (data.total ?? records.length)
-    const filtered = applyCategoryFilter(records, activeTab.value)
+    const filtered = applyTypeFilter(applyCategoryFilter(records, activeTab.value))
     const isServerPaged = !Array.isArray(data) && typeof data.total === 'number' && data.total > records.length
     if (isServerPaged) {
       if (refresh) {
@@ -275,7 +287,18 @@ onMounted(() => {
   }
 })
 
-onLoad(() => {
+onLoad((options) => {
+  if (options && options.category !== undefined && options.category !== null && options.category !== '') {
+    const next = Number(options.category)
+    if (Number.isFinite(next)) {
+      activeTab.value = next
+    }
+  }
+  if (options && options.type !== undefined && options.type !== null && options.type !== '') {
+    filterType.value = options.type
+  } else {
+    filterType.value = null
+  }
   resetPagination()
   fetchNotifications(1, true)
 })

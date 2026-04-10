@@ -10,4 +10,25 @@
             #{item.isRead}, #{item.category}, #{item.createTime}, #{item.updateTime})
         </foreach>
     </insert>
+
+    <select id="selectFavoriteNotifications" resultType="com.qingyuan.secondhand.vo.FavoriteNotificationVO">
+        SELECT
+            n.id,
+            f.user_id AS userId,
+            u.nick_name AS nickName,
+            u.avatar_url AS avatarUrl,
+            f.product_id AS productId,
+            p.title AS productTitle,
+            JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]')) AS productImage,
+            p.price AS productPrice,
+            n.is_read AS isRead,
+            n.create_time AS createTime
+        FROM notification n
+        JOIN favorite f ON f.id = n.related_id
+        JOIN user u ON f.user_id = u.id
+        JOIN product p ON f.product_id = p.id
+        WHERE n.user_id = #{userId}
+          AND n.type = 6
+        ORDER BY n.create_time DESC
+    </select>
 </mapper>

@@ -1,6 +1,7 @@
 package com.qingyuan.secondhand.controller.mini;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.qingyuan.secondhand.service.ProductCommentService;
 import com.qingyuan.secondhand.service.ProductService;
 import com.qingyuan.secondhand.vo.ProductDetailVO;
 import com.qingyuan.secondhand.vo.ProductListVO;
@@ -22,11 +23,13 @@ class MiniProductControllerTest {
     private MockMvc mockMvc;
 
     private ProductService productService;
+    private ProductCommentService productCommentService;
 
     @BeforeEach
     void setup() {
         productService = mock(ProductService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new MiniProductController(productService)).build();
+        productCommentService = mock(ProductCommentService.class);
+        mockMvc = MockMvcBuilders.standaloneSetup(new MiniProductController(productService, productCommentService)).build();
     }
 
     @Test

@@ -22,6 +22,8 @@ public class User {
     private String username;
     private String password;
     private String avatarUrl;
+    private String bio;
+    private String ipRegion;
     private Integer gender;
     private String phone;
     private Long campusId;

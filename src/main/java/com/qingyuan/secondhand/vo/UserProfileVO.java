@@ -12,7 +12,13 @@ public class UserProfileVO {
     private String avatarUrl;
     private Integer authStatus;
     private BigDecimal score;
+    private String bio;
+    private String ipRegion;
+    private Integer lastActiveDays;
+    private String lastActiveText;
+    private Long followerCount;
+    private Long followingCount;
     private Integer onSaleCount;
     private Integer soldCount;
-    private Page<ProductSimpleVO> products;
+    private Page<SellerProductVO> products;
 }
