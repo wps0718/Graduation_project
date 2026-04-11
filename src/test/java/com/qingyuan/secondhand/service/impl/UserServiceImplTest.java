@@ -836,6 +836,7 @@ class UserServiceImplTest {
         seller.setAvatarUrl("a.png");
         seller.setAuthStatus(2);
         seller.setScore(BigDecimal.valueOf(4.6));
+        seller.setStatus(1);
 
         Mockito.when(userMapper.selectById(100L)).thenReturn(seller);
         Mockito.when(userMapper.countOnSaleProducts(100L)).thenReturn(5);
@@ -865,6 +866,7 @@ class UserServiceImplTest {
         Assertions.assertEquals(BigDecimal.valueOf(4.6), vo.getScore());
         Assertions.assertEquals(5, vo.getOnSaleCount());
         Assertions.assertEquals(3, vo.getSoldCount());
+        Assertions.assertEquals(1, vo.getStatus());
 
         Assertions.assertNotNull(vo.getProducts());
         Assertions.assertEquals(1, vo.getProducts().getTotal());

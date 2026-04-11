@@ -148,6 +148,13 @@
 			}
 		},
 		{
+			"path": "pages/notification/follower",
+			"style": {
+				"navigationBarTitleText": "新增粉丝",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/review/review",
 			"style": {
 				"navigationBarTitleText": "评价"

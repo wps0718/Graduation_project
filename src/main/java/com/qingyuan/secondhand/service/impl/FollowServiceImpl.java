@@ -5,11 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.constant.RedisConstant;
 import com.qingyuan.secondhand.common.context.UserContext;
 import com.qingyuan.secondhand.common.exception.BusinessException;
+import com.qingyuan.secondhand.common.enums.NotificationCategory;
+import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.entity.UserFollow;
 import com.qingyuan.secondhand.mapper.UserFollowMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
 import com.qingyuan.secondhand.service.FollowService;
+import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.FollowStatsVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +20,12 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -30,6 +37,7 @@ public class FollowServiceImpl implements FollowService {
     private final UserMapper userMapper;
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -63,6 +71,26 @@ public class FollowServiceImpl implements FollowService {
             userFollowMapper.insert(follow);
         } catch (DuplicateKeyException e) {
             log.debug("重复关注，忽略 followerId={}, followeeId={}", userId, targetUserId);
+            return;
+        }
+
+        // 准备通知数据
+        User currentUser = userMapper.selectById(userId);
+        Map<String, String> params = new HashMap<>();
+        params.put("nickName", currentUser.getNickName());
+        Long followId = follow.getId();
+
+        // 注册事务同步，在事务提交后发送通知
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    notificationService.send(targetUserId, NotificationType.NEW_FOLLOWER, params, followId, 4, NotificationCategory.SYSTEM.getCode());
+                }
+            });
+        } else {
+            // 如果没有事务（如在某些非事务测试或逻辑中），直接发送
+            notificationService.send(targetUserId, NotificationType.NEW_FOLLOWER, params, followId, 4, NotificationCategory.SYSTEM.getCode());
         }
 
         invalidateCache(userId, targetUserId);

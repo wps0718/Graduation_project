@@ -90,7 +90,8 @@ const typeMap = {
   3: { icon: '⚠', colorClass: 'is-warning' },
   4: { icon: '📢', colorClass: 'is-primary' },
   5: { icon: '❤', colorClass: 'is-danger' },
-  6: { icon: '✕', colorClass: 'is-secondary' }
+  6: { icon: '✕', colorClass: 'is-secondary' },
+  11: { icon: '👤', colorClass: 'is-primary' }
 }
 
 function showToast(title) {
@@ -244,6 +245,10 @@ async function onMessageClick(item) {
   }
   if (relatedType === 3) {
     uni.navigateTo({ url: '/pages/auth/auth' })
+    return
+  }
+  if (item.type === 11) {
+    uni.navigateTo({ url: '/pages/notification/follower' })
     return
   }
   if (relatedType === 4) {

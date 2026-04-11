@@ -17,13 +17,23 @@
                 <text class="seller-profile__name">{{ profile.nickName || '未命名卖家' }}</text>
                 <StatusTag type="auth" :value="profile.authStatus || 0" />
               </view>
-              <view
-                v-if="!isSelf"
-                class="seller-profile__follow-btn"
-                :class="{ 'is-following': isFollowing }"
-                @click.stop="toggleFollow"
-              >
-                <text class="seller-profile__follow-text">{{ isFollowing ? '已关注' : '关注' }}</text>
+              <view v-if="canChat" class="seller-profile__actions">
+                <view
+                  class="seller-profile__chat-btn"
+                  @click.stop="onChat"
+                >
+                  <text class="seller-profile__chat-text">私信</text>
+                </view>
+                <view
+                  class="seller-profile__follow-btn"
+                  :class="{ 'is-following': isFollowing }"
+                  @click.stop="toggleFollow"
+                >
+                  <text class="seller-profile__follow-text">{{ isFollowing ? '已关注' : '关注' }}</text>
+                </view>
+              </view>
+              <view v-else-if="!isSelf && (isBanned || isDeactivated)" class="seller-profile__status-tag">
+                <text class="seller-profile__status-text">{{ isBanned ? '该用户已封禁' : '该用户已注销' }}</text>
               </view>
             </view>
             <text class="seller-profile__score">综合评分 {{ profile.score || 0 }}</text>
@@ -110,6 +120,10 @@ const isSelf = computed(() => {
   return !!(userStore.userInfo && sellerId.value && userStore.userInfo.id === sellerId.value)
 })
 
+const isBanned = computed(() => profile.value && profile.value.status === 0)
+const isDeactivated = computed(() => profile.value && profile.value.status === 2)
+const canChat = computed(() => !isSelf.value && !isBanned.value && !isDeactivated.value)
+
 const showBioToggle = computed(() => {
   const bio = String((profile.value && profile.value.bio) || '')
   return bio.length > 36
@@ -193,6 +207,25 @@ function normalizeProducts(records) {
       conditionText: getConditionText(conditionLevel)
     }
   })
+}
+
+async function onChat() {
+  if (!ensureLogin()) return
+  if (!sellerId.value) return
+  
+  try {
+    const data = await post('/mini/chat/session/create', {
+      peerId: sellerId.value
+    }, { showLoading: true })
+    
+    if (data && data.sessionKey) {
+      uni.navigateTo({
+        url: `/pages/chat/detail/detail?sessionKey=${data.sessionKey}&peerId=${sellerId.value}`
+      })
+    }
+  } catch (error) {
+    showToast('发起私信失败，请重试')
+  }
 }
 
 async function fetchFollowState() {
@@ -354,6 +387,35 @@ onReachBottom(() => {
 .seller-profile__name {
   font-size: var(--font-lg);
   font-weight: 600;
+}
+
+.seller-profile__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.seller-profile__chat-btn {
+  padding: 10rpx 22rpx;
+  border-radius: var(--radius-round);
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1rpx solid rgba(255, 255, 255, 0.5);
+}
+
+.seller-profile__chat-text {
+  font-size: var(--font-sm);
+  color: var(--text-white);
+}
+
+.seller-profile__status-tag {
+  padding: 8rpx 20rpx;
+  border-radius: 8rpx;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.seller-profile__status-text {
+  font-size: var(--font-xs);
+  color: var(--text-white-85);
 }
 
 .seller-profile__follow-btn {

@@ -14,4 +14,6 @@ public interface ChatMessageService {
     void markSessionReadByUserId(Long userId, String sessionKey);
 
     void sendSystemMessage(String sessionKey, Long senderId, Long receiverId, Integer msgType, String content);
+
+    Long sendMessage(com.qingyuan.secondhand.dto.ChatMessageSendDTO dto);
 }

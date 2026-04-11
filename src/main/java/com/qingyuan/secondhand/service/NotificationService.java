@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.entity.Notification;
 import com.qingyuan.secondhand.vo.FavoriteNotificationVO;
+import com.qingyuan.secondhand.vo.FollowerNotificationVO;
 import com.qingyuan.secondhand.vo.NotificationVO;
 import com.qingyuan.secondhand.vo.UnreadCountVO;
 
@@ -15,7 +16,13 @@ public interface NotificationService extends IService<Notification> {
 
     IPage<FavoriteNotificationVO> getFavoriteNotificationList(Integer page, Integer pageSize);
 
+    IPage<FollowerNotificationVO> getFollowerNotificationList(Integer page, Integer pageSize);
+
     void markAsRead(Long notificationId);
+
+    void markBatchAsRead(java.util.List<Long> notificationIds);
+
+    void markTypeAsRead(Integer type);
 
     void markAllAsRead();
 

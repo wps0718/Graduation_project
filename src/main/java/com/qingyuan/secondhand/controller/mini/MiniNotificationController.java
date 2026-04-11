@@ -4,7 +4,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.qingyuan.secondhand.common.result.Result;
 import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.dto.NotificationReadDTO;
+import com.qingyuan.secondhand.dto.NotificationReadBatchDTO;
 import com.qingyuan.secondhand.vo.FavoriteNotificationVO;
+import com.qingyuan.secondhand.vo.FollowerNotificationVO;
 import com.qingyuan.secondhand.vo.NotificationVO;
 import com.qingyuan.secondhand.vo.UnreadCountVO;
 import lombok.RequiredArgsConstructor;
@@ -35,9 +37,27 @@ public class MiniNotificationController {
         return Result.success(notificationService.getFavoriteNotificationList(page, pageSize));
     }
 
+    @GetMapping("/follower-list")
+    public Result<IPage<FollowerNotificationVO>> followerList(@RequestParam(defaultValue = "1") Integer page,
+                                                               @RequestParam(defaultValue = "20") Integer pageSize) {
+        return Result.success(notificationService.getFollowerNotificationList(page, pageSize));
+    }
+
     @PostMapping("/read")
     public Result<Void> read(@RequestBody NotificationReadDTO dto) {
         notificationService.markAsRead(dto.getId());
+        return Result.success();
+    }
+
+    @PostMapping("/read-batch")
+    public Result<Void> readBatch(@RequestBody NotificationReadBatchDTO dto) {
+        notificationService.markBatchAsRead(dto.getIds());
+        return Result.success();
+    }
+
+    @PostMapping("/read-type")
+    public Result<Void> readType(@RequestParam Integer type) {
+        notificationService.markTypeAsRead(type);
         return Result.success();
     }
 

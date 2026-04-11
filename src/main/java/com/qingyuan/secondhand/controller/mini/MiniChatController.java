@@ -2,6 +2,7 @@ package com.qingyuan.secondhand.controller.mini;
 
 import com.qingyuan.secondhand.common.result.Result;
 import com.qingyuan.secondhand.dto.ChatSessionCreateDTO;
+import com.qingyuan.secondhand.dto.ChatMessageSendDTO;
 import com.qingyuan.secondhand.service.ChatMessageService;
 import com.qingyuan.secondhand.service.ChatSessionService;
 import com.qingyuan.secondhand.vo.ChatSessionVO;
@@ -96,5 +97,11 @@ public class MiniChatController {
         }
         chatMessageService.markSessionRead(sessionKey);
         return Result.success();
+    }
+
+    @PostMapping("/message/send")
+    public Result<Long> sendMessage(@RequestBody @Valid ChatMessageSendDTO dto) {
+        Long msgId = chatMessageService.sendMessage(dto);
+        return Result.success(msgId);
     }
 }
