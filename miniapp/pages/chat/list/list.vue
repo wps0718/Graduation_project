@@ -91,7 +91,12 @@
               @click="openSession(item.raw)"
             >
               <view class="chat-item__avatar">
+                <image v-if="item.raw.productId && item.raw.productImage" 
+                       class="chat-item__product-img" 
+                       :src="item.raw.productImage" 
+                       mode="aspectFill" />
                 <UserAvatar
+                  v-else
                   :avatar-url="item.raw.avatarUrl"
                   :nick-name="item.raw.nickName"
                   :auth-status="item.raw.authStatus"
@@ -246,8 +251,10 @@ function showToast(title) {
 function parseTime(value) {
   if (!value) return 0
   if (typeof value === 'number') return value
+  // 兼容 iOS 端的日期解析
   const normalized = String(value).replace('T', ' ').replace(/-/g, '/')
-  const timestamp = new Date(normalized).getTime()
+  const date = new Date(normalized)
+  const timestamp = date.getTime()
   return Number.isFinite(timestamp) ? timestamp : 0
 }
 
@@ -299,7 +306,7 @@ function goToNotifications(entry) {
     return
   }
   if (entry === 'follow') {
-    uni.navigateTo({ url: '/pages/notification/notification?type=11' })
+    uni.navigateTo({ url: '/pages/notification/follower' })
     return
   }
   uni.navigateTo({ url: '/pages/notification/notification' })
@@ -409,9 +416,8 @@ function openSession(item) {
     item.unread = 0
   }
   const params = [
-    `userId=${item.userId}`,
-    `nickName=${encodeURIComponent(item.nickName || '')}`,
-    `avatarUrl=${encodeURIComponent(item.avatarUrl || '')}`,
+    `sessionKey=${item.sessionKey}`,
+    `peerId=${item.userId}`,
     item.productId ? `productId=${item.productId}` : ''
   ]
     .filter(Boolean)
@@ -980,7 +986,17 @@ onReachBottom(() => {
 }
 
 .chat-item__avatar {
+  width: 96rpx;
+  height: 96rpx;
+  flex-shrink: 0;
   margin-right: var(--spacing-md);
+}
+
+.chat-item__product-img {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-grey);
 }
 
 .chat-item__body {

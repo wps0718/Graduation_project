@@ -279,7 +279,10 @@ const seller = computed(() => {
   if (!detail.value) return {}
   const fromObject = detail.value.seller
   if (fromObject && typeof fromObject === 'object') {
-    return fromObject
+    return {
+      ...fromObject,
+      status: fromObject.status ?? fromObject.userStatus
+    }
   }
   const id = detail.value.sellerId
   if (!id) return {}
@@ -288,9 +291,10 @@ const seller = computed(() => {
     nickName: detail.value.sellerNickName,
     avatarUrl: detail.value.sellerAvatarUrl,
     score: detail.value.sellerScore,
-    authStatus: detail.value.sellerAuthStatus
+    authStatus: detail.value.sellerAuthStatus,
+    status: detail.value.sellerStatus
   }
-})
+})建设
 
 const productDescription = computed(() => {
   if (!detail.value) return ''
@@ -300,15 +304,18 @@ const productDescription = computed(() => {
 const isOwner = computed(() => !!(detail.value && detail.value.isOwner))
 const isOffShelf = computed(() => detail.value && detail.value.status === PRODUCT_STATUS.OFF_SHELF)
 const isSold = computed(() => detail.value && detail.value.status === PRODUCT_STATUS.SOLD)
+const isSellerBanned = computed(() => seller.value && seller.value.status === 0)
 
 const actionDisabled = computed(() => {
   if (!detail.value) return true
   if (isOwner.value) return false
+  if (isSellerBanned.value) return true
   return isOffShelf.value || isSold.value
 })
 
 const actionButtonText = computed(() => {
   if (isOwner.value) return '管理商品'
+  if (isSellerBanned.value) return '卖家已封禁'
   if (isSold.value) return '已售出'
   if (isOffShelf.value) return '已下架'
   return '我想要'
@@ -579,17 +586,21 @@ async function onWant() {
     promptLogin()
     return
   }
-  if (detail.value.hasActiveOrder) {
-    showToast('已发起交易，请耐心等待')
-    return
-  }
+  
   try {
-    const data = await post('/mini/order/create', { productId: detail.value.id }, { showLoading: true })
-    if (data && data.orderId) {
-      uni.navigateTo({ url: `/pages/order/detail/detail?id=${data.orderId}` })
+    // 创建或获取聊天会话
+    const data = await post('/mini/chat/session/create', {
+      peerId: seller.value.id,
+      productId: detail.value.id
+    }, { showLoading: true })
+    
+    if (data && data.sessionKey) {
+      uni.navigateTo({
+        url: `/pages/chat/detail/detail?sessionKey=${data.sessionKey}&productId=${detail.value.id}&peerId=${seller.value.id}`
+      })
     }
   } catch (error) {
-    showToast('下单失败，请稍后重试')
+    showToast('发起私信失败，请重试')
   }
 }
 

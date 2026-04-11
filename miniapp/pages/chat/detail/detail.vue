@@ -33,10 +33,36 @@
       <image class="chat-product__image" :src="product.coverImage" mode="aspectFill" />
       <view class="chat-product__info">
         <text class="chat-product__title">{{ product.title }}</text>
-        <Price :price="product.price" />
+        <view class="chat-product__meta">
+          <Price :price="product.price" />
+          <text v-if="product.conditionText" class="chat-product__condition">{{ product.conditionText }}</text>
+          <text v-if="product.statusText" class="chat-product__status">{{ product.statusText }}</text>
+        </view>
       </view>
-      <view class="chat-product__action" @click.stop="confirmBuy">
-        <text class="chat-product__action-text">确认购买</text>
+      <view class="chat-product__arrow">
+        <text class="chat-product__arrow-text">查看 ▶</text>
+      </view>
+    </view>
+
+    <view v-else-if="peerProfile" class="chat-user-card" @click="goPeerProfile">
+      <view class="chat-user-card__header">
+        <text class="chat-user-card__title">👤 正在与「{{ peerProfile.nickName }}」对话</text>
+      </view>
+      <view class="chat-user-card__content">
+        <UserAvatar
+          :avatar-url="peerProfile.avatarUrl"
+          :nick-name="peerProfile.nickName"
+          :auth-status="peerProfile.authStatus"
+          size="md"
+        />
+        <view class="chat-user-card__info">
+          <text class="chat-user-card__name">{{ peerProfile.nickName }}</text>
+          <view class="chat-user-card__meta">
+            <text class="chat-user-card__score">★{{ peerProfile.score || '0.0' }}</text>
+            <StatusTag type="auth" :value="peerProfile.authStatus || 0" />
+            <text class="chat-user-card__onsale">在售{{ peerProfile.onSaleCount || 0 }}件</text>
+          </view>
+        </view>
       </view>
     </view>
 
@@ -67,9 +93,32 @@
               size="sm"
             />
           </view>
-          <view class="chat-bubble__content" @longpress="onMessageLongpress(item)" @longtap="onMessageLongpress(item)">
-            <text class="chat-bubble__text">{{ item.content }}</text>
+          
+          <view v-if="item.type === 'product-card'" class="chat-bubble__card" @click="goProductDetail">
+            <image class="chat-bubble__card-image" :src="item.productImage" mode="aspectFill" />
+            <view class="chat-bubble__card-info">
+              <text class="chat-bubble__card-title">{{ item.productTitle }}</text>
+              <view class="chat-bubble__card-price-row">
+                <text class="chat-bubble__card-price">¥{{ item.productPrice }}</text>
+                <text v-if="item.productCondition" class="chat-bubble__card-tag">{{ item.productCondition }}</text>
+              </view>
+              <view v-if="item.from === selfId" class="chat-bubble__status">
+                <text class="chat-bubble__status-text" :class="{ 'is-read': item.isRead }">
+                  {{ item.isRead ? '已读' : '未读' }}
+                </text>
+              </view>
+            </view>
           </view>
+          
+          <view v-else class="chat-bubble__content" @longpress="onMessageLongpress(item)" @longtap="onMessageLongpress(item)">
+            <text class="chat-bubble__text">{{ item.content }}</text>
+            <view v-if="item.from === selfId" class="chat-bubble__status">
+              <text class="chat-bubble__status-text" :class="{ 'is-read': item.isRead }">
+                {{ item.isRead ? '已读' : '未读' }}
+              </text>
+            </view>
+          </view>
+          
           <UserAvatar
             v-if="item.from === selfId"
             :avatar-url="selfUser.avatarUrl"
@@ -121,6 +170,7 @@ import { QUICK_REPLIES } from '@/utils/constant'
 import { useUserStore } from '@/store'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import Price from '@/components/price/price.vue'
+import StatusTag from '@/components/status-tag/status-tag.vue'
 
 const userStore = useUserStore()
 
@@ -129,11 +179,14 @@ const navBarHeight = ref(44)
 const navRightGap = ref(0)
 
 const peer = ref({})
+const peerProfile = ref(null)
 const product = ref(null)
+const sessionKey = ref('')
 const messages = ref([])
 const scrollIntoView = ref('')
 const inputValue = ref('')
 const orderCreated = ref(false)
+const pollingTimer = ref(null)
 
 const quickReplies = QUICK_REPLIES
 
@@ -326,24 +379,35 @@ function sendQuick(text) {
   onSend()
 }
 
-function onSend() {
+async function onSend() {
   const content = inputValue.value.trim()
   if (!content) return
-  const newMessage = createMessage({
-    from: selfId.value,
-    type: 'text',
-    content
-  })
-  messages.value.push(newMessage)
-  inputValue.value = ''
-  scrollToBottom()
-  simulateReply()
+  
+  try {
+    const data = await post('/mini/chat/message/send', {
+      sessionKey: sessionKey.value,
+      type: 1, // Text
+      content
+    })
+    
+    const newMessage = createMessage({
+      id: data,
+      from: selfId.value,
+      type: 'text',
+      content,
+      isRead: false
+    })
+    messages.value.push(newMessage)
+    inputValue.value = ''
+    scrollToBottom()
+  } catch (error) {
+    showToast('发送失败')
+  }
 }
 
 function createMessage(payload) {
-  const id = Date.now() + Math.floor(Math.random() * 1000)
   return {
-    id,
+    id: payload.id || Date.now() + Math.floor(Math.random() * 1000),
     time: Date.now(),
     ...payload
   }
@@ -359,25 +423,13 @@ function appendSystemMessage(content) {
   scrollToBottom()
 }
 
-function simulateReply() {
-  const replyList = [
-    '好的，我们约个时间面交。',
-    '可以的，我这边时间比较灵活。',
-    '如果需要我可以带上发票。',
-    '校内哪个位置方便？',
-    '谢谢理解～'
-  ]
-  const reply = replyList[Math.floor(Math.random() * replyList.length)]
-  setTimeout(() => {
-    messages.value.push({
-      id: Date.now() + Math.floor(Math.random() * 1000),
-      time: Date.now(),
-      type: 'text',
-      from: peer.value.id,
-      content: reply
-    })
-    scrollToBottom()
-  }, 1200)
+async function markRead() {
+  if (!sessionKey.value) return
+  try {
+    await post('/mini/chat/read', { sessionKey: sessionKey.value })
+  } catch (error) {
+    console.error('Mark read error:', error)
+  }
 }
 
 function scrollToBottom() {
@@ -389,60 +441,23 @@ function scrollToBottom() {
   })
 }
 
-function buildMockMessages(peerId) {
-  const now = Date.now()
-  return [
-    {
-      id: 1,
-      time: now - 36 * 60 * 1000,
-      type: 'text',
-      from: peerId,
-      content: '你好，我对这个商品还挺感兴趣的。'
-    },
-    {
-      id: 2,
-      time: now - 34 * 60 * 1000,
-      type: 'text',
-      from: selfId.value,
-      content: '你好，可以聊聊具体需求吗？'
-    },
-    {
-      id: 3,
-      time: now - 30 * 60 * 1000,
-      type: 'text',
-      from: peerId,
-      content: '我今晚在南海北，能当面看看吗？'
-    },
-    {
-      id: 4,
-      time: now - 10 * 60 * 1000,
-      type: 'text',
-      from: selfId.value,
-      content: '可以，给你留着。'
-    }
-  ]
-}
-
 async function fetchPeer(id) {
-  if (!id) {
-    peer.value = { nickName: '对方' }
-    return
-  }
+  if (!id) return
   try {
     const data = await get(`/mini/user/profile/${id}`, {}, { showLoading: false })
     if (data) {
+      peerProfile.value = data
       peer.value = {
-        id: data.id || id,
+        id: data.id,
         nickName: data.nickName,
         avatarUrl: data.avatarUrl,
-      authStatus: data.authStatus,
-      onlineStatus: data.onlineStatus || 0,
-      lastActiveTime: parseActiveTime(data.lastActiveTime) || Date.now() - 15 * 60 * 1000
+        authStatus: data.authStatus,
+        onlineStatus: data.onlineStatus || 0,
+        lastActiveTime: parseActiveTime(data.lastActiveTime) || Date.now() - 15 * 60 * 1000
       }
-      return
     }
   } catch (error) {
-    peer.value = { id, nickName: '对方', onlineStatus: 0, lastActiveTime: Date.now() - 30 * 60 * 1000 }
+    console.error('Fetch peer error:', error)
   }
 }
 
@@ -451,14 +466,106 @@ async function fetchProduct(id) {
   try {
     const data = await get(`/mini/product/detail/${id}`, {}, { showLoading: false })
     if (data) {
-      product.value = data
+      product.value = {
+        ...data,
+        coverImage: data.coverImage || (data.images && data.images[0]),
+        conditionText: getConditionText(data.conditionLevel),
+        statusText: data.status === 1 ? '在售' : '已售'
+      }
     }
   } catch (error) {
     product.value = null
   }
 }
 
-onLoad((options = {}) => {
+function getConditionText(level) {
+  const map = {
+    100: '全新',
+    95: '95新',
+    90: '9成新',
+    80: '8成新',
+    70: '7成新'
+  }
+  return map[level] || ''
+}
+
+async function fetchMessages() {
+  if (!sessionKey.value) return
+  try {
+    const data = await get('/mini/chat/messages', {
+      sessionKey: sessionKey.value,
+      page: 1,
+      pageSize: 50
+    })
+    if (data && data.records) {
+      messages.value = data.records.map(m => ({
+        id: m.id,
+        from: m.fromUserId,
+        type: m.type === 2 ? 'product-card' : 'text', // Assuming 2 is product card
+        content: m.content,
+        time: new Date(m.createTime).getTime(),
+        isRead: m.isRead,
+        ...parseProductCardContent(m.content, m.type)
+      }))
+      scrollToBottom()
+    }
+  } catch (error) {
+    console.error('Fetch messages error:', error)
+  }
+}
+
+function parseProductCardContent(content, type) {
+  if (type !== 2) return {}
+  try {
+    const data = JSON.parse(content)
+    return {
+      productTitle: data.title,
+      productImage: data.image,
+      productPrice: data.price,
+      productCondition: data.condition,
+      isRead: false // Initially false for incoming
+    }
+  } catch (e) {
+    return {}
+  }
+}
+
+async function sendProductCard() {
+  if (!product.value || !sessionKey.value) return
+  
+  const cardData = {
+    productId: product.value.id,
+    title: product.value.title,
+    image: product.value.coverImage,
+    price: product.value.price,
+    condition: product.value.conditionText
+  }
+  
+  try {
+    const data = await post('/mini/chat/message/send', {
+      sessionKey: sessionKey.value,
+      type: 2, // 2 for product card
+      content: JSON.stringify(cardData)
+    })
+    
+    const newMessage = createMessage({
+      id: data,
+      from: selfId.value,
+      type: 'product-card',
+      productTitle: cardData.title,
+      productImage: cardData.image,
+      productPrice: cardData.price,
+      productCondition: cardData.condition,
+      isRead: false
+    })
+    messages.value.push(newMessage)
+    scrollToBottom()
+  } catch (error) {
+    console.error('Send product card error:', error)
+  }
+}
+
+onLoad(async (options = {}) => {
   if (!ensureLogin()) return
   const info = uni.getSystemInfoSync()
   statusBarHeight.value = info.statusBarHeight || 0
@@ -469,20 +576,55 @@ onLoad((options = {}) => {
     navRightGap.value = Math.max(0, gap)
   }
 
-  const peerId = options.userId ? Number(options.userId) : null
+  sessionKey.value = options.sessionKey || ''
+  const peerId = options.peerId ? Number(options.peerId) : null
   const productId = options.productId ? Number(options.productId) : null
-  if (options.nickName || options.avatarUrl) {
-    peer.value = {
-      id: peerId,
-      nickName: decodeURIComponent(options.nickName || '') || '对方',
-      avatarUrl: decodeURIComponent(options.avatarUrl || ''),
-      authStatus: 0
-    }
+  
+  if (peerId) {
+    await fetchPeer(peerId)
   }
-  fetchPeer(peerId)
-  fetchProduct(productId)
-  messages.value = buildMockMessages(peerId || 0)
-  scrollToBottom()
+  
+  if (productId) {
+    await fetchProduct(productId)
+  }
+  
+  if (sessionKey.value) {
+    await fetchMessages()
+    await markRead()
+  }
+
+  // If coming from product detail and it's a new session, send product card
+  if (productId && messages.value.length === 0) {
+    await sendProductCard()
+  }
+
+  // Set up polling for new messages and read status
+  pollingTimer.value = setInterval(() => {
+    fetchMessages()
+    markRead()
+  }, 5000)
+})
+
+import { onUnload, onHide, onShow } from '@dcloudio/uni-app'
+
+onShow(() => {
+  if (sessionKey.value) {
+    markRead()
+  }
+})
+
+onHide(() => {
+  if (pollingTimer.value) {
+    clearInterval(pollingTimer.value)
+    pollingTimer.value = null
+  }
+})
+
+onUnload(() => {
+  if (pollingTimer.value) {
+    clearInterval(pollingTimer.value)
+    pollingTimer.value = null
+  }
 })
 
 onShareAppMessage(() => {
@@ -573,19 +715,18 @@ onShareAppMessage(() => {
 }
 
 .chat-product {
-  margin: var(--spacing-md);
-  padding: var(--spacing-md);
-  background-color: var(--bg-white);
-  border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background-color: var(--bg-white);
+  border-bottom: 1rpx solid var(--border-light);
 }
 
 .chat-product__image {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: var(--radius-md);
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: var(--radius-sm);
   background-color: var(--bg-grey);
 }
 
@@ -597,19 +738,95 @@ onShareAppMessage(() => {
 }
 
 .chat-product__title {
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+}
+
+.chat-product__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.chat-product__condition {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  background-color: var(--bg-grey);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+}
+
+.chat-product__status {
+  font-size: 22rpx;
+  color: var(--primary-color);
+  background-color: var(--primary-bg);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+}
+
+.chat-product__arrow {
+  padding-left: var(--spacing-sm);
+}
+
+.chat-product__arrow-text {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+}
+
+.chat-user-card {
+  padding: var(--spacing-md);
+  background-color: var(--bg-white);
+  border-bottom: 1rpx solid var(--border-light);
+}
+
+.chat-user-card__header {
+  margin-bottom: var(--spacing-sm);
+}
+
+.chat-user-card__title {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+}
+
+.chat-user-card__content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.chat-user-card__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.chat-user-card__name {
   font-size: var(--font-md);
+  font-weight: 600;
   color: var(--text-primary);
 }
 
-.chat-product__action {
-  padding: 12rpx 20rpx;
-  border-radius: 999rpx;
-  background-color: var(--primary-color);
+.chat-user-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
 }
 
-.chat-product__action-text {
+.chat-user-card__score {
   font-size: var(--font-sm);
-  color: var(--text-white);
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.chat-user-card__onsale {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
 }
 
 .chat-scroll {
@@ -662,10 +879,61 @@ onShareAppMessage(() => {
 
 .chat-bubble__content {
   max-width: 480rpx;
-  padding: 16rpx 20rpx;
+  padding: 18rpx 24rpx;
   border-radius: 20rpx;
   background-color: var(--bg-white);
-  box-shadow: 0 8rpx 18rpx rgba(15, 23, 42, 0.04);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.chat-bubble__card {
+  width: 440rpx;
+  background-color: var(--bg-white);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
+  border: 1rpx solid var(--border-light);
+}
+
+.chat-bubble__card-image {
+  width: 100%;
+  height: 240rpx;
+  background-color: var(--bg-grey);
+}
+
+.chat-bubble__card-info {
+  padding: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.chat-bubble__card-title {
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.chat-bubble__card-price-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.chat-bubble__card-price {
+  font-size: var(--font-md);
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.chat-bubble__card-tag {
+  font-size: 20rpx;
+  color: var(--text-secondary);
+  background-color: var(--bg-grey);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
 }
 
 .chat-bubble__avatar {
@@ -682,6 +950,21 @@ onShareAppMessage(() => {
   color: var(--text-primary);
   line-height: 1.5;
   word-break: break-all;
+}
+
+.chat-bubble__status {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4rpx;
+}
+
+.chat-bubble__status-text {
+  font-size: 20rpx;
+  color: var(--text-secondary);
+  
+  &.is-read {
+    color: var(--primary-color);
+  }
 }
 
 .chat-quick {

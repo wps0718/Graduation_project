@@ -165,6 +165,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
     @Override
+    @Transactional
     public void sendSystemMessage(String sessionKey, Long senderId, Long receiverId, Integer msgType, String content) {
         if (!StringUtils.hasText(sessionKey)) {
             throw new BusinessException("sessionKey不能为空");
@@ -208,6 +209,30 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         pushData.put("createTime", message.getCreateTime());
         WebSocketMessage<Map<String, Object>> wsMsg = new WebSocketMessage<>("SYSTEM", pushData);
         sessionManager.sendToUser(receiverId, wsMsg);
+    }
+
+    @Override
+    @Transactional
+    public Long sendMessage(com.qingyuan.secondhand.dto.ChatMessageSendDTO dto) {
+        Long currentUserId = UserContext.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException("未登录");
+        }
+
+        Long peerId = SessionKeyUtil.getPeerId(dto.getSessionKey(), currentUserId);
+        Long productId = SessionKeyUtil.getProductId(dto.getSessionKey());
+        
+        if (peerId == null) {
+            throw new BusinessException("会话信息不完整");
+        }
+
+        ChatPayload payload = new ChatPayload();
+        payload.setReceiverId(peerId);
+        payload.setProductId(productId);
+        payload.setMsgType(dto.getType());
+        payload.setContent(dto.getContent());
+
+        return saveAndPushMessage(currentUserId, payload);
     }
 
     private ChatMessage buildMessage(Long senderId, ChatPayload payload, String sessionKey) {

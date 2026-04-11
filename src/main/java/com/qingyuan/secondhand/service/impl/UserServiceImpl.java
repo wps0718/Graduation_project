@@ -438,6 +438,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         vo.setFollowingCount(stats == null ? 0L : stats.getFollowingCount());
         vo.setOnSaleCount(onSaleCount == null ? 0 : onSaleCount);
         vo.setSoldCount(soldCount == null ? 0 : soldCount);
+        vo.setStatus(user.getStatus());
         vo.setProducts(productsPage);
         return vo;
     }

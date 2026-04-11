@@ -20,5 +20,6 @@ public class UserProfileVO {
     private Long followingCount;
     private Integer onSaleCount;
     private Integer soldCount;
+    private Integer status; // 0-正常 1-封禁 2-注销
     private Page<SellerProductVO> products;
 }

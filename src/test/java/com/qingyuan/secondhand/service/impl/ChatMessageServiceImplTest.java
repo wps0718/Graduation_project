@@ -231,7 +231,61 @@ class ChatMessageServiceImplTest {
         List<ChatMessageVO> records = (List<ChatMessageVO>) result.get("records");
         assertEquals(2, records.size());
         assertTrue(records.get(0).getIsSelf());
+        assertFalse(records.get(0).getIsRead());
         assertFalse(records.get(1).getIsSelf());
+        assertTrue(records.get(1).getIsRead());
+    }
+
+    @Test
+    void testSaveAndPushMessage_发送商品卡片() {
+        Long senderId = 10001L;
+        ChatPayload payload = new ChatPayload();
+        payload.setReceiverId(10002L);
+        payload.setProductId(1L);
+        payload.setMsgType(2); // 商品卡片
+        payload.setContent("{\"title\":\"测试商品\",\"price\":99.9}");
+
+        User sender = new User();
+        sender.setId(senderId);
+        sender.setNickName("张三");
+
+        when(userMapper.selectById(senderId)).thenReturn(sender);
+        when(sessionManager.sendToUser(anyLong(), any())).thenReturn(true);
+        doAnswer(invocation -> {
+            ChatMessage msg = invocation.getArgument(0);
+            msg.setId(1L);
+            return 1;
+        }).when(chatMessageMapper).insert(any(ChatMessage.class));
+
+        chatMessageService.saveAndPushMessage(senderId, payload);
+
+        verify(chatSessionService).updateSessionLastMsg(eq(senderId), eq(10002L), eq(1L), eq("[商品卡片]"), eq(2));
+    }
+
+    @Test
+    void testSendMessage_正常发送() {
+        com.qingyuan.secondhand.dto.ChatMessageSendDTO dto = new com.qingyuan.secondhand.dto.ChatMessageSendDTO();
+        dto.setSessionKey("10001_10002_1");
+        dto.setType(1);
+        dto.setContent("你好");
+
+        User sender = new User();
+        sender.setId(10001L);
+        sender.setNickName("张三");
+
+        when(userMapper.selectById(10001L)).thenReturn(sender);
+        when(sessionManager.sendToUser(anyLong(), any())).thenReturn(true);
+        doAnswer(invocation -> {
+            ChatMessage msg = invocation.getArgument(0);
+            msg.setId(1L);
+            return 1;
+        }).when(chatMessageMapper).insert(any(ChatMessage.class));
+
+        Long msgId = chatMessageService.sendMessage(dto);
+
+        assertNotNull(msgId);
+        assertEquals(1L, msgId);
+        verify(chatMessageMapper).insert(any(ChatMessage.class));
     }
 
     @Test

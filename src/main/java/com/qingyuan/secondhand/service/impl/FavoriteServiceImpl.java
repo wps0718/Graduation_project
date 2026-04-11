@@ -84,16 +84,30 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
             throw new BusinessException("收藏失败");
         }
 
-        // 发送收藏通知 (不聚合，每条收藏都是独立通知)
+        // 聚合通知逻辑
+        Notification existing = notificationMapper.selectOne(new LambdaQueryWrapper<Notification>()
+                .eq(Notification::getUserId, product.getUserId())
+                .eq(Notification::getType, NotificationType.BE_FAVORITED.getCode())
+                .eq(Notification::getRelatedId, productId)
+                .eq(Notification::getIsRead, 0));
+
         String productName = product.getTitle() == null ? "商品" : product.getTitle();
-        notificationService.send(
-                product.getUserId(),
-                NotificationType.BE_FAVORITED,
-                Map.of("productName", productName, "count", "1"),
-                favorite.getId(), // 关联收藏记录ID
-                1, // 关联类型为商品相关
-                NotificationCategory.SYSTEM.getCode()
-        );
+        if (existing != null) {
+            int currentCount = extractFavoriteCount(existing.getContent());
+            existing.setContent("你的商品《" + productName + "》被" + (currentCount + 1) + "位用户收藏了");
+            existing.setUpdateTime(LocalDateTime.now());
+            existing.setIsRead(0);
+            notificationMapper.updateById(existing);
+        } else {
+            notificationService.send(
+                    product.getUserId(),
+                    NotificationType.BE_FAVORITED,
+                    Map.of("productName", productName, "count", "1"),
+                    productId,
+                    1,
+                    NotificationCategory.SYSTEM.getCode()
+            );
+        }
     }
 
     @Override

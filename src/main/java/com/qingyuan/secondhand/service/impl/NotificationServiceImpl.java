@@ -13,6 +13,7 @@ import com.qingyuan.secondhand.entity.Notification;
 import com.qingyuan.secondhand.mapper.NotificationMapper;
 import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.FavoriteNotificationVO;
+import com.qingyuan.secondhand.vo.FollowerNotificationVO;
 import com.qingyuan.secondhand.vo.NotificationVO;
 import com.qingyuan.secondhand.vo.UnreadCountVO;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +66,16 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     }
 
     @Override
+    public IPage<FollowerNotificationVO> getFollowerNotificationList(Integer page, Integer pageSize) {
+        Long userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException("未登录");
+        }
+        Page<FollowerNotificationVO> pageObj = new Page<>(page, pageSize);
+        return notificationMapper.selectFollowerNotifications(pageObj, userId);
+    }
+
+    @Override
     public void markAsRead(Long notificationId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -90,6 +101,39 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         if (updated <= 0) {
             throw new BusinessException("标记已读失败");
         }
+    }
+
+    @Override
+    public void markBatchAsRead(java.util.List<Long> notificationIds) {
+        Long userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException("未登录");
+        }
+        if (notificationIds == null || notificationIds.isEmpty()) {
+            return;
+        }
+        UpdateWrapper<Notification> wrapper = new UpdateWrapper<>();
+        wrapper.eq("user_id", userId)
+                .in("id", notificationIds)
+                .set("is_read", 1);
+        notificationMapper.update(null, wrapper);
+    }
+
+    @Override
+    public void markTypeAsRead(Integer type) {
+        Long userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException("未登录");
+        }
+        if (type == null) {
+            throw new BusinessException("消息类型不能为空");
+        }
+        UpdateWrapper<Notification> wrapper = new UpdateWrapper<>();
+        wrapper.eq("user_id", userId)
+                .eq("type", type)
+                .eq("is_read", 0)
+                .set("is_read", 1);
+        notificationMapper.update(null, wrapper);
     }
 
     @Override
@@ -185,7 +229,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         if (type == null) {
             throw new BusinessException("消息类型不能为空");
         }
-        if (type < 1 || type > 10) {
+        if (type < 1 || type > 11) {
             throw new BusinessException("消息类型不正确");
         }
         if (!StringUtils.hasText(title)) {

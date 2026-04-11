@@ -31,4 +31,21 @@
           AND n.type = 6
         ORDER BY n.create_time DESC
     </select>
+
+    <select id="selectFollowerNotifications" resultType="com.qingyuan.secondhand.vo.FollowerNotificationVO">
+        SELECT
+            n.id,
+            f.follower_id AS userId,
+            u.nick_name AS nickName,
+            u.avatar_url AS avatarUrl,
+            n.is_read AS isRead,
+            n.create_time AS createTime,
+            IF(f.follower_id IS NOT NULL, (SELECT COUNT(*) FROM user_follow uf WHERE uf.follower_id = #{userId} AND uf.followee_id = f.follower_id) > 0, FALSE) AS isFollowing
+        FROM notification n
+        LEFT JOIN user_follow f ON f.id = n.related_id
+        LEFT JOIN user u ON f.follower_id = u.id
+        WHERE n.user_id = #{userId}
+          AND n.type = 11
+        ORDER BY n.create_time DESC
+    </select>
 </mapper>

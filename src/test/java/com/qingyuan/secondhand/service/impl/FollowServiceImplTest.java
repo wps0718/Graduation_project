@@ -7,6 +7,7 @@ import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.entity.UserFollow;
 import com.qingyuan.secondhand.mapper.UserFollowMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
+import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.FollowStatsVO;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -70,13 +71,27 @@ class FollowServiceImplTest {
     void testFollow_Success_InsertsAndInvalidatesCache() {
         UserContext.setCurrentUserId(1L);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
-        Mockito.when(userMapper.selectById(2L)).thenReturn(new User());
+        User targetUser = new User();
+        targetUser.setId(2L);
+        targetUser.setNickName("TargetUser");
+        Mockito.when(userMapper.selectById(2L)).thenReturn(targetUser);
+
+        User currentUser = new User();
+        currentUser.setId(1L);
+        currentUser.setNickName("CurrentUser");
+        Mockito.when(userMapper.selectById(1L)).thenReturn(currentUser);
+
         UserFollowMapper followMapper = Mockito.mock(UserFollowMapper.class);
         Mockito.when(followMapper.selectCount(Mockito.any())).thenReturn(0L);
-        Mockito.when(followMapper.insert(Mockito.any(UserFollow.class))).thenReturn(1);
+        Mockito.when(followMapper.insert(Mockito.any(UserFollow.class))).thenAnswer(invocation -> {
+            UserFollow uf = invocation.getArgument(0);
+            uf.setId(100L); // 模拟自增ID回填
+            return 1;
+        });
 
         StringRedisTemplate redis = Mockito.mock(StringRedisTemplate.class);
-        FollowServiceImpl service = buildService(followMapper, userMapper, redis);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+        FollowServiceImpl service = buildService(followMapper, userMapper, redis, notificationService);
 
         service.follow(2L);
 
@@ -88,6 +103,9 @@ class FollowServiceImplTest {
         Mockito.verify(redis).delete("follow:check:1:2");
         Mockito.verify(redis).delete("follow:stats:1");
         Mockito.verify(redis).delete("follow:stats:2");
+
+        // 验证发送了通知
+        Mockito.verify(notificationService).send(Mockito.eq(2L), Mockito.any(), Mockito.any(), Mockito.eq(100L), Mockito.eq(4), Mockito.eq(2));
     }
 
     @Test
@@ -96,7 +114,7 @@ class FollowServiceImplTest {
         UserFollowMapper followMapper = Mockito.mock(UserFollowMapper.class);
         Mockito.when(followMapper.delete(Mockito.any())).thenReturn(1);
         StringRedisTemplate redis = Mockito.mock(StringRedisTemplate.class);
-        FollowServiceImpl service = buildService(followMapper, Mockito.mock(UserMapper.class), redis);
+        FollowServiceImpl service = buildService(followMapper, Mockito.mock(UserMapper.class), redis, Mockito.mock(NotificationService.class));
 
         service.unfollow(2L);
 
@@ -121,7 +139,7 @@ class FollowServiceImplTest {
         Mockito.when(redis.opsForValue()).thenReturn(ops);
         Mockito.when(ops.get("follow:check:1:2")).thenReturn("1");
 
-        FollowServiceImpl service = buildService(Mockito.mock(UserFollowMapper.class), Mockito.mock(UserMapper.class), redis);
+        FollowServiceImpl service = buildService(Mockito.mock(UserFollowMapper.class), Mockito.mock(UserMapper.class), redis, Mockito.mock(NotificationService.class));
         Assertions.assertTrue(service.checkFollow(2L));
     }
 
@@ -137,7 +155,7 @@ class FollowServiceImplTest {
         Mockito.when(redis.opsForValue()).thenReturn(ops);
         Mockito.when(ops.get("follow:check:1:2")).thenReturn(null);
 
-        FollowServiceImpl service = buildService(followMapper, Mockito.mock(UserMapper.class), redis);
+        FollowServiceImpl service = buildService(followMapper, Mockito.mock(UserMapper.class), redis, Mockito.mock(NotificationService.class));
         Assertions.assertFalse(service.checkFollow(2L));
         Mockito.verify(ops).set(Mockito.eq("follow:check:1:2"), Mockito.eq("0"), Mockito.eq(10L), Mockito.eq(TimeUnit.MINUTES));
     }
@@ -153,7 +171,7 @@ class FollowServiceImplTest {
         Mockito.when(redis.opsForValue()).thenReturn(ops);
         Mockito.when(ops.get("follow:stats:9")).thenReturn(null);
 
-        FollowServiceImpl service = buildService(followMapper, Mockito.mock(UserMapper.class), redis);
+        FollowServiceImpl service = buildService(followMapper, Mockito.mock(UserMapper.class), redis, Mockito.mock(NotificationService.class));
         FollowStatsVO vo = service.getFollowStats(9L);
 
         Assertions.assertEquals(5L, vo.getFollowerCount());
@@ -162,19 +180,19 @@ class FollowServiceImplTest {
     }
 
     private FollowServiceImpl buildService() {
-        return buildService(Mockito.mock(UserFollowMapper.class), Mockito.mock(UserMapper.class), Mockito.mock(StringRedisTemplate.class));
+        return buildService(Mockito.mock(UserFollowMapper.class), Mockito.mock(UserMapper.class), Mockito.mock(StringRedisTemplate.class), Mockito.mock(NotificationService.class));
     }
 
     private FollowServiceImpl buildService(UserMapper userMapper) {
-        return buildService(Mockito.mock(UserFollowMapper.class), userMapper, Mockito.mock(StringRedisTemplate.class));
+        return buildService(Mockito.mock(UserFollowMapper.class), userMapper, Mockito.mock(StringRedisTemplate.class), Mockito.mock(NotificationService.class));
     }
 
     private FollowServiceImpl buildService(UserFollowMapper followMapper, UserMapper userMapper) {
-        return buildService(followMapper, userMapper, Mockito.mock(StringRedisTemplate.class));
+        return buildService(followMapper, userMapper, Mockito.mock(StringRedisTemplate.class), Mockito.mock(NotificationService.class));
     }
 
-    private FollowServiceImpl buildService(UserFollowMapper followMapper, UserMapper userMapper, StringRedisTemplate redis) {
+    private FollowServiceImpl buildService(UserFollowMapper followMapper, UserMapper userMapper, StringRedisTemplate redis, NotificationService notificationService) {
         ObjectMapper objectMapper = new ObjectMapper();
-        return new FollowServiceImpl(followMapper, userMapper, redis, objectMapper);
+        return new FollowServiceImpl(followMapper, userMapper, redis, objectMapper, notificationService);
     }
 }

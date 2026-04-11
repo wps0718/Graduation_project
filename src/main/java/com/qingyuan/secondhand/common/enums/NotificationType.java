@@ -17,7 +17,8 @@ public enum NotificationType {
     ORDER_CANCEL(7, "订单已取消", "你与{nickName}的交易「{productName}」已取消"),
     AUTH_PASS(8, "校园认证通过", "恭喜您，您的校园认证已通过审核！"),
     AUTH_REJECT(9, "校园认证被驳回", "您的校园认证未通过审核，驳回原因：{reason}"),
-    REVIEW_REMIND(10, "评价提醒", "你购买的「{productName}」交易已完成3天，还未评价哦");
+    REVIEW_REMIND(10, "评价提醒", "你购买的「{productName}」交易已完成3天，还未评价哦"),
+    NEW_FOLLOWER(11, "新增关注", "{nickName}关注了你");
 
     private final Integer code;
     private final String description;
