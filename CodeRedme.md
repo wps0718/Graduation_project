@@ -45,20 +45,60 @@
 #### 项目结构
 ```
 Graduation_project/
-├── admin/                          # 管理后台前端（Vue 3）
+├── admin/                          # 管理后台前端（Vue 3 + Element Plus）
 │   ├── src/
 │   │   ├── api/                   # API 接口
 │   │   ├── components/            # 公共组件
-│   │   ├── layout/                # 布局组件
+│   │   ├── layout/                # 布局组件（Layout.vue）
 │   │   ├── router/                # 路由配置
 │   │   ├── store/                 # 状态管理
 │   │   ├── styles/                # 样式文件
 │   │   ├── utils/                 # 工具函数
 │   │   └── views/                 # 页面组件
+│   │       ├── login/             # ✅ 登录页
+│   │       ├── dashboard/         # ✅ 数据概览
+│   │       ├── AuthReview.vue     # ✅ 认证审核（含历史时间线）
+│   │       ├── product/           # ⏳ 商品审核（待开发）
+│   │       ├── user/              # ⏳ 用户管理（待开发）
+│   │       ├── order/             # ⏳ 订单管理（待开发）
+│   │       ├── report/            # ⏳ 举报处理（待开发）
+│   │       ├── category/          # ⏳ 分类管理（待开发）
+│   │       ├── campus/            # ⏳ 校区管理（待开发）
+│   │       ├── college/           # ⏳ 学院管理（待开发）
+│   │       ├── banner/            # ⏳ Banner管理（待开发）
+│   │       ├── notice/            # ⏳ 公告管理（待开发）
+│   │       └── employee/          # ⏳ 员工管理（待开发）
 │   └── package.json
 ├── miniapp/                        # 小程序前端（uni-app）
 │   ├── components/                # 公共组件
+│   │   ├── product-card/          # 商品卡片
+│   │   ├── order-card/            # 订单卡片
+│   │   ├── user-avatar/           # 用户头像
+│   │   ├── empty-state/           # 空状态
+│   │   ├── status-tag/            # 状态标签
+│   │   └── price/                 # 价格展示
 │   ├── pages/                     # 页面
+│   │   ├── index/                 # 首页
+│   │   ├── login/                 # 登录（login + sms-login）
+│   │   ├── auth/                  # 校园认证（auth + history/list,detail,compare）
+│   │   ├── search/                # 搜索
+│   │   ├── product/               # 商品（detail + publish + my-list + edit）
+│   │   ├── seller/                # 卖家主页（profile）
+│   │   ├── chat/                  # 聊天（list + detail + settings）
+│   │   ├── order/                 # 订单（list + detail）
+│   │   ├── review/                # 评价
+│   │   ├── favorite/              # 收藏
+│   │   ├── footprint/             # 足迹（开发中）
+│   │   ├── notification/          # 消息（notification + received-replies + received-favorites + follower）
+│   │   ├── user/                  # 个人中心
+│   │   ├── settings/              # 设置（settings + edit-profile + about）
+│   │   ├── report/                # 举报
+│   │   ├── agreement/             # 用户协议
+│   │   ├── privacy/               # 隐私政策
+│   │   └── help/                  # 帮助
+│   ├── styles/                    # 样式（theme.css）
+│   ├── utils/                     # 工具（request.js + auth.js + constant.js + mock.js）
+│   ├── store/                     # 状态管理（index.js + user.js + app.js）
 │   ├── static/                    # 静态资源
 │   ├── App.vue
 │   ├── main.js
@@ -125,21 +165,23 @@ Graduation_project/
 | 模块 | 子功能 | 优先级 | 版本 |
 |------|--------|--------|------|
 | **登录注册** | 微信登录、手机号+密码登录、短信验证登录、自动注册、用户协议 | P0 | V1.0 |
-| **校园认证** | 填写学院/学号/班级、上传认证材料、人工审核 | P0 | V1.0 |
+| **校园认证** | 填写学院/学号/班级、上传认证材料、人工审核、认证历史、认证内容对比、修改资料重新提交 | P0 | V1.0 |
 | **首页** | 校区切换、Banner运营位、分类入口、最新发布商品流 | P0 | V1.0 |
 | **搜索筛选** | 关键词搜索、热门搜索、搜索历史、多维度筛选 | P0 | V1.0 |
-| **商品详情** | 图片轮播/放大、价格/新旧度/描述、卖家信息、收藏、举报、我想要、分享 | P0 | V1.0 |
+| **商品详情** | 图片轮播/放大、价格/新旧度/描述、卖家信息、收藏、举报、我想要、分享、商品评论/留言 | P0 | V1.0 |
 | **商品发布** | 图片上传、商品信息填写、面交地点选择、编辑/下架/重新上架 | P0 | V1.0 |
-| **卖家主页** | 卖家信息展示、该卖家在售商品列表 | P0 | V1.0 |
+| **卖家主页** | 卖家信息展示、该卖家在售商品列表、关注/取关卖家 | P0 | V1.0 |
 | **IM即时通讯** | 文字消息、商品卡片、快捷回复、聊天列表、确认购买入口 | P0 | V1.0 |
 | **订单管理** | 创建订单、订单状态流转、确认收货、取消交易 | P0 | V1.0 |
 | **评价系统** | 交易后互评、三维度评分、用户综合评分计算 | P1 | V1.0 |
 | **收藏** | 收藏/取消收藏、我的收藏列表 | P0 | V1.0 |
-| **足迹** | 浏览历史记录、我的足迹列表 | P2 | 规划中 |
+| **商品评论（留言）** | 商品详情页留言、回复留言、删除留言、收到回复通知、未读回复数 | P1 | V1.1 |
+| **用户关注** | 关注/取关卖家、粉丝列表、关注/粉丝统计 | P1 | V1.1 |
+| **足迹** | 浏览历史记录、我的足迹列表 | P2 | 开发中 |
 | **举报** | 商品举报、举报分类、后台处理 | P1 | V1.0 |
-| **个人中心** | 用户信息、统计数据、功能入口、设置、账号注销 | P0 | V1.0 |
-| **消息中心** | 交易通知、系统通知、审核通知、收藏提醒、全部已读 | P0 | V1.0 |
-| **后台管理** | 商品审核、认证审核、举报处理、数据统计、Banner/分类/校区/学院/公告管理 | P0 | V1.0 |
+| **个人中心** | 用户信息、统计数据、功能入口、设置、账号注销/恢复 | P0 | V1.0 |
+| **消息中心** | 交易通知、系统通知、审核通知、收藏提醒、新增粉丝、收到回复、全部已读 | P0 | V1.0 |
+| **后台管理** | 商品审核、认证审核（含历史时间线）、举报处理、数据统计、Banner/分类/校区/学院/公告/员工管理 | P0 | V1.0 |
 
 
 ### 核心业务流程
@@ -290,6 +332,7 @@ Graduation_project/
 -- 用户ID自增起始值：10000
 -- 关键字段：open_id(微信唯一标识), phone(手机号), auth_status(认证状态), score(综合评分)
 -- 状态枚举：status(0-封禁/1-正常/2-注销中), auth_status(0-未认证/1-审核中/2-已认证/3-已驳回)
+-- V1.1新增字段：bio(个人简介,varchar(200)), ip_region(IP属地,varchar(64))
 ```
 
 #### 2. 商品表（product）
@@ -331,16 +374,47 @@ Graduation_project/
 -- 关键字段：session_key, sender_id, receiver_id, msg_type, content, is_read
 ```
 
+#### 7. 校园认证历史表（campus_auth_history）
+```sql
+-- 作用：保存每次认证提交快照，不覆盖历史数据
+-- 关键字段：auth_id(关联campus_auth), user_id, college_id, real_name(姓名), student_no, class_name, cert_image
+-- 状态枚举：status(0-待审核/1-通过/2-驳回)
+-- 审核信息：reject_reason, review_time, reviewer_id
+```
+
+> **注意**：V1.1 新增字段说明
+> - `campus_auth` 表新增 `real_name`（varchar(32)）字段，位于 `college_id` 之后
+> - `user` 表新增 `bio`（varchar(200)，个人简介）和 `ip_region`（varchar(64)，IP属地）字段
+> - 以上变更对应增量SQL：`f06_auth_real_name.sql`、`f07_user_follow_profile.sql`
+
+#### 8. 用户关注表（user_follow）
+```sql
+-- 关键字段：follower_id(关注者), followee_id(被关注者)
+-- 唯一约束：(follower_id, followee_id) 防止重复关注
+-- 支持功能：关注/取关、关注数/粉丝数统计
+```
+
+#### 9. 商品留言表（product_comment）
+```sql
+-- 支持多级回复：parent_id(父评论), root_id(根评论), reply_to_user_id(回复目标用户)
+-- 关键字段：product_id, user_id, content, is_read(0-未读/1-已读)
+-- 逻辑删除：is_deleted(@TableLogic)
+-- 业务场景：商品详情页留言、回复留言、收到回复通知、未读回复数
+```
+
 ### 数据库关系图
 ```
 user(用户) ──1:N──→ product(商品)
 user(用户) ──1:N──→ trade_order(订单) ←──N:1── product(商品)
 user(用户) ──1:N──→ favorite(收藏) ←──N:1── product(商品)
 user(用户) ──1:1──→ campus_auth(校园认证) ──N:1──→ college(学院)
+campus_auth(校园认证) ──1:N──→ campus_auth_history(认证历史)
 trade_order(订单) ──1:2──→ review(评价)
 campus(校区) ──1:N──→ meeting_point(面交地点)
 user(用户) ──1:N──→ chat_session(会话)
 chat_session(会话) ──1:N──→ chat_message(消息)
+user(用户) ──1:N──→ user_follow(关注) ──N:1──→ user(被关注用户)
+product(商品) ──1:N──→ product_comment(评论) ──N:1──→ user(评论者)
 ```
 
 ### 枚举类说明
@@ -463,6 +537,8 @@ chat_session(会话) ──1:N──→ chat_message(消息)
 #### 校园认证模块（/mini/auth）
 - `POST /mini/auth/submit` - 提交校园认证
 - `GET /mini/auth/status` - 获取我的认证状态
+- `GET /mini/auth/history` - 认证历史列表（按提交时间倒序）
+- `GET /mini/auth/history/{id}` - 认证历史详情（按用户隔离，防越权）
 
 #### 校区与面交地点模块（/mini/campus）
 - `GET /mini/campus/list` - 校区列表
@@ -487,6 +563,20 @@ chat_session(会话) ──1:N──→ chat_message(消息)
 #### 搜索模块（/mini/search）
 - `GET /mini/search/hot-keywords` - 热门搜索词
 
+#### 用户关注模块（/mini/follow）
+- `POST /mini/follow/follow` - 关注用户（请求参数：userId）
+- `POST /mini/follow/unfollow` - 取消关注（请求参数：userId）
+- `GET /mini/follow/check/{userId}` - 检查是否已关注
+- `GET /mini/follow/stats/{userId}` - 获取关注/粉丝统计
+
+#### 商品评论模块（/mini/product/comment）
+- `POST /mini/product/comment/add` - 添加评论（支持多级回复）
+- `POST /mini/product/comment/delete/{commentId}` - 删除评论
+- `GET /mini/product/comment/list/{productId}` - 商品评论列表
+- `GET /mini/product/comment/received-replies` - 收到的回复（分页）
+- `GET /mini/product/comment/unread-reply-count` - 未读回复数
+- `POST /mini/product/comment/mark-read` - 标记已读
+
 #### 消息中心模块（/mini/notification）
 - `GET /mini/notification/list` - 通知列表（分页，支持 category 筛选）
 - `POST /mini/notification/read` - 标记单条已读（请求参数：id）
@@ -503,9 +593,13 @@ chat_session(会话) ──1:N──→ chat_message(消息)
 - `POST /admin/product/force-off` - 强制下架
 
 #### 认证审核（/admin/auth）
-- `GET /admin/auth/page` - 认证分页查询
-- `POST /admin/auth/approve` - 认证通过
-- `POST /admin/auth/reject` - 认证驳回
+| 方法 | 路径 | 说明 | 参数 |
+|------|------|------|------|
+| GET | /admin/auth/page | 认证申请分页 | page(默认1), size(默认10), status(可选), collegeId(可选) |
+| GET | /admin/auth/detail/{id} | 认证申请详情 | id(path) |
+| GET | /admin/auth/history/{authId} | 认证历史记录 | authId(path) |
+| POST | /admin/auth/approve | 审核通过 | {id}(body) |
+| POST | /admin/auth/reject | 审核驳回 | {id, rejectReason}(body) |
 
 #### 用户管理（/admin/user）
 - `GET /admin/user/page` - 用户分页查询
@@ -513,10 +607,12 @@ chat_session(会话) ──1:N──→ chat_message(消息)
 - `POST /admin/user/unban` - 解封用户
 
 #### 数据统计（/admin/stats）
-- `GET /admin/stats/overview` - 数据概览
-- `GET /admin/stats/trend` - 趋势数据
-- `GET /admin/stats/campus` - 校区维度统计
-- `GET /admin/stats/category` - 分类维度统计
+| 方法 | 路径 | 说明 | 参数 | 响应数据 |
+|------|------|------|------|----------|
+| GET | /admin/stats/overview | 数据总览 | 无 | totalUsers, totalProducts, totalOrders, totalReviews, pendingAuthCount, pendingProductCount, todayNewUsers, todayNewProducts, todayNewOrders, totalAmount |
+| GET | /admin/stats/trend | 趋势数据 | days(默认7, 可选7/30) | [{date, newUsers, newProducts, newOrders}] |
+| GET | /admin/stats/campus | 校区维度统计 | 无 | [{campusName, productCount, orderCount, userCount}] |
+| GET | /admin/stats/category | 分类维度统计 | 无 | [{categoryName, productCount, percentage}] |
 
 #### 员工管理（/admin/employee）
 - `POST /admin/employee/login` - 管理员登录
@@ -609,10 +705,25 @@ spring:
       port: 6379
       database: 0
 
+  servlet:
+    multipart:
+      max-file-size: 5MB        # 单文件最大5MB
+      max-request-size: 50MB    # 总请求最大50MB（多图上传场景）
+
+# MyBatis-Plus配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true    # 下划线转驼峰
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # SQL日志（开发环境）
+  global-config:
+    db-config:
+      id-type: auto                        # 主键自增策略
+
 # JWT配置
 jwt:
   secret: "your_jwt_secret"
-  expiration: 86400000  # 24小时
+  expiration: 86400000          # 小程序端Token有效期：24小时
+  admin-expiration: 86400000    # 管理端Token有效期：24小时
 
 # 微信小程序配置
 wx:
@@ -659,6 +770,9 @@ mysql -u root -p secondhand < sql/update/2026-02-21_f19_notification.sql
 mysql -u root -p secondhand < sql/update/2026-02-21_f21_banner_search.sql
 mysql -u root -p secondhand < sql/update/2026-02-22_f_im_02_chat_session.sql
 mysql -u root -p secondhand < sql/update/2026-02-23_f_im_03_chat_message.sql
+mysql -u root -p secondhand < sql/update/2026-04-06_f06_auth_real_name.sql
+mysql -u root -p secondhand < sql/update/2026-04-08_f07_user_follow_profile.sql
+mysql -u root -p secondhand < sql/update/2026-04-10_f08_product_comment.sql
 ```
 
 3. 初始化基础数据
@@ -752,6 +866,35 @@ mvn clean test jacoco:report
 - Token 有效期：24小时
 - Token 存储位置：Header `Authorization: Bearer {token}`
 - 拦截器：`JwtInterceptor`（小程序）、`AdminJwtInterceptor`（管理端）
+- **特殊处理**：拦截器对 OPTIONS 预检请求直接放行，避免跨域问题
+
+#### CORS 跨域配置
+```java
+// WebMvcConfig.java
+@Override
+public void addCorsMappings(CorsRegistry registry) {
+    registry.addMapping("/**")
+            .allowedOrigins("http://localhost:3000", "http://127.0.0.1:3000",
+                    "http://localhost:5173", "http://127.0.0.1:5173")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .allowedHeaders("*")
+            .allowCredentials(true)
+            .maxAge(3600);
+}
+```
+
+#### 跨域请求处理流程
+```
+浏览器发送 OPTIONS 预检请求
+    ↓
+JWT 拦截器检测到 OPTIONS 方法 → 直接放行
+    ↓
+CORS 配置处理 → 返回 200 状态码
+    ↓
+浏览器发送真实请求（携带 Token）
+    ↓
+JWT 拦截器校验 Token → 正常处理
+```
 
 #### 用户上下文
 - 使用 `UserContext`（ThreadLocal）存储当前登录用户信息
@@ -866,6 +1009,8 @@ task:
 | `im:session:unread:{userId}` | String | - | 会话未读总数/扩展键（实现中保留） |
 | `im:online:{userId}` | String | - | 在线标记 |
 | `im:heartbeat:{userId}` | String | 60秒 | 心跳TTL（用于断线检测） |
+| `follow:stats:{userId}` | String | 30分钟 | 关注/粉丝统计缓存 |
+| `follow:check:{userId}:{targetId}` | String | 30分钟 | 关注状态缓存 |
 
 ### 缓存更新策略
 - 查询优先走缓存，缓存未命中查数据库并写入缓存
@@ -1405,8 +1550,77 @@ A: 当前代码实现为：申请注销后30天内可恢复；超过30天后由 
 
 ---
 
-**最后更新时间**：2026-03-15  
-**文档版本**：V1.1  
+## 🔄 更新日志
+
+### V1.3 (2026-04-18)
+
+#### 后端更新
+
+**1. CORS 跨域配置优化**
+- 修改文件：`WebMvcConfig.java`
+- 优化内容：将 `allowedOriginPatterns("*")` 改为明确指定前端开发服务器地址
+- 允许地址：`http://localhost:3000`, `http://127.0.0.1:3000`, `http://localhost:5173`, `http://127.0.0.1:5173`
+- 解决凭证(Credentials)与通配符冲突问题
+
+**2. JWT 拦截器增强 - OPTIONS 预检请求放行**
+- 修改文件：`AdminJwtInterceptor.java`, `JwtInterceptor.java`
+- 新增逻辑：在 `preHandle` 方法开头添加 OPTIONS 请求放行
+- 解决问题：浏览器跨域预检请求(OPTIONS)被拦截返回 401 的问题
+```java
+@Override
+public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    // 放行 OPTIONS 预检请求，让 CORS 配置处理
+    if ("OPTIONS".equals(request.getMethod())) {
+        return true;
+    }
+    // ... 原有 Token 校验逻辑
+}
+```
+
+**3. 管理端统计接口新增**
+- 新增文件：`src/api/stats.js` (管理端前端)
+- 后端接口：
+  - `GET /admin/stats/overview` - 数据总览（用户/商品/订单/交易总额统计）
+  - `GET /admin/stats/trend` - 趋势数据（折线图，支持7天/30天）
+  - `GET /admin/stats/campus` - 校区维度统计（柱状图）
+  - `GET /admin/stats/category` - 分类维度统计（饼图）
+
+**4. 认证审核接口补充**
+- 修改文件：`admin/src/api/auth.js`
+- 新增接口：
+  - `GET /admin/auth/page` - 分页查询认证列表
+  - `GET /admin/auth/detail/{id}` - 获取认证详情
+  - `GET /admin/auth/history/{authId}` - 获取认证历史记录
+  - `POST /admin/auth/approve` - 审核通过
+  - `POST /admin/auth/reject` - 审核驳回
+
+#### 前端更新
+
+**1. Dashboard 数据概览页面完整重构**
+- 修改文件：`admin/src/views/dashboard/DashboardView.vue`
+- 功能特性：
+  - 4张统计卡片：用户总数、商品总数、订单总数、交易总额
+  - 待处理事项提醒：认证审核/商品审核待办
+  - 趋势折线图：近7天/30天数据切换
+  - 校区柱状图：各校区用户数/商品数/订单数对比
+  - 分类饼图：商品分类占比环形图
+- 技术实现：
+  - ECharts 按需引入（LineChart/BarChart/PieChart）
+  - 全部使用 `<script setup>` 语法
+  - 响应式布局，窗口变化自动重绘图表
+
+**2. 管理端页面开发状态更新**
+- ✅ 登录页 (LoginView.vue)
+- ✅ 数据概览 (DashboardView.vue)
+- ✅ 认证审核 (AuthReview.vue - 含历史时间线)
+- ⏳ 商品审核 (ProductReview.vue - 待开发)
+- ⏳ 用户管理 (UserList.vue - 待开发)
+- ⏳ 其他模块 (订单/举报/分类/校区/学院/Banner/公告/员工管理 - 待开发)
+
+---
+
+**最后更新时间**：2026-04-18  
+**文档版本**：V1.3  
 **项目状态**：开发中
 
 ---

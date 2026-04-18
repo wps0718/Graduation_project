@@ -75,10 +75,16 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOriginPatterns("*")
+                // 允许的源（前端地址）- 生产环境建议配置具体域名
+                .allowedOrigins("http://localhost:3000", "http://127.0.0.1:3000",
+                        "http://localhost:5173", "http://127.0.0.1:5173")
+                // 允许的 HTTP 方法
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                // 允许的请求头
                 .allowedHeaders("*")
+                // 允许携带凭证（cookies、authorization header）
                 .allowCredentials(true)
+                // 预检请求缓存时间（秒）
                 .maxAge(3600);
     }
 }

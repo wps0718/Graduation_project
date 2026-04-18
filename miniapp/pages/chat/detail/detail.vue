@@ -498,15 +498,16 @@ async function fetchMessages() {
       pageSize: 50
     })
     if (data && data.records) {
-      messages.value = data.records.map(m => ({
-        id: m.id,
-        from: m.fromUserId,
-        type: m.type === 2 ? 'product-card' : 'text', // Assuming 2 is product card
+      const list = data.records.map(m => ({
+        id: m.msgId,
+        from: m.senderId,
+        type: m.msgType === 2 ? 'product-card' : 'text',
         content: m.content,
-        time: new Date(m.createTime).getTime(),
+        time: new Date(m.createTime.replace(/-/g, '/')).getTime(),
         isRead: m.isRead,
-        ...parseProductCardContent(m.content, m.type)
+        ...parseProductCardContent(m.content, m.msgType)
       }))
+      messages.value = list.reverse()
       scrollToBottom()
     }
   } catch (error) {
