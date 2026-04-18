@@ -294,7 +294,7 @@ const seller = computed(() => {
     authStatus: detail.value.sellerAuthStatus,
     status: detail.value.sellerStatus
   }
-})建设
+});
 
 const productDescription = computed(() => {
   if (!detail.value) return ''
