@@ -142,23 +142,23 @@ const unreadBadge = computed(() => {
 
 function handleAvatarClick() {
   if (!isLogin.value) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
   }
 }
 
 function handleAuthClick() {
   if (!isLogin.value) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
     return
   }
   if (userInfo.value.authStatus !== AUTH_STATUS.VERIFIED) {
-    uni.navigateTo({ url: '/pages/auth/auth' })
+    uni.navigateTo({ url: '/pages/auth-sub/auth/auth' })
   }
 }
 
 function ensureLogin() {
   if (!isLogin.value) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
     return false
   }
   return true
@@ -166,7 +166,7 @@ function ensureLogin() {
 
 function goFavorite() {
   if (!ensureLogin()) return
-  uni.navigateTo({ url: '/pages/favorite/favorite' })
+  uni.navigateTo({ url: '/pages/user-sub/favorite/favorite' })
 }
 
 function goOrder() {
@@ -176,22 +176,22 @@ function goOrder() {
 
 function goNotification() {
   if (!ensureLogin()) return
-  uni.navigateTo({ url: '/pages/notification/notification' })
+  uni.navigateTo({ url: '/pages/notification-sub/notification/notification' })
 }
 
 function goSettings() {
   if (!ensureLogin()) return
-  uni.navigateTo({ url: '/pages/settings/settings' })
+  uni.navigateTo({ url: '/pages/user-sub/settings/settings' })
 }
 
 function goHelp() {
   if (!ensureLogin()) return
-  uni.navigateTo({ url: '/pages/help/help' })
+  uni.navigateTo({ url: '/pages/login-sub/help/help' })
 }
 
 function goFootprint() {
   if (!ensureLogin()) return
-  uni.navigateTo({ url: '/pages/footprint/footprint' })
+  uni.navigateTo({ url: '/pages/user-sub/footprint/footprint' })
 }
 
 async function loadUnreadCount() {

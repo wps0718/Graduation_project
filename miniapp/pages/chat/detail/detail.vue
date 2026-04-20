@@ -222,7 +222,7 @@ function showToast(title) {
 
 function ensureLogin() {
   if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
     return false
   }
   return true
@@ -285,7 +285,7 @@ function openMore() {
     success: (res) => {
       if (!res) return
       if (res.tapIndex === 0 && peer.value && peer.value.id) {
-        uni.navigateTo({ url: `/pages/report/report?targetType=2&targetId=${peer.value.id}` })
+        uni.navigateTo({ url: `/pages/login-sub/report/report?targetType=2&targetId=${peer.value.id}` })
         return
       }
       if (res.tapIndex === 1) {
@@ -310,7 +310,7 @@ function goPeerProfile() {
     uni.switchTab({ url: '/pages/user/user' })
     return
   }
-  uni.navigateTo({ url: `/pages/seller/profile?id=${peer.value.id}` })
+  uni.navigateTo({ url: `/pages/user-sub/seller/profile?id=${peer.value.id}` })
 }
 
 function onMessageLongpress(item) {

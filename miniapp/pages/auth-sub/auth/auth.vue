@@ -172,7 +172,7 @@ function showToast(title) {
 
 function ensureLogin() {
   if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
     return false
   }
   return true
@@ -180,11 +180,11 @@ function ensureLogin() {
 
 function goAuthHistory() {
   if (!canViewHistory.value) return
-  uni.navigateTo({ url: '/pages/auth/history/list' })
+  uni.navigateTo({ url: '/pages/auth-sub/history/list' })
 }
 
 function openStatusCompare() {
-  uni.navigateTo({ url: '/pages/auth/history/compare' })
+  uni.navigateTo({ url: '/pages/auth-sub/history/compare' })
 }
 
 function onCollegeChange(e) {

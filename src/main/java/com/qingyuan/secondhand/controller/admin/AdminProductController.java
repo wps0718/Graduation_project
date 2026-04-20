@@ -26,10 +26,11 @@ public class AdminProductController {
     private final ProductService productService;
 
     @GetMapping("/page")
-    public Result<IPage<AdminProductPageVO>> page(@RequestParam Integer page,
-                                                  @RequestParam Integer pageSize,
-                                                  @RequestParam(required = false) Integer status) {
-        return Result.success(productService.getAdminProductPage(page, pageSize, status));
+    public Result<IPage<AdminProductPageVO>> page(@RequestParam(defaultValue = "1") Integer page,
+                                                  @RequestParam(defaultValue = "10") Integer pageSize,
+                                                  @RequestParam(required = false) Integer status,
+                                                  @RequestParam(required = false) String keyword) {
+        return Result.success(productService.getAdminProductPage(page, pageSize, status, keyword));
     }
 
     @GetMapping("/detail/{productId}")

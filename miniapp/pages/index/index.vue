@@ -342,14 +342,14 @@ function handleCampusChange() {
 
 function goSearch() {
   uni.navigateTo({
-    url: '/pages/search/search'
+    url: '/pages/login-sub/search/search'
   })
 }
 
 function goPickupPackage() {
   const title = encodeURIComponent('代拿快递')
   uni.navigateTo({
-    url: `/pages/search/search?keyword=${title}`
+    url: `/pages/login-sub/search/search?keyword=${title}`
   })
 }
 
@@ -366,7 +366,7 @@ function handleBannerClick(item) {
 
 function handleCategoryClick(item) {
   uni.navigateTo({
-    url: `/pages/search/search?categoryId=${item.id}`
+    url: `/pages/login-sub/search/search?categoryId=${item.id}`
   })
 }
 </script>

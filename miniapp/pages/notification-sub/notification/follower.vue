@@ -103,11 +103,11 @@ function goBack() {
 }
 
 function goSettings() {
-  uni.navigateTo({ url: '/pages/settings/settings' })
+  uni.navigateTo({ url: '/pages/user-sub/settings/settings' })
 }
 
 function goProfile(userId) {
-  uni.navigateTo({ url: `/pages/seller/profile?id=${userId}` })
+  uni.navigateTo({ url: `/pages/user-sub/seller/profile?id=${userId}` })
 }
 
 function formatTime(value) {

@@ -100,7 +100,7 @@ function showToast(title) {
 
 function ensureLogin() {
   if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
     return false
   }
   return true
@@ -244,11 +244,11 @@ async function onMessageClick(item) {
     return
   }
   if (relatedType === 3) {
-    uni.navigateTo({ url: '/pages/auth/auth' })
+    uni.navigateTo({ url: '/pages/auth-sub/auth/auth' })
     return
   }
   if (item.type === 11) {
-    uni.navigateTo({ url: '/pages/notification/follower' })
+    uni.navigateTo({ url: '/pages/notification-sub/notification/follower' })
     return
   }
   if (relatedType === 4) {

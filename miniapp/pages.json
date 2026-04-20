@@ -7,21 +7,21 @@
 			}
 		},
 		{
-			"path": "pages/login/login",
+			"path": "pages/login-sub/login/login",
 			"style": {
 				"navigationBarTitleText": "登录",
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/login/sms-login",
+			"path": "pages/login-sub/login/sms-login",
 			"style": {
 				"navigationBarTitleText": "短信验证",
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/search/search",
+			"path": "pages/login-sub/search/search",
 			"style": {
 				"navigationStyle": "custom",
 				"navigationBarTitleText": "搜索"
@@ -94,117 +94,117 @@
 			}
 		},
 		{
-			"path": "pages/auth/auth",
+			"path": "pages/auth-sub/auth/auth",
 			"style": {
 				"navigationBarTitleText": "校园认证"
 			}
 		},
 		{
-			"path": "pages/auth/history/list",
+			"path": "pages/auth-sub/history/list",
 			"style": {
 				"navigationBarTitleText": "认证历史"
 			}
 		},
 		{
-			"path": "pages/auth/history/detail",
+			"path": "pages/auth-sub/history/detail",
 			"style": {
 				"navigationBarTitleText": "认证详情"
 			}
 		},
 		{
-			"path": "pages/auth/history/compare",
+			"path": "pages/auth-sub/history/compare",
 			"style": {
 				"navigationBarTitleText": "认证内容对比"
 			}
 		},
 		{
-			"path": "pages/favorite/favorite",
+			"path": "pages/user-sub/favorite/favorite",
 			"style": {
 				"navigationBarTitleText": "我的收藏"
 			}
 		},
 		{
-			"path": "pages/footprint/footprint",
+			"path": "pages/user-sub/footprint/footprint",
 			"style": {
 				"navigationBarTitleText": "足迹"
 			}
 		},
 		{
-			"path": "pages/notification/notification",
+			"path": "pages/notification-sub/notification/notification",
 			"style": {
 				"navigationBarTitleText": "系统消息"
 			}
 		},
 		{
-			"path": "pages/notification/received-replies",
+			"path": "pages/notification-sub/notification/received-replies",
 			"style": {
 				"navigationBarTitleText": "收到回复"
 			}
 		},
 		{
-			"path": "pages/notification/received-favorites",
+			"path": "pages/notification-sub/notification/received-favorites",
 			"style": {
 				"navigationBarTitleText": "收到收藏"
 			}
 		},
 		{
-			"path": "pages/notification/follower",
+			"path": "pages/notification-sub/notification/follower",
 			"style": {
 				"navigationBarTitleText": "新增粉丝",
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/review/review",
+			"path": "pages/user-sub/review/review",
 			"style": {
 				"navigationBarTitleText": "评价"
 			}
 		},
 		{
-			"path": "pages/report/report",
+			"path": "pages/login-sub/report/report",
 			"style": {
 				"navigationBarTitleText": "举报"
 			}
 		},
 		{
-			"path": "pages/seller/profile",
+			"path": "pages/user-sub/seller/profile",
 			"style": {
 				"navigationBarTitleText": "卖家主页",
 				"navigationStyle": "custom"
 			}
 		},
 		{
-			"path": "pages/settings/settings",
+			"path": "pages/user-sub/settings/settings",
 			"style": {
 				"navigationBarTitleText": "设置"
 			}
 		},
 		{
-			"path": "pages/settings/edit-profile",
+			"path": "pages/user-sub/settings/edit-profile",
 			"style": {
 				"navigationBarTitleText": "编辑资料"
 			}
 		},
 		{
-			"path": "pages/settings/about",
+			"path": "pages/user-sub/settings/about",
 			"style": {
 				"navigationBarTitleText": "关于我们"
 			}
 		},
 		{
-			"path": "pages/agreement/agreement",
+			"path": "pages/login-sub/agreement/agreement",
 			"style": {
 				"navigationBarTitleText": "用户协议"
 			}
 		},
 		{
-			"path": "pages/privacy/privacy",
+			"path": "pages/login-sub/privacy/privacy",
 			"style": {
 				"navigationBarTitleText": "隐私政策"
 			}
 		},
 		{
-			"path": "pages/help/help",
+			"path": "pages/login-sub/help/help",
 			"style": {
 				"navigationBarTitleText": "客服与帮助"
 			}

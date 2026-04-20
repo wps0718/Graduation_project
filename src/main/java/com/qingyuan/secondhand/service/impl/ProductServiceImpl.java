@@ -267,9 +267,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
-    public IPage<AdminProductPageVO> getAdminProductPage(Integer page, Integer pageSize, Integer status) {
+    public IPage<AdminProductPageVO> getAdminProductPage(Integer page, Integer pageSize, Integer status, String keyword) {
         Page<AdminProductPageVO> pageObj = new Page<>(page, pageSize);
-        Page<AdminProductPageVO> result = productMapper.getAdminProductPage(pageObj, status);
+        Page<AdminProductPageVO> result = productMapper.getAdminProductPage(pageObj, status, keyword);
         if (result != null && result.getRecords() != null) {
             for (AdminProductPageVO item : result.getRecords()) {
                 item.setCoverImage(parseCoverImage(item.getCoverImage()));

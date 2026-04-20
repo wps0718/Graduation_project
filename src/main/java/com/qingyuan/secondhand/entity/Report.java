@@ -19,7 +19,6 @@ public class Report {
     private Integer targetType;
     private Integer reasonType;
     private String description;
-    private String evidence;
     private Integer status;
     private String handleResult;
     private Long handlerId;

@@ -13,9 +13,6 @@ public class ReportDetailVO {
     private Integer targetType;
     private Integer reasonType;
     private String description;
-    private List<String> evidence;
-    @JsonIgnore
-    private String evidenceJson;
     private Integer status;
     private String handleResult;
     private LocalDateTime handleTime;

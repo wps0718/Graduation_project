@@ -61,7 +61,7 @@ function showToast(title) {
 
 function ensureLogin() {
   if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
     return false
   }
   return true
@@ -176,16 +176,16 @@ function onOrderAction(payload) {
     return
   }
   if (action === 'review') {
-    uni.navigateTo({ url: `/pages/review/review?orderId=${order.id}` })
+    uni.navigateTo({ url: `/pages/user-sub/review/review?orderId=${order.id}` })
     return
   }
   if (action === 'viewReview') {
-    uni.navigateTo({ url: `/pages/review/review?orderId=${order.id}&readonly=1` })
+    uni.navigateTo({ url: `/pages/user-sub/review/review?orderId=${order.id}&readonly=1` })
     return
   }
   if (action === 'reorder') {
     const sellerId = order.otherUser && order.otherUser.id
-    uni.navigateTo({ url: `/pages/seller/profile?id=${sellerId || ''}` })
+    uni.navigateTo({ url: `/pages/user-sub/seller/profile?id=${sellerId || ''}` })
     return
   }
   if (action === 'delete') {

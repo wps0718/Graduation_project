@@ -93,7 +93,7 @@ function goEdit() {
     className: detail.value.className,
     certImage: detail.value.certImage
   })
-  uni.navigateTo({ url: '/pages/auth/auth?edit=1' })
+  uni.navigateTo({ url: '/pages/auth-sub/auth/auth?edit=1' })
 }
 
 async function loadDetail() {

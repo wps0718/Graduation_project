@@ -86,7 +86,6 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
         report.setTargetType(dto.getTargetType());
         report.setReasonType(dto.getReasonType());
         report.setDescription(dto.getDescription());
-        report.setEvidence(toJson(dto.getEvidence()));
         report.setStatus(0);
         int inserted = reportMapper.insert(report);
         if (inserted <= 0) {
@@ -120,7 +119,6 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
         if (detail == null) {
             throw new BusinessException("举报记录不存在");
         }
-        detail.setEvidence(parseImages(detail.getEvidenceJson()));
         detail.setProductImages(parseImages(detail.getProductImagesJson()));
         detail.setReporterPhone(PhoneUtil.maskPhone(detail.getReporterPhone()));
         detail.setProductUserPhone(PhoneUtil.maskPhone(detail.getProductUserPhone()));

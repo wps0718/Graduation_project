@@ -61,7 +61,7 @@ function showToast(title) {
 
 function ensureLogin() {
   if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
     return false
   }
   return true
@@ -69,24 +69,24 @@ function ensureLogin() {
 
 function goEditProfile() {
   if (!ensureLogin()) return
-  uni.navigateTo({ url: '/pages/settings/edit-profile' })
+  uni.navigateTo({ url: '/pages/user-sub/settings/edit-profile' })
 }
 
 function goAuth() {
   if (!ensureLogin()) return
-  uni.navigateTo({ url: '/pages/auth/auth' })
+  uni.navigateTo({ url: '/pages/auth-sub/auth/auth' })
 }
 
 function goAgreement() {
-  uni.navigateTo({ url: '/pages/agreement/agreement' })
+  uni.navigateTo({ url: '/pages/login-sub/agreement/agreement' })
 }
 
 function goPrivacy() {
-  uni.navigateTo({ url: '/pages/privacy/privacy' })
+  uni.navigateTo({ url: '/pages/login-sub/privacy/privacy' })
 }
 
 function goAbout() {
-  uni.navigateTo({ url: '/pages/settings/about' })
+  uni.navigateTo({ url: '/pages/user-sub/settings/about' })
 }
 
 function onLogout() {
@@ -99,7 +99,7 @@ function onLogout() {
     success: (res) => {
       if (res && res.confirm) {
         userStore.logout()
-        uni.reLaunch({ url: '/pages/login/login' })
+        uni.reLaunch({ url: '/pages/login-sub/login/login' })
       }
     }
   })
@@ -125,7 +125,7 @@ async function onCancelAccount() {
   try {
     await post('/mini/user/deactivate', {}, { showLoading: true })
     userStore.logout()
-    uni.reLaunch({ url: '/pages/login/login' })
+    uni.reLaunch({ url: '/pages/login-sub/login/login' })
   } catch (error) {
     showToast('注销失败，请稍后重试')
   }
@@ -133,7 +133,7 @@ async function onCancelAccount() {
 
 onShow(() => {
   if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
   }
 })
 </script>

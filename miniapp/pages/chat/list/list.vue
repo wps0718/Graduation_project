@@ -298,34 +298,34 @@ function goBack() {
 
 function goToNotifications(entry) {
   if (!ensureLoginSilent()) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
     return
   }
   if (entry === 'favorite') {
-    uni.navigateTo({ url: '/pages/notification/notification?type=6' })
+    uni.navigateTo({ url: '/pages/notification-sub/notification/notification?type=6' })
     return
   }
   if (entry === 'follow') {
-    uni.navigateTo({ url: '/pages/notification/follower' })
+    uni.navigateTo({ url: '/pages/notification-sub/notification/follower' })
     return
   }
-  uni.navigateTo({ url: '/pages/notification/notification' })
+  uni.navigateTo({ url: '/pages/notification-sub/notification/notification' })
 }
 
 function goToReplyInbox() {
   if (!ensureLoginSilent()) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
     return
   }
-  uni.navigateTo({ url: '/pages/notification/received-replies' })
+  uni.navigateTo({ url: '/pages/notification-sub/notification/received-replies' })
 }
 
 function goToReceivedFavorites() {
   if (!ensureLoginSilent()) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
     return
   }
-  uni.navigateTo({ url: '/pages/notification/received-favorites' })
+  uni.navigateTo({ url: '/pages/notification-sub/notification/received-favorites' })
 }
 
 function goToMessageSettings() {
@@ -349,7 +349,7 @@ function showMoreMenu() {
 function openNotification(item) {
   const raw = item && item.raw
   if (!raw) return
-  uni.navigateTo({ url: '/pages/notification/notification' })
+  uni.navigateTo({ url: '/pages/notification-sub/notification/notification' })
 }
 
 function itemStyle(item) {
@@ -663,7 +663,7 @@ function loadMore() {
 
 async function clearAllRead() {
   if (!ensureLoginSilent()) {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
     return
   }
   const confirm = await showConfirm('确定将所有消息标为已读吗？')

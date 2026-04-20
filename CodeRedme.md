@@ -1,11 +1,39 @@
-# 轻院二手交易平台 - 完整项目文档
+# 轻院二手交易平台 - 项目文档
+
+**版本：V1.4 | 最后更新：2026-04-20 | 项目状态：开发中**
+
+---
+
+## 目录
+
+- [📋 项目概述](#-项目概述)
+- [🏗️ 技术架构](#️-技术架构)
+- [📦 核心功能模块](#-核心功能模块)
+- [🗄️ 数据库设计](#️-数据库设计)
+- [🔌 核心接口说明](#-核心接口说明)
+- [⚙️ 环境配置与部署](#️-环境配置与部署)
+- [🔐 安全机制](#-安全机制)
+- [⏰ 定时任务](#-定时任务)
+- [📊 缓存策略](#-缓存策略)
+- [💬 即时通讯（IM）实现](#-即时通讯im实现)
+- [🧪 测试规范](#-测试规范)
+- [📝 开发规范](#-开发规范)
+- [🚀 性能优化](#-性能优化)
+- [🔧 常见问题（FAQ）](#-常见问题faq)
+- [🔄 更新日志](#-更新日志)
+
+---
 
 ## 📋 项目概述
 
-**项目名称**：轻院二手（Qingyuan Secondhand Trading Platform）  
-**项目类型**：校园二手交易平台（毕业设计项目）  
-**目标用户**：广东轻工职业技术大学在校学生  
-**开发模式**：前后端分离 + 双IDE协同开发  
+### 基本信息
+
+| 属性 | 说明 |
+|------|------|
+| 项目名称 | 轻院二手（Qingyuan Secondhand Trading Platform） |
+| 项目类型 | 校园二手交易平台（毕业设计项目） |
+| 目标用户 | 广东轻工职业技术大学在校学生 |
+| 开发模式 | 前后端分离 + 双 IDE 协同开发 |
 
 ### 核心定位
 
@@ -15,7 +43,7 @@
 
 | 痛点 | 描述 |
 |------|------|
-| 信息分散 | 学生出售闲置物品依赖QQ群、微信群，信息零散、易刷屏、难检索 |
+| 信息分散 | 学生出售闲置物品依赖 QQ 群、微信群，信息零散、易刷屏、难检索 |
 | 信任缺失 | 群内交易无信用体系，商品质量和卖家信誉无法保障 |
 | 效率低下 | 买卖双方缺乏高效的沟通和交易管理工具 |
 | 毕业浪费 | 每年毕业季大量物品被丢弃，缺乏集中的处理渠道 |
@@ -27,133 +55,148 @@
 ### 技术栈
 
 #### 后端技术栈
-- **语言**：Java 17+
-- **框架**：Spring Boot 3.3.7
-- **ORM**：MyBatis-Plus 3.5.7（非原生 MyBatis）
-- **数据库**：MySQL 5.7
-- **缓存**：Redis
-- **构建工具**：Maven
-- **测试框架**：JUnit 5 + Mockito + MockMvc
-- **密码加密**：BCryptPasswordEncoder
-- **认证方式**：JWT（Interceptor 拦截验证）
-- **即时通讯**：Spring Boot WebSocket（自建）
+
+| 类别 | 技术选型 |
+|------|---------|
+| 语言 | Java 17+ |
+| 框架 | Spring Boot 3.3.7 |
+| ORM | MyBatis-Plus 3.5.7（非原生 MyBatis） |
+| 数据库 | MySQL 5.7 |
+| 缓存 | Redis 6.0+ |
+| 构建工具 | Maven |
+| 测试框架 | JUnit 5 + Mockito + MockMvc |
+| 密码加密 | BCryptPasswordEncoder |
+| 认证方式 | JWT（Interceptor 拦截验证） |
+| 即时通讯 | Spring Boot WebSocket（自建） |
 
 #### 前端技术栈
-- **小程序端**：uni-app + Vue 3
-- **管理端**：Vue 3 + Vite + Element Plus
 
-#### 项目结构
-```
+| 类别 | 技术选型 |
+|------|---------|
+| 小程序端 | uni-app + Vue 3 |
+| 管理端 | Vue 3 + Vite + Element Plus |
+
+### 项目结构
+
+```text
 Graduation_project/
-├── admin/                          # 管理后台前端（Vue 3 + Element Plus）
+├── admin/                              # 管理后台前端（Vue 3 + Element Plus）
 │   ├── src/
-│   │   ├── api/                   # API 接口
-│   │   ├── components/            # 公共组件
-│   │   ├── layout/                # 布局组件（Layout.vue）
-│   │   ├── router/                # 路由配置
-│   │   ├── store/                 # 状态管理
-│   │   ├── styles/                # 样式文件
-│   │   ├── utils/                 # 工具函数
-│   │   └── views/                 # 页面组件
-│   │       ├── login/             # ✅ 登录页
-│   │       ├── dashboard/         # ✅ 数据概览
-│   │       ├── AuthReview.vue     # ✅ 认证审核（含历史时间线）
-│   │       ├── product/           # ⏳ 商品审核（待开发）
-│   │       ├── user/              # ⏳ 用户管理（待开发）
-│   │       ├── order/             # ⏳ 订单管理（待开发）
-│   │       ├── report/            # ⏳ 举报处理（待开发）
-│   │       ├── category/          # ⏳ 分类管理（待开发）
-│   │       ├── campus/            # ⏳ 校区管理（待开发）
-│   │       ├── college/           # ⏳ 学院管理（待开发）
-│   │       ├── banner/            # ⏳ Banner管理（待开发）
-│   │       ├── notice/            # ⏳ 公告管理（待开发）
-│   │       └── employee/          # ⏳ 员工管理（待开发）
+│   │   ├── api/                       # API 接口封装
+│   │   ├── components/                # 公共组件
+│   │   ├── layout/                    # 布局组件（Layout.vue）
+│   │   ├── router/                    # 路由配置
+│   │   ├── store/                     # 状态管理
+│   │   ├── styles/                    # 样式文件
+│   │   ├── utils/                     # 工具函数
+│   │   └── views/                     # 页面组件
+│   │       ├── login/                 # ✅ 登录页
+│   │       ├── dashboard/             # ✅ 数据概览
+│   │       ├── AuthReview.vue         # ✅ 认证审核（含历史时间线）
+│   │       ├── product/               # ✅ 商品审核
+│   │       ├── user/                  # ✅ 用户管理
+│   │       ├── order/                 # ✅ 订单管理
+│   │       ├── report/                # ✅ 举报处理
+│   │       ├── category/              # ⏳ 分类管理（待开发）
+│   │       ├── campus/                # ⏳ 校区管理（待开发）
+│   │       ├── college/               # ⏳ 学院管理（待开发）
+│   │       ├── banner/                # ⏳ Banner 管理（待开发）
+│   │       ├── notice/                # ⏳ 公告管理（待开发）
+│   │       └── employee/              # ⏳ 员工管理（待开发）
 │   └── package.json
-├── miniapp/                        # 小程序前端（uni-app）
-│   ├── components/                # 公共组件
-│   │   ├── product-card/          # 商品卡片
-│   │   ├── order-card/            # 订单卡片
-│   │   ├── user-avatar/           # 用户头像
-│   │   ├── empty-state/           # 空状态
-│   │   ├── status-tag/            # 状态标签
-│   │   └── price/                 # 价格展示
-│   ├── pages/                     # 页面
-│   │   ├── index/                 # 首页
-│   │   ├── login/                 # 登录（login + sms-login）
-│   │   ├── auth/                  # 校园认证（auth + history/list,detail,compare）
-│   │   ├── search/                # 搜索
-│   │   ├── product/               # 商品（detail + publish + my-list + edit）
-│   │   ├── seller/                # 卖家主页（profile）
-│   │   ├── chat/                  # 聊天（list + detail + settings）
-│   │   ├── order/                 # 订单（list + detail）
-│   │   ├── review/                # 评价
-│   │   ├── favorite/              # 收藏
-│   │   ├── footprint/             # 足迹（开发中）
-│   │   ├── notification/          # 消息（notification + received-replies + received-favorites + follower）
-│   │   ├── user/                  # 个人中心
-│   │   ├── settings/              # 设置（settings + edit-profile + about）
-│   │   ├── report/                # 举报
-│   │   ├── agreement/             # 用户协议
-│   │   ├── privacy/               # 隐私政策
-│   │   └── help/                  # 帮助
-│   ├── styles/                    # 样式（theme.css）
-│   ├── utils/                     # 工具（request.js + auth.js + constant.js + mock.js）
-│   ├── store/                     # 状态管理（index.js + user.js + app.js）
-│   ├── static/                    # 静态资源
+│
+├── miniapp/                            # 小程序前端（uni-app + Vue 3）
+│   ├── components/                    # 公共组件
+│   │   ├── product-card/              # 商品卡片
+│   │   ├── order-card/                # 订单卡片
+│   │   ├── user-avatar/               # 用户头像
+│   │   ├── empty-state/               # 空状态
+│   │   ├── status-tag/                # 状态标签
+│   │   └── price/                     # 价格展示
+│   ├── pages/                         # 页面
+│   │   ├── index/                     # 首页
+│   │   ├── login/                     # 登录（login + sms-login）
+│   │   ├── auth/                      # 校园认证（auth + history/list,detail,compare）
+│   │   ├── search/                    # 搜索
+│   │   ├── product/                   # 商品（detail + publish + my-list + edit）
+│   │   ├── seller/                    # 卖家主页（profile）
+│   │   ├── chat/                      # 聊天（list + detail + settings）
+│   │   ├── order/                     # 订单（list + detail）
+│   │   ├── review/                    # 评价
+│   │   ├── favorite/                  # 收藏
+│   │   ├── footprint/                 # 足迹（开发中）
+│   │   ├── notification/              # 消息（notification + received-replies
+│   │   │                              #        + received-favorites + follower）
+│   │   ├── user/                      # 个人中心
+│   │   ├── settings/                  # 设置（settings + edit-profile + about）
+│   │   ├── report/                    # 举报
+│   │   ├── agreement/                 # 用户协议
+│   │   ├── privacy/                   # 隐私政策
+│   │   └── help/                      # 帮助
+│   ├── styles/                        # 样式（theme.css）
+│   ├── utils/                         # 工具（request.js + auth.js + constant.js + mock.js）
+│   ├── store/                         # 状态管理（index.js + user.js + app.js）
+│   ├── static/                        # 静态资源
 │   ├── App.vue
 │   ├── main.js
 │   ├── manifest.json
 │   └── pages.json
-├── src/                           # 后端源码
+│
+├── src/                                # 后端源码
 │   ├── main/
 │   │   ├── java/com/qingyuan/secondhand/
-│   │   │   ├── common/           # 公共模块
-│   │   │   │   ├── constant/    # 常量定义
-│   │   │   │   ├── context/     # 上下文（UserContext）
-│   │   │   │   ├── enums/       # 枚举类
-│   │   │   │   ├── exception/   # 异常处理
-│   │   │   │   ├── interceptor/ # 拦截器
-│   │   │   │   ├── result/      # 统一响应
-│   │   │   │   └── util/        # 工具类
-│   │   │   ├── config/          # 配置类
-│   │   │   ├── controller/      # 控制器
-│   │   │   │   ├── admin/       # 管理端接口
-│   │   │   │   ├── common/      # 公共接口
-│   │   │   │   └── mini/        # 小程序端接口
-│   │   │   ├── dto/             # 请求参数对象
-│   │   │   ├── entity/          # 实体类
-│   │   │   ├── mapper/          # Mapper 接口
-│   │   │   ├── service/         # Service 接口
-│   │   │   │   └── impl/        # Service 实现
-│   │   │   ├── task/            # 定时任务
-│   │   │   ├── vo/              # 返回视图对象
-│   │   │   ├── websocket/       # WebSocket 相关
+│   │   │   ├── common/               # 公共模块
+│   │   │   │   ├── constant/         # 常量定义
+│   │   │   │   ├── context/          # 上下文（UserContext）
+│   │   │   │   ├── enums/            # 枚举类
+│   │   │   │   ├── exception/        # 异常处理
+│   │   │   │   ├── interceptor/      # 拦截器
+│   │   │   │   ├── result/           # 统一响应封装
+│   │   │   │   └── util/             # 工具类
+│   │   │   ├── config/               # 配置类
+│   │   │   ├── controller/           # 控制器
+│   │   │   │   ├── admin/            # 管理端接口
+│   │   │   │   ├── common/           # 公共接口
+│   │   │   │   └── mini/             # 小程序端接口
+│   │   │   ├── dto/                  # 请求参数对象
+│   │   │   ├── entity/               # 实体类
+│   │   │   ├── mapper/               # Mapper 接口
+│   │   │   ├── service/              # Service 接口
+│   │   │   │   └── impl/             # Service 实现
+│   │   │   ├── task/                 # 定时任务
+│   │   │   ├── vo/                   # 返回视图对象
+│   │   │   ├── websocket/            # WebSocket 相关
 │   │   │   └── SecondhandApplication.java
 │   │   └── resources/
-│   │       ├── mapper/          # MyBatis XML
-│   │       └── application.yml  # 配置文件
-│   └── test/                    # 测试代码
-└── docs/                        # 项目文档
+│   │       ├── mapper/               # MyBatis XML
+│   │       └── application.yml       # 配置文件
+│   └── test/                         # 测试代码
+│
+├── sql/                                # 数据库脚本
+│   ├── init.sql                       # 初始建表脚本
+│   └── update/                        # 增量更新脚本
+│
+└── docs/                              # 项目文档
+    ├── README.md                      # 本文档
     ├── 需求+架构文档.md
-    ├── CodeRedme.md
-    └── plans/                   # 开发计划
+    ├── CodeReadme.md
+    └── plans/                         # 开发计划
 ```
-
 
 ### 核心架构规则
 
 | 规则 | 说明 |
 |------|------|
-| MyBatis-Plus 规范 | Mapper 继承 BaseMapper，Service 继承 IService/ServiceImpl |
-| 简单 CRUD 不写 SQL | 使用 MyBatis-Plus 内置方法和 LambdaQueryWrapper |
-| 复杂查询用 XML | 多表 JOIN 等复杂 SQL 才用 Mapper XML |
+| MyBatis-Plus 规范 | Mapper 继承 `BaseMapper`，Service 继承 `IService` / `ServiceImpl` |
+| 简单 CRUD 不写 SQL | 使用 MyBatis-Plus 内置方法和 `LambdaQueryWrapper` |
+| 复杂查询用 XML | 多表 JOIN 等复杂 SQL 才使用 Mapper XML |
 | Controller 不含业务逻辑 | 只做参数接收、校验、调用 Service |
 | Entity 不直接返回前端 | 必须转换为 VO |
-| Entity 使用 MP 注解 | @TableName, @TableId, @TableField, @TableLogic |
-| 自动填充 | createTime/updateTime 通过 MetaObjectHandler 自动填充 |
-| 分页使用 MP 插件 | Page<T> + PaginationInnerInterceptor |
-| 条件构造用 Lambda | LambdaQueryWrapper 而非字符串拼接 |
-| 统一响应封装 | 所有接口返回 Result<T> |
+| Entity 使用 MP 注解 | `@TableName`、`@TableId`、`@TableField`、`@TableLogic` |
+| 自动填充 | `createTime` / `updateTime` 通过 `MetaObjectHandler` 自动填充 |
+| 分页使用 MP 插件 | `Page<T>` + `PaginationInnerInterceptor` |
+| 条件构造用 Lambda | `LambdaQueryWrapper` 而非字符串拼接 |
+| 统一响应封装 | 所有接口返回 `Result<T>` |
 | 异常全局处理 | 不在 Controller 中 try-catch 业务异常 |
 
 ---
@@ -164,162 +207,168 @@ Graduation_project/
 
 | 模块 | 子功能 | 优先级 | 版本 |
 |------|--------|--------|------|
-| **登录注册** | 微信登录、手机号+密码登录、短信验证登录、自动注册、用户协议 | P0 | V1.0 |
-| **校园认证** | 填写学院/学号/班级、上传认证材料、人工审核、认证历史、认证内容对比、修改资料重新提交 | P0 | V1.0 |
-| **首页** | 校区切换、Banner运营位、分类入口、最新发布商品流 | P0 | V1.0 |
-| **搜索筛选** | 关键词搜索、热门搜索、搜索历史、多维度筛选 | P0 | V1.0 |
-| **商品详情** | 图片轮播/放大、价格/新旧度/描述、卖家信息、收藏、举报、我想要、分享、商品评论/留言 | P0 | V1.0 |
-| **商品发布** | 图片上传、商品信息填写、面交地点选择、编辑/下架/重新上架 | P0 | V1.0 |
-| **卖家主页** | 卖家信息展示、该卖家在售商品列表、关注/取关卖家 | P0 | V1.0 |
-| **IM即时通讯** | 文字消息、商品卡片、快捷回复、聊天列表、确认购买入口 | P0 | V1.0 |
-| **订单管理** | 创建订单、订单状态流转、确认收货、取消交易 | P0 | V1.0 |
-| **评价系统** | 交易后互评、三维度评分、用户综合评分计算 | P1 | V1.0 |
-| **收藏** | 收藏/取消收藏、我的收藏列表 | P0 | V1.0 |
-| **商品评论（留言）** | 商品详情页留言、回复留言、删除留言、收到回复通知、未读回复数 | P1 | V1.1 |
-| **用户关注** | 关注/取关卖家、粉丝列表、关注/粉丝统计 | P1 | V1.1 |
-| **足迹** | 浏览历史记录、我的足迹列表 | P2 | 开发中 |
-| **举报** | 商品举报、举报分类、后台处理 | P1 | V1.0 |
-| **个人中心** | 用户信息、统计数据、功能入口、设置、账号注销/恢复 | P0 | V1.0 |
-| **消息中心** | 交易通知、系统通知、审核通知、收藏提醒、新增粉丝、收到回复、全部已读 | P0 | V1.0 |
-| **后台管理** | 商品审核、认证审核（含历史时间线）、举报处理、数据统计、Banner/分类/校区/学院/公告/员工管理 | P0 | V1.0 |
-
+| 登录注册 | 微信登录、手机号+密码登录、短信验证登录、自动注册、用户协议 | P0 | V1.0 |
+| 校园认证 | 填写学院/学号/班级、上传认证材料、人工审核、认证历史、认证内容对比、修改资料重新提交 | P0 | V1.0 |
+| 首页 | 校区切换、Banner 运营位、分类入口、最新发布商品流 | P0 | V1.0 |
+| 搜索筛选 | 关键词搜索、热门搜索、搜索历史、多维度筛选 | P0 | V1.0 |
+| 商品详情 | 图片轮播/放大、价格/新旧度/描述、卖家信息、收藏、举报、我想要、分享、商品评论/留言 | P0 | V1.0 |
+| 商品发布 | 图片上传、商品信息填写、面交地点选择、编辑/下架/重新上架 | P0 | V1.0 |
+| 卖家主页 | 卖家信息展示、在售商品列表、关注/取关卖家 | P0 | V1.0 |
+| IM 即时通讯 | 文字消息、商品卡片、快捷回复、聊天列表、确认购买入口 | P0 | V1.0 |
+| 订单管理 | 创建订单、订单状态流转、确认收货、取消交易 | P0 | V1.0 |
+| 评价系统 | 交易后互评、三维度评分、综合评分计算 | P1 | V1.0 |
+| 收藏 | 收藏/取消收藏、我的收藏列表 | P0 | V1.0 |
+| 商品评论（留言） | 商品详情页留言、回复留言、删除留言、收到回复通知、未读回复数 | P1 | V1.1 |
+| 用户关注 | 关注/取关卖家、粉丝列表、关注/粉丝统计 | P1 | V1.1 |
+| 足迹 | 浏览历史记录、我的足迹列表 | P2 | 开发中 |
+| 个人信息扩展 | 个人简介、IP 属地展示 | P2 | V1.1 |
+| 举报 | 商品举报、举报分类、后台处理 | P1 | V1.0 |
+| 个人中心 | 用户信息、统计数据、功能入口、设置、账号注销/恢复 | P0 | V1.0 |
+| 消息中心 | 交易通知、系统通知、审核通知、收藏提醒、新增粉丝、收到回复、全部已读 | P0 | V1.0 |
+| 后台管理 | 商品审核、认证审核（含历史时间线）、举报处理、数据统计、Banner/分类/校区/学院/公告/员工管理 | P0 | V1.0 |
 
 ### 核心业务流程
 
-#### 1. 用户注册/登录流程
-```
+#### 1. 用户注册 / 登录流程
+
+```text
 用户打开小程序
     │
-    ├─→ [微信一键登录] → 获取openId → 自动创建账号 → 进入首页
+    ├─→ [微信一键登录]
+    │       └─→ 获取 openId → 自动创建账号 → 进入首页
     │
-    ├─→ [手机号+密码登录] → 校验账号密码 → 进入首页
+    ├─→ [手机号 + 密码登录]
+    │       └─→ 校验账号密码 → 进入首页
     │
-    └─→ [短信验证登录] → 输入手机号 → 获取验证码 → 校验通过
-                              │
-                              └─→ 未注册手机号 → 自动创建账号 → 进入首页
+    └─→ [短信验证登录]
+            └─→ 输入手机号 → 获取验证码 → 校验通过
+                    │
+                    └─→ 未注册手机号 → 自动创建账号 → 进入首页
 
-    ※ 首次登录需勾选同意《用户协议》和《隐私政策》
-    ※ 登录成功后返回JWT Token，后续请求携带Token
+※ 首次登录需勾选同意《用户协议》和《隐私政策》
+※ 登录成功后返回 JWT Token，后续请求携带 Token
 ```
 
 #### 2. 校园认证流程
-```
+
+```text
 用户进入认证页面
     │
-    ├─→ 填写：学院（下拉选择）、学号、班级
-    ├─→ 上传：一卡通照片 或 3.0系统截图
+    ├─→ 填写：学院（下拉选择）、姓名、学号、班级
+    ├─→ 上传：一卡通照片 或 教务系统截图
     │
     └─→ [提交认证] → 后台人工审核
                         │
-                        ├─→ [通过] → 用户标记"已认证" → 站内通知
-                        └─→ [驳回] → 站内通知（附驳回原因）→ 用户可重新提交
+                        ├─→ [通过] → 用户标记"已认证" → 发送站内通知
+                        └─→ [驳回] → 发送站内通知（含驳回原因）→ 用户可重新提交
 ```
 
-#### 2.1 校园认证历史
-```
+##### 2.1 认证历史
+
+```text
 认证页展示「认证历史」按钮
     │
-    ├─→ 未认证（auth_status=0）→ 按钮不可点击
+    ├─→ 未认证（auth_status = 0）→ 按钮不可点击
     │
-    └─→ 审核中/已认证/已驳回 → 进入认证历史列表页
+    └─→ 审核中 / 已认证 / 已驳回 → 进入认证历史列表页
             │
             ├─→ 点击任意历史记录进入详情页
-            │       ├─→ 展示当次提交的姓名/学院/学号/班级/认证材料
+            │       ├─→ 展示当次提交的姓名 / 学院 / 学号 / 班级 / 认证材料
             │       ├─→ 若驳回，底部展示管理员驳回原因
             │       └─→ 提供「修改资料」按钮
             │
-            └─→ 点击「修改资料」回填到认证页并重新提交
-                    └─→ 重新提交后状态统一变为审核中（auth_status=1）
+            └─→ 点击「修改资料」→ 回填到认证页并重新提交
+                    └─→ 重新提交后状态统一变为审核中（auth_status = 1）
 ```
 
-**认证历史后端接口**
-- `GET /mini/auth/history`：查询当前用户认证历史列表（按提交时间倒序）
-- `GET /mini/auth/history/{id}`：查询认证历史详情（按用户隔离，防越权）
-- `GET /admin/auth/history/{authId}`：管理端按认证ID查询历史时间线（审核详情页展示）
+**认证历史相关接口**
 
-**状态判定与一致性说明**
-- 主状态来源：`campus_auth.status`（0待审核/1通过/2驳回），`/mini/auth/status` 会将其映射为小程序状态（1审核中/2已认证/3已驳回）
-- 历史状态来源：`campus_auth_history.status`（0待审核/1通过/2驳回），`/mini/auth/history` 同样会映射为小程序状态
-- 个人中心状态来源：`user.auth_status`（0未认证/1审核中/2已认证/3驳回），由 `/mini/user/info` 返回并在后端缓存 `user:info:{userId}`（TTL=10分钟）
-- 为避免“个人中心显示待审核，但认证页显示已认证”这类不一致：
-  - 后端在提交/通过/驳回时会主动清理 `user:info:{userId}` 与 `user:stats:{userId}` 缓存
-  - 小程序个人中心页在 `onShow` 额外调用 `/mini/auth/status` 刷新认证状态，保证 UI 与认证页一致
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/mini/auth/history` | 查询当前用户认证历史列表（按提交时间倒序） |
+| GET | `/mini/auth/history/{id}` | 查询认证历史详情（按用户隔离，防越权） |
+| GET | `/admin/auth/history/{authId}` | 管理端按认证 ID 查询历史时间线 |
+
+**状态说明**
+
+| 状态来源 | 字段 | 枚举值 |
+|---------|------|--------|
+| 认证主表 | `campus_auth.status` | 0 待审核 / 1 通过 / 2 驳回 |
+| 小程序映射 | `/mini/auth/status` 响应 | 1 审核中 / 2 已认证 / 3 已驳回 |
+| 历史记录 | `campus_auth_history.status` | 0 待审核 / 1 通过 / 2 驳回（同样映射） |
+| 个人中心 | `user.auth_status` | 0 未认证 / 1 审核中 / 2 已认证 / 3 已驳回 |
+
+> **状态一致性保障**：为避免个人中心与认证页状态不一致，后端在提交/通过/驳回时会主动清理 `user:info:{userId}` 与 `user:stats:{userId}` 缓存；小程序个人中心页在 `onShow` 时额外调用 `/mini/auth/status` 刷新认证状态。
 
 **认证历史展示规则**
-- 列表按最新记录置顶展示（后端按 `campus_auth_history.id` 倒序）
-- 除第一条外，其余历史记录在状态前增加「已失效」标签，表示非当前最新版本
+- 列表按最新记录置顶展示（按 `campus_auth_history.id` 倒序）
+- 除第一条（最新记录）外，其余历史记录在状态前增加「已失效」标签
 
-#### 2.2 认证资料修改能力（新增）
-```
-审核中/已通过状态下，认证状态卡片可点击
+##### 2.2 认证资料修改
+
+```text
+审核中 / 已通过状态下，认证状态卡片可点击
     │
-    ├─→ 点击状态卡片进入「认证内容对比」页
+    ├─→ 点击状态卡片 → 进入「认证内容对比」页
     │       ├─→ 展示最新待审核内容详情
     │       └─→ 展示最近一次已通过内容详情
     │
-    └─→ 点击「修改资料」进入编辑态并允许重新提交
+    └─→ 点击「修改资料」→ 进入编辑态，允许重新提交
             └─→ 重新提交后状态重置为审核中（进入新一轮审核）
 ```
 
 **管理后台认证审核详情页增强**
 - 新增历史时间线面板，展示每次提交记录、审核结果和时间
 - 点击时间线节点可切换右侧详情，查看对应版本的完整认证信息
-- 审核老师可在一个弹窗内完成“全轨迹回溯 + 当前审核操作”
-
-**认证历史数据表**
-- 新增：`campus_auth_history`
-- 作用：保存每次提交快照，不覆盖历史数据
-- 核心字段：`auth_id, user_id, college_id, real_name, student_no, class_name, cert_image, status, reject_reason, review_time`
+- 审核人员可在同一页面完成「全轨迹回溯 + 当前审核操作」
 
 #### 3. 商品发布流程
-```
-用户点击底部Tab"发布"
+
+```text
+用户点击底部 Tab「发布」
     │
-    ├─→ 上传图片（最多9张，支持拖拽排序，首张为封面）
-    ├─→ 填写：商品名称、二手价格、原价、产品类型（分类）、磨损程度、描述
-    ├─→ 选择：交易校区、面交地点（预设+自定义）
+    ├─→ 上传图片（最多 9 张，首张为封面）
+    ├─→ 填写：商品名称、二手价格、原价、分类、磨损程度、描述
+    ├─→ 选择：交易校区、面交地点（预设 + 自定义）
     │
     └─→ [发布] → 进入审核队列
                     │
-                    ├─→ [审核通过] → 商品上架，首页可见 → 站内通知
-                    └─→ [审核驳回] → 站内通知（附原因）→ 用户可编辑后重新提交
+                    ├─→ [审核通过] → 商品上架，首页可见 → 发送站内通知
+                    └─→ [审核驳回] → 发送站内通知（含原因）→ 用户可编辑后重新提交
 ```
 
 #### 4. 交易完整流程
-```
-买家点击"我想要"
+
+```text
+买家点击「我想要」
     │
-    └─→ 跳转至与卖家的IM聊天界面（聊天中关联商品卡片）
+    └─→ 跳转至与卖家的 IM 聊天界面（自动发送商品卡片）
             │
             └─→ 双方协商价格、面交时间地点
                     │
-                    ├─→ [卖家修改价格]（可选，议价场景）
-                    │       → 买家看到新价格后决定是否购买
+                    ├─→ [可选] 卖家修改价格 → 买家确认新价格
                     │
-                    └─→ [买家在聊天中点击"确认购买"] → 生成订单
+                    └─→ [买家点击"确认购买"] → 生成订单
                             │
-                            │   订单状态：待面交
-                            │   开始计时：72小时
-                            │   同一商品同时只允许一个待面交订单（先到先得）
+                            │   订单状态：待面交（72 小时计时）
+                            │   同一商品同时只允许一个待面交订单
                             │
-                            ├─→ [72小时内完成面交]
-                            │       │
+                            ├─→ [72 小时内完成面交]
                             │       └─→ [买家点击"确认收货"]
-                            │               │
                             │               └─→ 订单状态：已完成
-                            │                       │
-                            │                       └─→ [双方互评]（7天窗口期）
-                            │                               │
-                            │                               ├─→ 双方都评价 → 订单状态：已评价
-                            │                               └─→ 7天未评价 → 系统自动默认好评
+                            │                       └─→ [双方互评]（7 天窗口期）
+                            │                               ├─→ 双方均评价 → 订单状态：已评价
+                            │                               └─→ 7 天未评价 → 系统自动默认好评
                             │
-                            ├─→ [72小时超时] → 订单自动取消 → 通知双方 → 商品恢复在售
+                            ├─→ [72 小时超时]
+                            │       └─→ 订单自动取消 → 通知双方 → 商品恢复在售
                             │
-                            ├─→ [买家取消交易] → 选择取消原因 → 订单取消 → 通知卖家
+                            ├─→ [买家取消交易]
+                            │       └─→ 选择取消原因 → 订单取消 → 通知卖家
                             │
-                            └─→ [卖家取消交易] → 选择取消原因 → 订单取消 → 通知买家
+                            └─→ [卖家取消交易]
+                                    └─→ 选择取消原因 → 订单取消 → 通知买家
 ```
-
 
 ---
 
@@ -328,153 +377,243 @@ Graduation_project/
 ### 核心数据表
 
 #### 1. 用户表（user）
-```sql
--- 用户ID自增起始值：10000
--- 关键字段：open_id(微信唯一标识), phone(手机号), auth_status(认证状态), score(综合评分)
--- 状态枚举：status(0-封禁/1-正常/2-注销中), auth_status(0-未认证/1-审核中/2-已认证/3-已驳回)
--- V1.1新增字段：bio(个人简介,varchar(200)), ip_region(IP属地,varchar(64))
-```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增，起始值 10000 |
+| open_id | varchar | 微信唯一标识 |
+| phone | varchar | 手机号 |
+| nick_name | varchar | 昵称 |
+| avatar_url | varchar | 头像 |
+| status | tinyint | 账号状态：0 封禁 / 1 正常 / 2 注销中 |
+| auth_status | tinyint | 认证状态：0 未认证 / 1 审核中 / 2 已认证 / 3 已驳回 |
+| score | decimal | 综合评分，默认 5.0 |
+| bio | varchar(200) | 个人简介（V1.1 新增） |
+| ip_region | varchar(64) | IP 属地（V1.1 新增） |
+| create_time | datetime | 创建时间（自动填充） |
+| update_time | datetime | 更新时间（自动填充） |
 
 #### 2. 商品表（product）
-```sql
--- 关键字段：user_id(发布者), title(标题), price(价格), category_id(分类), status(状态)
--- 状态枚举：0-待审核/1-在售/2-已下架/3-已售出/4-审核驳回
--- 成色枚举：condition_level(1-全新/2-几乎全新/3-9成新/4-8成新/5-7成新及以下)
--- 逻辑删除：is_deleted(@TableLogic)
--- 自动下架：auto_off_time(发布后90天)
-```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增 |
+| user_id | bigint | 发布者 ID |
+| title | varchar | 商品标题 |
+| price | decimal | 二手价格 |
+| original_price | decimal | 原价 |
+| category_id | int | 分类 ID |
+| campus_id | int | 交易校区 ID |
+| condition_level | tinyint | 成色：1 全新 / 2 几乎全新 / 3 九成新 / 4 八成新 / 5 七成新及以下 |
+| status | tinyint | 状态：0 待审核 / 1 在售 / 2 已下架 / 3 已售出 / 4 审核驳回 |
+| auto_off_time | datetime | 自动下架时间（发布后 90 天） |
+| is_deleted | tinyint | 逻辑删除（@TableLogic） |
+| create_time | datetime | 发布时间（自动填充） |
+| update_time | datetime | 更新时间（自动填充） |
 
 #### 3. 订单表（trade_order）
-```sql
--- 订单号格式：TD + yyyyMMddHHmmss + 4位随机数
--- 关键字段：product_id, buyer_id, seller_id, price, status
--- 状态枚举：1-待面交/2-预留/3-已完成/4-已评价/5-已取消
--- 超时机制：expire_time(创建后72h), confirm_deadline(创建后7天)
--- 软删除：is_deleted_buyer, is_deleted_seller
-```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增 |
+| order_no | varchar | 订单号，格式：TD + yyyyMMddHHmmss + 4 位随机数 |
+| product_id | bigint | 商品 ID |
+| buyer_id | bigint | 买家 ID |
+| seller_id | bigint | 卖家 ID |
+| price | decimal | 成交价格 |
+| status | tinyint | 状态：1 待面交 / 2 预留 / 3 已完成 / 4 已评价 / 5 已取消 |
+| cancel_by | tinyint | 取消方：0 系统 / 1 买家 / 2 卖家 |
+| expire_time | datetime | 超时时间（创建后 72 小时） |
+| confirm_deadline | datetime | 自动确认收货时间（创建后 7 天） |
+| complete_time | datetime | 完成时间 |
+| is_deleted_buyer | tinyint | 买家软删除标记 |
+| is_deleted_seller | tinyint | 卖家软删除标记 |
 
 #### 4. 评价表（review）
-```sql
--- 三维度评分：score_desc(描述相符), score_attitude(沟通态度), score_experience(交易体验)
--- 评分范围：1-5分
--- 自动评价：is_auto(0-否/1-是)，7天未评价自动好评
--- 综合评分计算：(三维度之和/3)的所有评价平均值
-```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增 |
+| order_id | bigint | 关联订单 ID |
+| reviewer_id | bigint | 评价者 ID |
+| reviewee_id | bigint | 被评价者 ID |
+| score_desc | tinyint | 描述相符评分（1-5 分） |
+| score_attitude | tinyint | 沟通态度评分（1-5 分） |
+| score_experience | tinyint | 交易体验评分（1-5 分） |
+| content | varchar | 评价内容 |
+| is_auto | tinyint | 是否自动好评：0 否 / 1 是 |
+
+> **综合评分计算**：单次评价得分 = (三维度之和 / 3)，用户综合评分 = 所有收到评价的单次得分平均值，保留一位小数，新用户默认 5.0 分。
 
 #### 5. 聊天会话表（chat_session）
-```sql
--- 会话标识：sessionKey = min(userA,userB)_max(userA,userB)_productId
--- 双向记录：每对用户+商品产生两条记录（各自管理未读数、置顶、删除）
--- 关键字段：user_id, peer_id, product_id, unread, last_msg, last_time
-```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增 |
+| session_key | varchar | 会话唯一标识，格式见下方说明 |
+| user_id | bigint | 当前用户 ID |
+| peer_id | bigint | 对方用户 ID |
+| product_id | bigint | 关联商品 ID |
+| unread | int | 当前用户未读消息数 |
+| last_msg | varchar | 最后一条消息摘要 |
+| last_time | datetime | 最后消息时间 |
+| is_top | tinyint | 是否置顶：0 否 / 1 是 |
+| is_deleted | tinyint | 是否删除（仅对自己生效） |
+
+> **SessionKey 生成规则**：`min(userA, userB)_max(userA, userB)_productId`，每对用户+商品产生**两条**记录，各自独立管理未读数、置顶、删除状态。
 
 #### 6. 聊天消息表（chat_message）
-```sql
--- 消息类型：1-文本/2-商品卡片/3-订单卡片/4-系统提示/5-快捷回复
--- 关键字段：session_key, sender_id, receiver_id, msg_type, content, is_read
-```
 
-#### 7. 校园认证历史表（campus_auth_history）
-```sql
--- 作用：保存每次认证提交快照，不覆盖历史数据
--- 关键字段：auth_id(关联campus_auth), user_id, college_id, real_name(姓名), student_no, class_name, cert_image
--- 状态枚举：status(0-待审核/1-通过/2-驳回)
--- 审核信息：reject_reason, review_time, reviewer_id
-```
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增 |
+| session_key | varchar | 所属会话 Key |
+| sender_id | bigint | 发送者 ID |
+| receiver_id | bigint | 接收者 ID |
+| msg_type | tinyint | 消息类型：1 文本 / 2 商品卡片 / 3 订单卡片 / 4 系统提示 / 5 快捷回复 |
+| content | text | 消息内容 |
+| is_read | tinyint | 是否已读：0 未读 / 1 已读 |
+| create_time | datetime | 发送时间 |
 
-> **注意**：V1.1 新增字段说明
-> - `campus_auth` 表新增 `real_name`（varchar(32)）字段，位于 `college_id` 之后
-> - `user` 表新增 `bio`（varchar(200)，个人简介）和 `ip_region`（varchar(64)，IP属地）字段
-> - 以上变更对应增量SQL：`f06_auth_real_name.sql`、`f07_user_follow_profile.sql`
+#### 7. 校园认证表（campus_auth）
 
-#### 8. 用户关注表（user_follow）
-```sql
--- 关键字段：follower_id(关注者), followee_id(被关注者)
--- 唯一约束：(follower_id, followee_id) 防止重复关注
--- 支持功能：关注/取关、关注数/粉丝数统计
-```
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增 |
+| user_id | bigint | 关联用户 ID |
+| college_id | int | 学院 ID |
+| real_name | varchar(32) | 真实姓名（V1.1 新增） |
+| student_no | varchar | 学号 |
+| class_name | varchar | 班级 |
+| cert_image | varchar | 认证材料图片 URL |
+| status | tinyint | 状态：0 待审核 / 1 通过 / 2 驳回 |
+| reject_reason | varchar | 驳回原因 |
+| review_time | datetime | 审核时间 |
+| reviewer_id | bigint | 审核人 ID |
 
-#### 9. 商品留言表（product_comment）
-```sql
--- 支持多级回复：parent_id(父评论), root_id(根评论), reply_to_user_id(回复目标用户)
--- 关键字段：product_id, user_id, content, is_read(0-未读/1-已读)
--- 逻辑删除：is_deleted(@TableLogic)
--- 业务场景：商品详情页留言、回复留言、收到回复通知、未读回复数
-```
+#### 8. 校园认证历史表（campus_auth_history）
+
+> **作用**：保存每次认证提交的完整快照，不覆盖历史数据，支持全轨迹回溯。
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增 |
+| auth_id | bigint | 关联 campus_auth.id |
+| user_id | bigint | 用户 ID |
+| college_id | int | 学院 ID |
+| real_name | varchar(32) | 真实姓名 |
+| student_no | varchar | 学号 |
+| class_name | varchar | 班级 |
+| cert_image | varchar | 认证材料图片 URL |
+| status | tinyint | 状态：0 待审核 / 1 通过 / 2 驳回 |
+| reject_reason | varchar | 驳回原因 |
+| review_time | datetime | 审核时间 |
+| reviewer_id | bigint | 审核人 ID |
+| create_time | datetime | 提交时间（自动填充） |
+
+#### 9. 用户关注表（user_follow）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增 |
+| follower_id | bigint | 关注者 ID |
+| followee_id | bigint | 被关注者 ID |
+| create_time | datetime | 关注时间（自动填充） |
+
+> **约束**：唯一索引 `(follower_id, followee_id)` 防止重复关注。
+
+#### 10. 商品留言表（product_comment）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增 |
+| product_id | bigint | 关联商品 ID |
+| user_id | bigint | 留言者 ID |
+| parent_id | bigint | 父评论 ID，为空表示第一层留言 |
+| root_id | bigint | 根评论 ID，用于组装树形结构 |
+| reply_to_user_id | bigint | 被回复用户 ID，用于通知和展示 |
+| content | varchar | 留言内容 |
+| is_read | tinyint | 被回复人是否已读：0 未读 / 1 已读 |
+| is_deleted | tinyint | 逻辑删除（@TableLogic） |
+| create_time | datetime | 留言时间（自动填充） |
+
+### V1.1 数据库变更说明
+
+| 增量脚本 | 变更内容 |
+|---------|---------|
+| `f06_auth_real_name.sql` | `campus_auth` 表新增 `real_name` 字段；新增 `campus_auth_history` 表 |
+| `f07_user_follow_profile.sql` | 新增 `user_follow` 表；`user` 表新增 `bio`、`ip_region` 字段 |
+| `f08_product_comment.sql` | 新增 `product_comment` 表 |
 
 ### 数据库关系图
-```
+
+```text
 user(用户) ──1:N──→ product(商品)
 user(用户) ──1:N──→ trade_order(订单) ←──N:1── product(商品)
-user(用户) ──1:N──→ favorite(收藏) ←──N:1── product(商品)
+user(用户) ──1:N──→ favorite(收藏)    ←──N:1── product(商品)
 user(用户) ──1:1──→ campus_auth(校园认证) ──N:1──→ college(学院)
 campus_auth(校园认证) ──1:N──→ campus_auth_history(认证历史)
 trade_order(订单) ──1:2──→ review(评价)
 campus(校区) ──1:N──→ meeting_point(面交地点)
-user(用户) ──1:N──→ chat_session(会话)
-chat_session(会话) ──1:N──→ chat_message(消息)
-user(用户) ──1:N──→ user_follow(关注) ──N:1──→ user(被关注用户)
-product(商品) ──1:N──→ product_comment(评论) ──N:1──→ user(评论者)
+user(用户) ──1:N──→ chat_session(会话) ──1:N──→ chat_message(消息)
+user(用户) ──1:N──→ user_follow(关注)  ──N:1──→ user(被关注用户)
+product(商品) ──1:N──→ product_comment(留言) ──N:1──→ user(留言者)
 ```
 
 ### 枚举类说明
 
 #### 1. NotificationType（通知类型）
-| code | description | template |
-|------|-------------|----------|
+
+| code | 描述 | 模板 |
+|------|------|------|
 | 1 | 交易成功 | 你购买的「{productName}」交易已完成，给卖家一个评价吧！ |
-| 2 | 新消息 | {nickName}回复了你的消息："{content}" |
+| 2 | 新消息 | {nickName} 回复了你的消息："{content}" |
 | 3 | 商品审核通过 | 您的商品《{productName}》已通过审核，现已上架！ |
 | 4 | 商品审核驳回 | 您的商品《{productName}》未通过审核，驳回原因：{reason} |
 | 5 | 系统公告 | {content} |
-| 6 | 商品被收藏 | 你的商品《{productName}》被{count}位用户收藏了 |
-| 7 | 订单已取消 | 你与{nickName}的交易「{productName}」已取消 |
+| 6 | 商品被收藏 | 你的商品《{productName}》被 {count} 位用户收藏了 |
+| 7 | 订单已取消 | 你与 {nickName} 的交易「{productName}」已取消 |
 | 8 | 校园认证通过 | 恭喜您，您的校园认证已通过审核！ |
 | 9 | 校园认证被驳回 | 您的校园认证未通过审核，驳回原因：{reason} |
-| 10 | 评价提醒 | 你购买的「{productName}」交易已完成3天，还未评价哦 |
+| 10 | 评价提醒 | 你购买的「{productName}」交易已完成 3 天，还未评价哦 |
+| 11 | 新增粉丝 | {nickName} 关注了你，快去看看吧！ |
 
 #### 2. NotificationCategory（通知分类）
-| code | description |
-|------|-------------|
+
+| code | 描述 |
+|------|------|
 | 1 | 交易 |
 | 2 | 系统 |
 
-#### 3. BannerLinkType（Banner链接类型）
-| code | description |
-|------|-------------|
-| 1 | 商品详情 |
-| 2 | 活动页 |
-| 3 | 外部链接 |
+#### 3. 其他枚举
 
-#### 4. ReportStatus（举报状态）
-| code | description |
-|------|-------------|
-| 0 | 待处理 |
-| 1 | 已处理 |
-| 2 | 已驳回 |
-
-#### 5. ReportReason（举报原因）
-| code | description |
-|------|-------------|
-| 1 | 虚假商品 |
-| 2 | 价格欺诈 |
-| 3 | 违禁物品 |
-| 4 | 恶意骚扰 |
-| 5 | 侵权商品 |
-| 6 | 其他 |
-
+| 枚举名 | code | 描述 |
+|--------|------|------|
+| BannerLinkType | 1 | 商品详情 |
+| BannerLinkType | 2 | 活动页 |
+| BannerLinkType | 3 | 外部链接 |
+| ReportStatus | 0 | 待处理 |
+| ReportStatus | 1 | 已处理 |
+| ReportStatus | 2 | 已驳回 |
+| ReportReason | 1 | 虚假商品 |
+| ReportReason | 2 | 价格欺诈 |
+| ReportReason | 3 | 违禁物品 |
+| ReportReason | 4 | 恶意骚扰 |
+| ReportReason | 5 | 侵权商品 |
+| ReportReason | 6 | 其他 |
 
 ---
 
 ## 🔌 核心接口说明
 
 ### 统一响应格式
+
 ```json
 // 成功响应
 {
   "code": 1,
   "msg": "success",
-  "data": { ... }
+  "data": { }
 }
 
 // 失败响应
@@ -485,186 +624,213 @@ product(商品) ──1:N──→ product_comment(评论) ──N:1──→ us
 }
 ```
 
-### 小程序端核心接口
+### 小程序端接口
 
-#### 用户模块（/mini/user）
-- `POST /mini/user/wx-login` - 微信登录（公开）
-- `POST /mini/user/login` - 手机号密码登录（公开）
-- `POST /mini/user/sms/send` - 发送短信验证码（公开）
-- `POST /mini/user/sms-login` - 短信验证登录（公开）
-- `GET /mini/user/info` - 获取当前用户信息
-- `POST /mini/user/update` - 更新用户信息
-- `POST /mini/user/accept-agreement` - 确认同意协议（需登录）
-- `GET /mini/user/stats` - 获取用户统计数据
-- `GET /mini/user/profile/{id}` - 查看卖家主页（公开）
-- `POST /mini/user/deactivate` - 申请注销账号（需登录）
-- `POST /mini/user/restore` - 恢复注销中账号（需登录）
+#### 用户模块（`/mini/user`）
 
-#### 商品模块（/mini/product）
-- `POST /mini/product/publish` - 发布商品
-- `POST /mini/product/update` - 编辑商品
-- `GET /mini/product/detail/{id}` - 商品详情（公开）
-- `GET /mini/product/list` - 商品列表（公开，支持筛选排序）
-- `GET /mini/product/my-list` - 我发布的商品
-- `POST /mini/product/update-price` - 修改价格（议价场景）
-- `POST /mini/product/off-shelf` - 下架商品（请求参数：productId）
-- `POST /mini/product/on-shelf` - 上架商品（请求参数：productId）
-- `POST /mini/product/delete` - 删除商品（请求参数：productId）
+| 方法 | 路径 | 说明 | 是否需要登录 |
+|------|------|------|:----------:|
+| POST | `/mini/user/wx-login` | 微信登录 | ❌ |
+| POST | `/mini/user/login` | 手机号密码登录 | ❌ |
+| POST | `/mini/user/sms/send` | 发送短信验证码 | ❌ |
+| POST | `/mini/user/sms-login` | 短信验证登录 | ❌ |
+| GET | `/mini/user/info` | 获取当前用户信息 | ✅ |
+| POST | `/mini/user/update` | 更新用户信息 | ✅ |
+| POST | `/mini/user/accept-agreement` | 确认同意协议 | ✅ |
+| GET | `/mini/user/stats` | 获取用户统计数据 | ✅ |
+| GET | `/mini/user/profile/{id}` | 查看卖家主页 | ❌ |
+| POST | `/mini/user/deactivate` | 申请注销账号 | ✅ |
+| POST | `/mini/user/restore` | 恢复注销中账号 | ✅ |
 
-#### 订单模块（/mini/order）
-- `POST /mini/order/create` - 创建订单（含分布式锁）
-- `GET /mini/order/list` - 订单列表（支持买家/卖家视角）
-- `GET /mini/order/detail/{id}` - 订单详情
-- `POST /mini/order/confirm` - 确认收货（请求参数：orderId）
-- `POST /mini/order/cancel` - 取消订单
-- `POST /mini/order/delete` - 删除订单（请求参数：orderId）
+#### 商品模块（`/mini/product`）
 
-#### 聊天模块（/mini/chat）
-- `POST /mini/chat/session/create` - 创建会话
-- `GET /mini/chat/sessions` - 会话列表
-- `GET /mini/chat/list` - 会话列表（小程序分页格式：total/records）
-- `POST /mini/chat/session/delete` - 删除会话
-- `POST /mini/chat/delete` - 删除会话（兼容小程序）
-- `POST /mini/chat/session/top` - 会话置顶/取消置顶
-- `GET /mini/chat/messages` - 消息历史（分页）
-- `POST /mini/chat/read` - 标记已读
-- `GET /mini/chat/unread-total` - 未读总数
+| 方法 | 路径 | 说明 | 是否需要登录 |
+|------|------|------|:----------:|
+| POST | `/mini/product/publish` | 发布商品 | ✅ |
+| POST | `/mini/product/update` | 编辑商品 | ✅ |
+| GET | `/mini/product/detail/{id}` | 商品详情 | ❌ |
+| GET | `/mini/product/list` | 商品列表（支持筛选排序） | ❌ |
+| GET | `/mini/product/my-list` | 我发布的商品 | ✅ |
+| POST | `/mini/product/update-price` | 修改价格（议价场景） | ✅ |
+| POST | `/mini/product/off-shelf` | 下架商品 | ✅ |
+| POST | `/mini/product/on-shelf` | 上架商品 | ✅ |
+| POST | `/mini/product/delete` | 删除商品 | ✅ |
 
-#### WebSocket 端点
-- `ws://host:port/ws/chat?token={jwt_token}` - WebSocket 连接
-- 消息类型：PING/PONG（心跳）、CHAT（聊天）、READ/READ_ACK（已读）、SYSTEM（系统提示）、FORCE_OFFLINE（踢下线）
+#### 订单模块（`/mini/order`）
 
-#### 校园认证模块（/mini/auth）
-- `POST /mini/auth/submit` - 提交校园认证
-- `GET /mini/auth/status` - 获取我的认证状态
-- `GET /mini/auth/history` - 认证历史列表（按提交时间倒序）
-- `GET /mini/auth/history/{id}` - 认证历史详情（按用户隔离，防越权）
+| 方法 | 路径 | 说明 | 是否需要登录 |
+|------|------|------|:----------:|
+| POST | `/mini/order/create` | 创建订单（含分布式锁） | ✅ |
+| GET | `/mini/order/list` | 订单列表（支持买家/卖家视角） | ✅ |
+| GET | `/mini/order/detail/{id}` | 订单详情 | ✅ |
+| POST | `/mini/order/confirm` | 确认收货 | ✅ |
+| POST | `/mini/order/cancel` | 取消订单 | ✅ |
+| POST | `/mini/order/delete` | 删除订单记录 | ✅ |
 
-#### 校区与面交地点模块（/mini/campus）
-- `GET /mini/campus/list` - 校区列表
-- `GET /mini/campus/meeting-points/{campusId}` - 校区面交地点列表
+#### 聊天模块（`/mini/chat`）
 
-#### 分类模块（/mini/category）
-- `GET /mini/category/list` - 分类列表
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/mini/chat/session/create` | 创建会话 |
+| GET | `/mini/chat/sessions` | 会话列表 |
+| GET | `/mini/chat/list` | 会话列表（分页格式：total/records） |
+| POST | `/mini/chat/session/delete` | 删除会话 |
+| POST | `/mini/chat/delete` | 删除会话（兼容小程序） |
+| POST | `/mini/chat/session/top` | 会话置顶 / 取消置顶 |
+| GET | `/mini/chat/messages` | 消息历史（分页） |
+| POST | `/mini/chat/read` | 标记已读 |
+| GET | `/mini/chat/unread-total` | 未读消息总数 |
 
-#### Banner模块（/mini/banner）
-- `GET /mini/banner/list` - Banner列表（请求参数：campusId）
+**WebSocket 端点**
 
-#### 收藏模块（/mini/favorite）
-- `POST /mini/favorite/add` - 收藏商品
-- `POST /mini/favorite/cancel` - 取消收藏
-- `GET /mini/favorite/list` - 我的收藏列表（分页）
-- `GET /mini/favorite/check/{productId}` - 是否已收藏
+```
+ws://host:port/ws/chat?token={jwt_token}
+```
 
-#### 举报模块（/mini/report）
-- `POST /mini/report/submit` - 提交举报
-- `GET /mini/report/detail/{id}` - 举报详情（用于确认提交结果/展示）
+| 消息类型 | 说明 |
+|---------|------|
+| PING / PONG | 心跳保活 |
+| CHAT | 聊天消息 |
+| READ / READ_ACK | 已读回执 |
+| SYSTEM | 系统提示 |
+| FORCE_OFFLINE | 踢下线 |
 
-#### 搜索模块（/mini/search）
-- `GET /mini/search/hot-keywords` - 热门搜索词
+#### 校园认证模块（`/mini/auth`）
 
-#### 用户关注模块（/mini/follow）
-- `POST /mini/follow/follow` - 关注用户（请求参数：userId）
-- `POST /mini/follow/unfollow` - 取消关注（请求参数：userId）
-- `GET /mini/follow/check/{userId}` - 检查是否已关注
-- `GET /mini/follow/stats/{userId}` - 获取关注/粉丝统计
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/mini/auth/submit` | 提交校园认证 |
+| GET | `/mini/auth/status` | 获取我的认证状态 |
+| GET | `/mini/auth/history` | 认证历史列表（按提交时间倒序） |
+| GET | `/mini/auth/history/{id}` | 认证历史详情（按用户隔离，防越权） |
 
-#### 商品评论模块（/mini/product/comment）
-- `POST /mini/product/comment/add` - 添加评论（支持多级回复）
-- `POST /mini/product/comment/delete/{commentId}` - 删除评论
-- `GET /mini/product/comment/list/{productId}` - 商品评论列表
-- `GET /mini/product/comment/received-replies` - 收到的回复（分页）
-- `GET /mini/product/comment/unread-reply-count` - 未读回复数
-- `POST /mini/product/comment/mark-read` - 标记已读
+#### 用户关注模块（`/mini/follow`）
 
-#### 消息中心模块（/mini/notification）
-- `GET /mini/notification/list` - 通知列表（分页，支持 category 筛选）
-- `POST /mini/notification/read` - 标记单条已读（请求参数：id）
-- `POST /mini/notification/read-all` - 全部标记已读
-- `GET /mini/notification/unread-count` - 未读数（总数/交易/系统）
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/mini/follow/follow` | 关注用户 |
+| POST | `/mini/follow/unfollow` | 取消关注 |
+| GET | `/mini/follow/check/{userId}` | 检查是否已关注 |
+| GET | `/mini/follow/stats/{userId}` | 获取关注/粉丝统计 |
 
-### 管理端核心接口
+> **业务规则**：不能关注自己；关注成功后发送站内通知（类型 11 - 新增粉丝）。
 
-#### 商品审核（/admin/product）
-- `GET /admin/product/page` - 商品分页查询
-- `POST /admin/product/approve` - 审核通过
-- `POST /admin/product/reject` - 审核驳回
-- `POST /admin/product/batch-approve` - 批量通过
-- `POST /admin/product/force-off` - 强制下架
+#### 商品评论模块（`/mini/product/comment`）
 
-#### 认证审核（/admin/auth）
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/mini/product/comment/add` | 添加评论（支持多级回复） |
+| POST | `/mini/product/comment/delete/{commentId}` | 删除评论（仅留言者本人） |
+| GET | `/mini/product/comment/list/{productId}` | 商品评论列表（树形结构） |
+| GET | `/mini/product/comment/received-replies` | 收到的回复（分页） |
+| GET | `/mini/product/comment/unread-reply-count` | 未读回复数 |
+| POST | `/mini/product/comment/mark-read` | 标记已读 |
+
+**留言规则**
+- 第一层留言：`parent_id` 为空，直接回复商品
+- 第二层回复：`parent_id` 不为空，回复他人留言
+- 若当前用户不是商品发布者，自动将回复目标设为发布者
+- 返回数据组装为两层树形结构（根留言 + 回复列表）
+- 被回复人收到站内通知（类型 2 - 新消息）
+
+#### 其他小程序端模块
+
+| 模块 | 方法 | 路径 | 说明 |
+|------|------|------|------|
+| 校区 | GET | `/mini/campus/list` | 校区列表 |
+| 校区 | GET | `/mini/campus/meeting-points/{campusId}` | 校区面交地点列表 |
+| 分类 | GET | `/mini/category/list` | 分类列表 |
+| Banner | GET | `/mini/banner/list` | Banner 列表（参数：campusId） |
+| 收藏 | POST | `/mini/favorite/add` | 收藏商品 |
+| 收藏 | POST | `/mini/favorite/cancel` | 取消收藏 |
+| 收藏 | GET | `/mini/favorite/list` | 我的收藏列表（分页） |
+| 收藏 | GET | `/mini/favorite/check/{productId}` | 是否已收藏 |
+| 举报 | POST | `/mini/report/submit` | 提交举报 |
+| 举报 | GET | `/mini/report/detail/{id}` | 举报详情 |
+| 搜索 | GET | `/mini/search/hot-keywords` | 热门搜索词 |
+| 消息 | GET | `/mini/notification/list` | 通知列表（支持 category 筛选） |
+| 消息 | POST | `/mini/notification/read` | 标记单条已读 |
+| 消息 | POST | `/mini/notification/read-all` | 全部标记已读 |
+| 消息 | GET | `/mini/notification/unread-count` | 未读数统计 |
+
+### 管理端接口
+
+#### 商品审核（`/admin/product`）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/product/page` | 商品分页查询 |
+| POST | `/admin/product/approve` | 审核通过 |
+| POST | `/admin/product/reject` | 审核驳回 |
+| POST | `/admin/product/batch-approve` | 批量通过 |
+| POST | `/admin/product/force-off` | 强制下架 |
+
+#### 认证审核（`/admin/auth`）
+
 | 方法 | 路径 | 说明 | 参数 |
 |------|------|------|------|
-| GET | /admin/auth/page | 认证申请分页 | page(默认1), size(默认10), status(可选), collegeId(可选) |
-| GET | /admin/auth/detail/{id} | 认证申请详情 | id(path) |
-| GET | /admin/auth/history/{authId} | 认证历史记录 | authId(path) |
-| POST | /admin/auth/approve | 审核通过 | {id}(body) |
-| POST | /admin/auth/reject | 审核驳回 | {id, rejectReason}(body) |
+| GET | `/admin/auth/page` | 认证申请分页查询 | page、size、status（可选）、collegeId（可选） |
+| GET | `/admin/auth/detail/{id}` | 认证申请详情 | id（path） |
+| GET | `/admin/auth/history/{authId}` | 认证历史时间线 | authId（path） |
+| POST | `/admin/auth/approve` | 审核通过 | `{id}` |
+| POST | `/admin/auth/reject` | 审核驳回 | `{id, rejectReason}` |
 
-#### 用户管理（/admin/user）
-- `GET /admin/user/page` - 用户分页查询
-- `POST /admin/user/ban` - 封禁用户
-- `POST /admin/user/unban` - 解封用户
+#### 用户管理（`/admin/user`）
 
-#### 数据统计（/admin/stats）
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/admin/user/page` | 用户分页查询 |
+| POST | `/admin/user/ban` | 封禁用户 |
+| POST | `/admin/user/unban` | 解封用户 |
+
+#### 数据统计（`/admin/stats`）
+
 | 方法 | 路径 | 说明 | 参数 | 响应数据 |
-|------|------|------|------|----------|
-| GET | /admin/stats/overview | 数据总览 | 无 | totalUsers, totalProducts, totalOrders, totalReviews, pendingAuthCount, pendingProductCount, todayNewUsers, todayNewProducts, todayNewOrders, totalAmount |
-| GET | /admin/stats/trend | 趋势数据 | days(默认7, 可选7/30) | [{date, newUsers, newProducts, newOrders}] |
-| GET | /admin/stats/campus | 校区维度统计 | 无 | [{campusName, productCount, orderCount, userCount}] |
-| GET | /admin/stats/category | 分类维度统计 | 无 | [{categoryName, productCount, percentage}] |
+|------|------|------|------|---------|
+| GET | `/admin/stats/overview` | 数据总览 | 无 | totalUsers、totalProducts、totalOrders、totalReviews、pendingAuthCount、pendingProductCount、todayNewUsers、todayNewProducts、todayNewOrders、totalAmount |
+| GET | `/admin/stats/trend` | 趋势折线图 | days（默认 7，可选 7/30） | [{date, newUsers, newProducts, newOrders}] |
+| GET | `/admin/stats/campus` | 校区维度统计 | 无 | [{campusName, productCount, orderCount, userCount}] |
+| GET | `/admin/stats/category` | 分类维度统计 | 无 | [{categoryName, productCount, percentage}] |
 
-#### 员工管理（/admin/employee）
-- `POST /admin/employee/login` - 管理员登录
-- `GET /admin/employee/info` - 获取当前管理员信息
-- `GET /admin/employee/page` - 分页查询管理员列表
-- `POST /admin/employee/add` - 添加管理员
-- `POST /admin/employee/update` - 更新管理员信息（启用/禁用通过status字段控制）
-- `POST /admin/employee/reset-password` - 重置管理员密码
+#### 其他管理端模块
 
-#### 订单管理（/admin/order）
-- `GET /admin/order/page` - 分页查询订单列表
-- `GET /admin/order/detail/{id}` - 订单详情
-
-#### 举报处理（/admin/report）
-- `GET /admin/report/page` - 分页查询举报列表
-- `GET /admin/report/detail/{id}` - 举报详情
-- `POST /admin/report/handle` - 处理举报
-
-#### 分类管理（/admin/category）
-- `GET /admin/category/page` - 分页查询分类列表
-- `GET /admin/category/list` - 分类列表（下拉框用）
-- `POST /admin/category/add` - 添加分类
-- `POST /admin/category/update` - 更新分类
-- `POST /admin/category/delete` - 删除分类
-
-#### 校区管理（/admin/campus）
-- `GET /admin/campus/list` - 校区列表
-- `POST /admin/campus/add` - 添加校区
-- `POST /admin/campus/update` - 更新校区
-- `GET /admin/campus/meeting-point/list/{campusId}` - 面交地点列表
-- `POST /admin/campus/meeting-point/add` - 添加面交地点
-- `POST /admin/campus/meeting-point/update` - 更新面交地点
-- `POST /admin/campus/meeting-point/delete` - 删除面交地点
-
-#### Banner管理（/admin/banner）
-- `GET /admin/banner/page` - 分页查询Banner列表
-- `POST /admin/banner/add` - 添加Banner
-- `POST /admin/banner/update` - 更新Banner
-- `POST /admin/banner/delete` - 删除Banner
-
-#### 公告管理（/admin/notice）
-- `GET /admin/notice/page` - 分页查询公告列表
-- `POST /admin/notice/add` - 添加公告
-- `POST /admin/notice/update` - 更新公告
-- `POST /admin/notice/delete` - 删除公告
-
-#### 学院管理（/admin/college）
-- `GET /admin/college/list` - 学院列表
-- `POST /admin/college/add` - 添加学院
-- `POST /admin/college/update` - 更新学院
-- `POST /admin/college/delete` - 删除学院
-
+| 模块 | 方法 | 路径 | 说明 |
+|------|------|------|------|
+| 员工管理 | POST | `/admin/employee/login` | 管理员登录 |
+| 员工管理 | GET | `/admin/employee/info` | 获取当前管理员信息 |
+| 员工管理 | GET | `/admin/employee/page` | 分页查询管理员列表 |
+| 员工管理 | POST | `/admin/employee/add` | 添加管理员 |
+| 员工管理 | POST | `/admin/employee/update` | 更新管理员信息（启用/禁用通过 status 字段控制） |
+| 员工管理 | POST | `/admin/employee/reset-password` | 重置管理员密码 |
+| 订单管理 | GET | `/admin/order/page` | 分页查询订单列表 |
+| 订单管理 | GET | `/admin/order/detail/{id}` | 订单详情 |
+| 举报处理 | GET | `/admin/report/page` | 分页查询举报列表 |
+| 举报处理 | GET | `/admin/report/detail/{id}` | 举报详情 |
+| 举报处理 | POST | `/admin/report/handle` | 处理举报 |
+| 分类管理 | GET | `/admin/category/page` | 分页查询分类列表 |
+| 分类管理 | GET | `/admin/category/list` | 分类列表（下拉框用） |
+| 分类管理 | POST | `/admin/category/add` | 添加分类 |
+| 分类管理 | POST | `/admin/category/update` | 更新分类 |
+| 分类管理 | POST | `/admin/category/delete` | 删除分类 |
+| 校区管理 | GET | `/admin/campus/list` | 校区列表 |
+| 校区管理 | POST | `/admin/campus/add` | 添加校区 |
+| 校区管理 | POST | `/admin/campus/update` | 更新校区 |
+| 校区管理 | GET | `/admin/campus/meeting-point/list/{campusId}` | 面交地点列表 |
+| 校区管理 | POST | `/admin/campus/meeting-point/add` | 添加面交地点 |
+| 校区管理 | POST | `/admin/campus/meeting-point/update` | 更新面交地点 |
+| 校区管理 | POST | `/admin/campus/meeting-point/delete` | 删除面交地点 |
+| Banner 管理 | GET | `/admin/banner/page` | 分页查询 Banner 列表 |
+| Banner 管理 | POST | `/admin/banner/add` | 添加 Banner |
+| Banner 管理 | POST | `/admin/banner/update` | 更新 Banner |
+| Banner 管理 | POST | `/admin/banner/delete` | 删除 Banner |
+| 公告管理 | GET | `/admin/notice/page` | 分页查询公告列表 |
+| 公告管理 | POST | `/admin/notice/add` | 添加公告 |
+| 公告管理 | POST | `/admin/notice/update` | 更新公告 |
+| 公告管理 | POST | `/admin/notice/delete` | 删除公告 |
+| 学院管理 | GET | `/admin/college/list` | 学院列表 |
+| 学院管理 | POST | `/admin/college/add` | 添加学院 |
+| 学院管理 | POST | `/admin/college/update` | 更新学院 |
+| 学院管理 | POST | `/admin/college/delete` | 删除学院 |
 
 ---
 
@@ -673,22 +839,28 @@ product(商品) ──1:N──→ product_comment(评论) ──N:1──→ us
 ### 开发环境要求
 
 #### 后端环境
-- JDK 17+
-- Maven 3.6+
-- MySQL 5.7
-- Redis 6.0+
-- IDE：IntelliJ IDEA
+
+| 工具 | 要求 |
+|------|------|
+| JDK | 17+ |
+| Maven | 3.6+ |
+| MySQL | 5.7 |
+| Redis | 6.0+ |
+| IDE | IntelliJ IDEA |
 
 #### 前端环境
-- Node.js 16+
-- npm 或 yarn
-- 微信开发者工具（小程序开发）
-- VS Code
+
+| 工具 | 要求 |
+|------|------|
+| Node.js | 16+ |
+| 包管理器 | npm 或 yarn |
+| 小程序工具 | 微信开发者工具 |
+| IDE | VS Code |
 
 ### 配置文件说明
 
-#### application.yml
 ```yaml
+# application.yml
 server:
   port: 8080
 
@@ -698,7 +870,7 @@ spring:
     username: root
     password: your_password
     driver-class-name: com.mysql.cj.jdbc.Driver
-  
+
   data:
     redis:
       host: localhost
@@ -707,28 +879,28 @@ spring:
 
   servlet:
     multipart:
-      max-file-size: 5MB        # 单文件最大5MB
-      max-request-size: 50MB    # 总请求最大50MB（多图上传场景）
+      max-file-size: 5MB        # 单文件最大 5MB
+      max-request-size: 50MB    # 总请求最大 50MB（多图上传场景）
 
-# MyBatis-Plus配置
+# MyBatis-Plus 配置
 mybatis-plus:
   configuration:
-    map-underscore-to-camel-case: true    # 下划线转驼峰
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # SQL日志（开发环境）
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 开发环境开启 SQL 日志
   global-config:
     db-config:
-      id-type: auto                        # 主键自增策略
+      id-type: auto
 
-# JWT配置
+# JWT 配置
 jwt:
-  secret: "your_jwt_secret"
-  expiration: 86400000          # 小程序端Token有效期：24小时
-  admin-expiration: 86400000    # 管理端Token有效期：24小时
+  secret: "your_jwt_secret"            # 生产环境请使用环境变量
+  expiration: 86400000                  # 小程序端 Token 有效期：24 小时
+  admin-expiration: 86400000            # 管理端 Token 有效期：24 小时
 
 # 微信小程序配置
 wx:
   appId: "your_wx_appid"
-  appSecret: "your_wx_appsecret"
+  appSecret: "your_wx_appsecret"       # 生产环境请使用环境变量
 
 # 文件上传配置
 upload:
@@ -746,18 +918,26 @@ task:
     user-deactivate: true       # 注销账号清理
 ```
 
+> ⚠️ **安全警告**：以下配置**严禁**明文提交到代码仓库，生产环境务必使用环境变量或外部配置中心管理：
+>
+> | 配置项 | 风险级别 | 建议处理方式 |
+> |--------|---------|------------|
+> | `spring.datasource.password` | 🔴 高 | 环境变量 `SPRING_DATASOURCE_PASSWORD` |
+> | `jwt.secret` | 🔴 高 | 环境变量 `JWT_SECRET`（至少 32 位随机字符串） |
+> | `wx.appSecret` | 🔴 高 | 环境变量 `WX_APPSECRET` |
+> | `spring.data.redis.password` | 🔴 高 | 环境变量 `REDIS_PASSWORD` |
+> | `upload.url-prefix` | 🟡 中 | 建议使用 OSS/CDN，本地存储需配置访问控制 |
+
 ### 数据库初始化
 
-> **SQL文件位置**：`sql/` 目录
-> - `sql/init.sql` - 初始建表脚本
-> - `sql/update/` - 增量更新脚本（按日期命名）
+**第一步：创建数据库**
 
-1. 创建数据库
 ```sql
 CREATE DATABASE secondhand CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-2. 执行建表脚本
+**第二步：执行建表脚本**
+
 ```bash
 # 进入项目根目录
 cd G:\Code\Graduation_project
@@ -765,7 +945,7 @@ cd G:\Code\Graduation_project
 # 执行初始建表脚本
 mysql -u root -p secondhand < sql/init.sql
 
-# 按需执行增量更新脚本（如有）
+# 按序执行增量更新脚本
 mysql -u root -p secondhand < sql/update/2026-02-21_f19_notification.sql
 mysql -u root -p secondhand < sql/update/2026-02-21_f21_banner_search.sql
 mysql -u root -p secondhand < sql/update/2026-02-22_f_im_02_chat_session.sql
@@ -775,74 +955,64 @@ mysql -u root -p secondhand < sql/update/2026-04-08_f07_user_follow_profile.sql
 mysql -u root -p secondhand < sql/update/2026-04-10_f08_product_comment.sql
 ```
 
-3. 初始化基础数据
+**第三步：初始化基础数据**
+
 ```sql
--- 插入默认管理员（密码：123456）
-INSERT INTO employee (username, password, name, role, status) 
+-- 插入默认管理员（默认密码：123456）
+INSERT INTO employee (username, password, name, role, status)
 VALUES ('admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '超级管理员', 1, 1);
 
 -- 插入校区数据
 INSERT INTO campus (name, code, sort, status) VALUES
 ('南海北', 'nanhai_north', 1, 1),
 ('南海南', 'nanhai_south', 2, 1),
-('新港', 'xingang', 3, 1);
+('新港',   'xingang',      3, 1);
 
 -- 插入分类数据
 INSERT INTO category (name, sort, status) VALUES
-('书籍', 1, 1),
-('服饰', 2, 1),
-('生活', 3, 1),
+('书籍',     1, 1),
+('服饰',     2, 1),
+('生活',     3, 1),
 ('电子设备', 4, 1),
 ('运动设备', 5, 1),
 ('潮玩娱乐', 6, 1);
 ```
 
-
 ### 启动步骤
 
-#### 后端启动
+**后端启动**
+
 ```bash
 # 1. 克隆项目
 git clone <repository_url>
 cd Graduation_project
 
-# 2. 配置数据库和Redis连接信息
-# 编辑 src/main/resources/application.yml
+# 2. 配置 application.yml 中的数据库、Redis、微信小程序等信息
 
 # 3. 安装依赖并启动
 mvn clean install
 mvn spring-boot:run
-
-# 或使用IDE直接运行 SecondhandApplication.java
+# 或使用 IDE 直接运行 SecondhandApplication.java
 ```
 
-#### 小程序端启动
+**小程序端启动**
+
 ```bash
-# 1. 进入小程序目录
 cd miniapp
-
-# 2. 安装依赖
 npm install
-
-# 3. 使用微信开发者工具打开 miniapp 目录
-# 配置 AppID 和后端接口地址
+# 使用微信开发者工具打开 miniapp 目录，配置 AppID 和后端接口地址
 ```
 
-#### 管理端启动
+**管理端启动**
+
 ```bash
-# 1. 进入管理端目录
 cd admin
-
-# 2. 安装依赖
 npm install
-
-# 3. 启动开发服务器
 npm run dev
-
-# 4. 浏览器访问 http://localhost:5173
+# 浏览器访问 http://localhost:5173
 ```
 
-### 测试运行
+**运行测试**
 
 ```bash
 # 运行所有测试
@@ -851,7 +1021,7 @@ mvn test
 # 运行指定测试类
 mvn test -Dtest=UserServiceTest
 
-# 查看测试覆盖率
+# 查看测试覆盖率报告
 mvn clean test jacoco:report
 ```
 
@@ -862,20 +1032,27 @@ mvn clean test jacoco:report
 ### 认证与鉴权
 
 #### JWT Token 机制
-- 小程序端和管理端使用独立的 Token 体系
-- Token 有效期：24小时
-- Token 存储位置：Header `Authorization: Bearer {token}`
-- 拦截器：`JwtInterceptor`（小程序）、`AdminJwtInterceptor`（管理端）
-- **特殊处理**：拦截器对 OPTIONS 预检请求直接放行，避免跨域问题
+
+| 属性 | 说明 |
+|------|------|
+| 适用范围 | 小程序端和管理端使用独立 Token 体系 |
+| 有效期 | 24 小时 |
+| 传递方式 | `Authorization: Bearer {token}` |
+| 小程序拦截器 | `JwtInterceptor` |
+| 管理端拦截器 | `AdminJwtInterceptor` |
+| 特殊处理 | OPTIONS 预检请求直接放行，避免跨域问题 |
 
 #### CORS 跨域配置
+
 ```java
 // WebMvcConfig.java
 @Override
 public void addCorsMappings(CorsRegistry registry) {
     registry.addMapping("/**")
-            .allowedOrigins("http://localhost:3000", "http://127.0.0.1:3000",
-                    "http://localhost:5173", "http://127.0.0.1:5173")
+            .allowedOrigins(
+                "http://localhost:3000", "http://127.0.0.1:3000",
+                "http://localhost:5173", "http://127.0.0.1:5173"
+            )
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
             .allowCredentials(true)
@@ -883,53 +1060,33 @@ public void addCorsMappings(CorsRegistry registry) {
 }
 ```
 
-#### 跨域请求处理流程
-```
+**跨域请求处理流程**
+
+```text
 浏览器发送 OPTIONS 预检请求
     ↓
-JWT 拦截器检测到 OPTIONS 方法 → 直接放行
+JWT 拦截器检测到 OPTIONS → 直接放行
     ↓
 CORS 配置处理 → 返回 200 状态码
     ↓
 浏览器发送真实请求（携带 Token）
     ↓
-JWT 拦截器校验 Token → 正常处理
+JWT 拦截器校验 Token → 正常处理业务
 ```
 
-#### 用户上下文
-- 使用 `UserContext`（ThreadLocal）存储当前登录用户信息
-- 请求结束后自动清理，避免内存泄漏
+### 其他安全措施
 
-### 密码安全
-- 使用 `BCryptPasswordEncoder` 加密存储
-- 登录失败5次锁定15分钟（Redis计数）
-- 密码重置需验证身份
-
-### 数据安全
-- 手机号脱敏显示（138****8888）
-- Entity 的 password 字段不出现在 VO 中
-- SQL 注入防护：全部使用 `#{}` 参数绑定
-- XSS 防护：前端输入校验 + 后端参数校验
-
-### 业务安全
-- 订单创建使用 Redis 分布式锁防止并发
-- 同一商品同时只允许一个待面交订单
-- 举报防滥用：同一用户对同一目标只能举报一次
-- 收藏防重复：唯一索引约束
-
-### ⚠️ 敏感配置安全警告
-> **请勿将敏感配置提交到代码仓库！**
-
-生产环境以下配置必须使用环境变量或外部配置中心管理：
-
-| 配置项 | 风险级别 | 建议处理方式 |
-|--------|---------|-------------|
-| `spring.datasource.password` | 🔴 高 | 环境变量：`SPRING_DATASOURCE_PASSWORD` |
-| `jwt.secret` | 🔴 高 | 环境变量：`JWT_SECRET`（至少32位随机字符串） |
-| `wx.appSecret` | 🔴 高 | 环境变量：`WX_APPSECRET` |
-| `spring.data.redis.password` | 🔴 高 | 环境变量：`REDIS_PASSWORD` |
-| `upload.url-prefix` | 🟡 中 | 建议使用OSS/CDN，本地存储需配置访问控制 |
-
+| 安全项 | 实现方式 |
+|--------|---------|
+| 密码存储 | BCryptPasswordEncoder 加密 |
+| 登录失败限制 | 失败 5 次锁定 15 分钟（Redis 计数） |
+| 用户上下文 | ThreadLocal（UserContext），请求结束自动清理 |
+| 手机号脱敏 | 展示格式：`138****8888` |
+| Entity 安全 | password 字段不出现在 VO 中 |
+| SQL 注入防护 | 全部使用 `#{}` 参数绑定 |
+| XSS 防护 | 前端输入校验 + 后端参数校验 |
+| 并发安全 | 订单创建使用 Redis 分布式锁 |
+| 重复操作防护 | 收藏唯一索引、举报同目标只能一次 |
 
 ---
 
@@ -939,120 +1096,110 @@ JWT 拦截器校验 Token → 正常处理
 
 | 任务名称 | 执行频率 | 功能说明 |
 |---------|---------|---------|
-| OrderExpireTask | 每5分钟 | 订单超时自动取消（72小时未面交） |
-| OrderAutoConfirmTask | 每天凌晨2点 | 订单自动确认收货（创建后7天） |
-| ReviewAutoTask | 每天凌晨3点 | 自动好评（交易完成后7天未评价） |
-| ReviewRemindTask | 每天上午10点 | 评价提醒（交易完成后第3天仍未评价） |
-| ProductAutoOffTask | 每天凌晨4点 | 商品自动下架（发布后90天） |
-| UserDeactivateTask | 每天凌晨5点 | 注销账号数据清理（申请后30天） |
-| WebSocketHeartbeatTask | 每30秒 | WebSocket 心跳检测（心跳TTL=60秒，超时断线） |
-
-### 任务开关配置
-```yaml
-task:
-  enabled:
-    order-expire: true
-    order-auto-confirm: true
-    review-auto: true
-    review-remind: true
-    product-auto-off: true
-    user-deactivate: true
-```
+| OrderExpireTask | 每 5 分钟 | 订单超时自动取消（72 小时未面交） |
+| OrderAutoConfirmTask | 每天凌晨 2:00 | 订单自动确认收货（创建后 7 天） |
+| ReviewAutoTask | 每天凌晨 3:00 | 自动好评（交易完成后 7 天未评价） |
+| ReviewRemindTask | 每天上午 10:00 | 评价提醒（交易完成后第 3 天仍未评价） |
+| ProductAutoOffTask | 每天凌晨 4:00 | 商品自动下架（发布后 90 天） |
+| UserDeactivateTask | 每天凌晨 5:00 | 注销账号数据清理（申请后 30 天） |
+| WebSocketHeartbeatTask | 每 30 秒 | WebSocket 心跳检测（心跳 TTL = 60 秒，超时断线） |
 
 ### 关键业务逻辑
 
-#### 订单超时取消
-```java
-// 查询条件：expire_time < NOW() AND status = 1
-// 操作：status → 5（已取消），cancel_by → 0（系统）
-// 通知：买卖双方站内通知
-// 商品：恢复在售状态
+**订单超时取消**
+```text
+查询条件：expire_time < NOW() AND status = 1（待面交）
+执行操作：status → 5（已取消），cancel_by → 0（系统取消）
+后续处理：通知买卖双方 + 商品恢复在售状态
 ```
 
-#### 订单自动确认
-```java
-// 查询条件：confirm_deadline < NOW() AND status = 1
-// 操作：status → 3（已完成），设置 complete_time
-// 通知：买卖双方站内通知
-// 商品：status → 3（已售出）
+**订单自动确认收货**
+```text
+查询条件：confirm_deadline < NOW() AND status = 1（待面交）
+执行操作：status → 3（已完成），记录 complete_time
+后续处理：通知买卖双方 + 商品状态 → 3（已售出）
 ```
 
-#### 自动好评
-```java
-// 查询条件：status = 3 AND complete_time + 7天 < NOW()
-// 操作：为未评价方生成默认好评（5/5/5分，is_auto=1）
-// 评分：重新计算被评价人综合评分
-// 订单：status → 4（已评价）
+**自动好评**
+```text
+查询条件：status = 3 AND complete_time + 7天 < NOW() 且存在未评价方
+执行操作：为未评价方生成默认好评（三维度均 5 分，is_auto = 1）
+后续处理：重新计算被评价人综合评分 + 订单 status → 4（已评价）
+```
+
+**账号注销清理**
+```text
+查询条件：status = 2（注销中）AND 申请时间 + 30天 < NOW()
+执行操作：清空敏感字段，昵称改为"已注销用户"，status → 0（封禁）
+说明：不物理删除用户行数据，30天内用户可随时恢复账号
 ```
 
 ---
 
 ## 📊 缓存策略
 
-### Redis 缓存使用场景
+### Redis 缓存 Key 一览
 
-| 缓存Key | 数据类型 | TTL | 用途 |
+| 缓存 Key | 数据类型 | TTL | 用途 |
 |---------|---------|-----|------|
-| `user:info:{userId}` | String | 10分钟 | 用户信息缓存 |
-| `user:stats:{userId}` | String | 10分钟 | 用户统计数据 |
-| `product:view:{productId}:{userId}` | String | 24小时 | 浏览去重 |
-| `category:list` | String | 1小时 | 分类列表 |
-| `campus:list` | String | 1小时 | 校区列表 |
-| `banner:list:{campusId}` | String | 30分钟 | Banner列表 |
-| `search:hot:keywords` | String | 1小时 | 热搜词 |
-| `sms:code:{phone}` | String | 5分钟 | 短信验证码 |
-| `sms:limit:{phone}` | String | 60秒 | 短信发送频率限制 |
-| `sms:daily:{phone}` | String | 24小时 | 短信每日上限 |
-| `login:fail:{phone}` | String | 15分钟 | 登录失败次数 |
-| `product:lock:{productId}` | String | 30秒 | 订单创建分布式锁 |
-| `im:unread:{userId}` | String | - | IM未读消息总数 |
-| `im:session:unread:{userId}` | String | - | 会话未读总数/扩展键（实现中保留） |
-| `im:online:{userId}` | String | - | 在线标记 |
-| `im:heartbeat:{userId}` | String | 60秒 | 心跳TTL（用于断线检测） |
-| `follow:stats:{userId}` | String | 30分钟 | 关注/粉丝统计缓存 |
-| `follow:check:{userId}:{targetId}` | String | 30分钟 | 关注状态缓存 |
+| `user:info:{userId}` | String | 10 分钟 | 用户信息缓存 |
+| `user:stats:{userId}` | String | 10 分钟 | 用户统计数据 |
+| `product:view:{productId}:{userId}` | String | 24 小时 | 浏览去重 |
+| `category:list` | String | 1 小时 | 分类列表 |
+| `campus:list` | String | 1 小时 | 校区列表 |
+| `banner:list:{campusId}` | String | 30 分钟 | Banner 列表 |
+| `search:hot:keywords` | String | 1 小时 | 热搜词 |
+| `sms:code:{phone}` | String | 5 分钟 | 短信验证码 |
+| `sms:limit:{phone}` | String | 60 秒 | 短信发送频率限制 |
+| `sms:daily:{phone}` | String | 24 小时 | 短信每日发送上限 |
+| `login:fail:{phone}` | String | 15 分钟 | 登录失败次数 |
+| `product:lock:{productId}` | String | 30 秒 | 订单创建分布式锁 |
+| `im:unread:{userId}` | String | 持久 | IM 未读消息总数 |
+| `im:online:{userId}` | String | 持久 | 在线标记 |
+| `im:heartbeat:{userId}` | String | 60 秒 | 心跳 TTL（断线检测） |
+| `follow:stats:{userId}` | String | 30 分钟 | 关注/粉丝统计缓存 |
+| `follow:check:{userId}:{targetId}` | String | 10 分钟 | 关注状态缓存 |
 
 ### 缓存更新策略
-- 查询优先走缓存，缓存未命中查数据库并写入缓存
-- 数据更新时主动删除相关缓存（Cache-Aside Pattern）
-- 分类、校区等基础数据变更时清除对应缓存
 
+- **Cache-Aside 模式**：查询优先走缓存，未命中则查数据库并写入缓存
+- **主动失效**：数据更新时主动删除相关缓存（不使用延迟双删）
+- **基础数据**：分类、校区等变更时同步清除对应缓存
 
 ---
 
 ## 💬 即时通讯（IM）实现
 
 ### 技术方案
-- 基于 Spring Boot WebSocket 自建
-- 替代原 OpenIM 方案，降低外部依赖
+
+基于 **Spring Boot WebSocket** 自建，替代原 OpenIM 方案，降低外部依赖。
 
 ### 架构设计
 
-#### WebSocket 连接
-```
-客户端 → ws://host:port/ws/chat?token={jwt_token}
-       ↓
-握手拦截器（ChatHandshakeInterceptor）
-       ↓ 验证JWT
-WebSocketServer（TextWebSocketHandler）
-       ↓
-SessionManager（管理在线用户）
+```text
+客户端 ──ws://host:port/ws/chat?token={jwt_token}──→
+    ChatHandshakeInterceptor（验证 JWT）
+        ↓
+    WebSocketServer（TextWebSocketHandler）
+        ↓
+    SessionManager（管理在线用户连接）
 ```
 
-#### 消息协议
+### 消息协议
+
 ```json
-// 客户端 → 服务端
+// 客户端 → 服务端（发送消息）
 {
-  "type": "CHAT",  // PING/CHAT/READ
+  "type": "CHAT",
   "data": {
     "receiverId": 10002,
     "productId": 10086,
-    "msgType": 1,  // 1-文本/2-商品卡片/3-订单卡片/4-系统提示/5-快捷回复
+    "msgType": 1,
     "content": "你好，这个还在吗？"
   }
 }
 
-// 服务端 → 客户端
+// 服务端 → 客户端（推送消息）
 {
   "type": "CHAT",
   "data": {
@@ -1060,7 +1207,7 @@ SessionManager（管理在线用户）
     "sessionKey": "10001_10002_10086",
     "senderId": 10001,
     "senderName": "张三",
-    "senderAvatar": "...",
+    "senderAvatar": "https://...",
     "receiverId": 10002,
     "productId": 10086,
     "msgType": 1,
@@ -1070,50 +1217,15 @@ SessionManager（管理在线用户）
 }
 ```
 
-### 核心功能
+### 核心功能说明
 
-#### 1. 心跳保活
-- 客户端每30秒发送 `{type: "PING"}`
-- 服务端回复 `{type: "PONG"}`
-- 心跳TTL为60秒，后台每30秒扫描一次超时连接并清理
-
-#### 2. 消息持久化
-- 所有聊天消息存储到 `chat_message` 表
-- 会话信息存储到 `chat_session` 表
-- 支持历史消息分页查询
-
-#### 3. 未读管理
-- 每个会话独立维护未读数（`chat_session.unread`）
-- 接收消息时 `unread + 1`
-- 标记已读时 `unread = 0`
-- Redis 维护总未读数（`im:unread:{userId}`）
-
-#### 4. 离线消息
-- 接收方离线时写入站内通知
-- 上线后可在消息中心查看
-- 历史消息通过 REST API 查询
-
-#### 5. 业务卡片
-- 商品卡片：点击"我想要"时自动发送
-- 订单卡片：创建订单时自动发送
-- 系统提示：价格修改、订单取消等场景
-
-### 会话管理
-
-#### SessionKey 生成规则
-```java
-// 格式：min(userA, userB)_max(userA, userB)_productId
-// 示例：10001_10002_10086
-String sessionKey = Math.min(userId1, userId2) + "_" + 
-                    Math.max(userId1, userId2) + "_" + 
-                    productId;
-```
-
-#### 双向会话记录
-- 每对用户+商品产生两条 `chat_session` 记录
-- 各自独立管理：未读数、置顶、删除状态
-- 删除会话不影响对方
-
+| 功能 | 实现方式 |
+|------|---------|
+| 心跳保活 | 客户端每 30 秒发 PING，服务端回 PONG；心跳 TTL 60 秒，超时自动断线 |
+| 消息持久化 | 所有消息存储到 `chat_message` 表，支持历史消息分页查询 |
+| 未读管理 | 每个会话独立维护未读数，Redis 维护总未读数 |
+| 离线消息 | 接收方离线时写入站内通知，上线后可在消息中心查看 |
+| 业务卡片 | 商品卡片（点击"我想要"）、订单卡片（创建订单）、系统提示（价格修改等） |
 
 ---
 
@@ -1121,165 +1233,148 @@ String sessionKey = Math.min(userId1, userId2) + "_" +
 
 ### 测试策略
 
-#### 单元测试（Service 层）
-- 使用 JUnit 5 + Mockito
-- Mock Mapper 层依赖
-- 覆盖所有业务逻辑分支
-- 测试 acceptance_criteria 中的每一项
-
-#### 集成测试（Controller 层）
-- 使用 MockMvc
-- 测试完整的请求-响应流程
-- 验证参数校验和异常处理
+| 层次 | 框架 | 说明 |
+|------|------|------|
+| Service 单元测试 | JUnit 5 + Mockito | Mock Mapper 层，覆盖所有业务逻辑分支 |
+| Controller 集成测试 | MockMvc | 测试完整请求-响应流程，验证参数校验和异常处理 |
 
 ### 测试示例
 
 ```java
 @SpringBootTest
 class UserServiceTest {
-    
+
     @Mock
     private UserMapper userMapper;
-    
+
     @Mock
     private RedisTemplate<String, String> redisTemplate;
-    
+
     @InjectMocks
     private UserServiceImpl userService;
-    
+
     @Test
     void testWxLogin_NewUser_ShouldCreateUser() {
         // Given
         String code = "wx_code_123";
         String openId = "openid_123";
-        
         when(wxService.getOpenId(code)).thenReturn(openId);
         when(userMapper.selectOne(any())).thenReturn(null);
         when(userMapper.insert(any())).thenReturn(1);
-        
+
         // When
         LoginVO result = userService.wxLogin(code);
-        
+
         // Then
         assertNotNull(result);
         assertTrue(result.getIsNew());
         assertNotNull(result.getToken());
         verify(userMapper, times(1)).insert(any());
     }
-    
+
     @Test
     void testAccountLogin_WrongPassword_ShouldIncrementFailCount() {
         // Given
         String phone = "13800138000";
-        String password = "wrong_password";
         User user = new User();
         user.setPassword("$2a$10$...");
-        
         when(userMapper.selectOne(any())).thenReturn(user);
-        
+
         // When & Then
-        assertThrows(BusinessException.class, 
-            () -> userService.accountLogin(phone, password));
-        verify(redisTemplate).opsForValue()
-            .increment("login:fail:" + phone);
+        assertThrows(BusinessException.class,
+            () -> userService.accountLogin(phone, "wrong_password"));
+        verify(redisTemplate.opsForValue()).increment("login:fail:" + phone);
     }
 }
 ```
 
-### 测试覆盖要求
-- Service 层核心业务逻辑覆盖率 ≥ 80%
-- 所有 acceptance_criteria 必须有对应测试
-- 禁止使用 `assertTrue(true)` 等无意义断言
-- 禁止使用 `@Disabled` 跳过关键测试
+### 测试要求
+
+| 规范 | 说明 |
+|------|------|
+| 覆盖率要求 | Service 层核心业务逻辑覆盖率 ≥ 80% |
+| 验收标准 | 所有 acceptance_criteria 必须有对应测试用例 |
+| 禁止无效断言 | 禁止使用 `assertTrue(true)` 等无意义断言 |
+| 禁止跳过测试 | 禁止使用 `@Disabled` 跳过关键测试 |
 
 ---
 
 ## 📝 开发规范
 
-### 代码规范
+### 命名规范
 
-#### 命名规范
-- 类名：大驼峰（PascalCase）
-- 方法名/变量名：小驼峰（camelCase）
-- 常量：全大写下划线分隔（UPPER_SNAKE_CASE）
-- 包名：全小写，单词间不分隔
-
-#### 注释规范
-```java
-/**
- * 用户登录
- * 
- * @param phone 手机号
- * @param password 密码
- * @return 登录结果（包含Token和用户信息）
- * @throws BusinessException 账号不存在或密码错误
- */
-public LoginVO accountLogin(String phone, String password) {
-    // 实现逻辑
-}
-```
+| 类型 | 规范 | 示例 |
+|------|------|------|
+| 类名 | 大驼峰（PascalCase） | `UserServiceImpl` |
+| 方法名 / 变量名 | 小驼峰（camelCase） | `getUserById` |
+| 常量 | 全大写下划线分隔 | `MAX_RETRY_COUNT` |
+| 包名 | 全小写，单词间不分隔 | `com.qingyuan.secondhand` |
 
 ### MyBatis-Plus 使用规范
 
-#### Entity 注解
+**Entity 注解**
+
 ```java
 @Data
 @TableName("user")
 public class User {
+
     @TableId(type = IdType.AUTO)
     private Long id;
-    
+
     @TableField("nick_name")
     private String nickName;
-    
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
-    
+
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
-    
-    @TableLogic  // 仅用于 product.isDeleted
+
+    @TableLogic  // 仅用于有逻辑删除需求的表（如 product）
     private Integer isDeleted;
 }
 ```
 
-#### Service 继承
+**Service 继承**
+
 ```java
 public interface UserService extends IService<User> {
     LoginVO wxLogin(String code);
 }
 
 @Service
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> 
-    implements UserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, User>
+        implements UserService {
     // 实现业务逻辑
 }
 ```
 
-#### 条件查询
+**条件查询**
+
 ```java
 // ✅ 推荐：使用 LambdaQueryWrapper
-LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-wrapper.eq(User::getPhone, phone)
-       .eq(User::getStatus, 1);
+LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<User>()
+        .eq(User::getPhone, phone)
+        .eq(User::getStatus, 1);
 User user = userMapper.selectOne(wrapper);
 
-// ❌ 禁止：字符串拼接
+// ❌ 禁止：字符串字段名拼接
 QueryWrapper<User> wrapper = new QueryWrapper<>();
-wrapper.eq("phone", phone);  // 不推荐
+wrapper.eq("phone", phone);  // 不推荐，存在字段名写错风险
 ```
-
 
 ### 异常处理规范
 
-#### 业务异常
 ```java
-// 抛出业务异常
-if (user == null) {
-    throw new BusinessException("账号不存在");
+// ✅ 推荐：抛出业务异常，由全局处理器统一处理
+@PostMapping("/login")
+public Result<LoginVO> login(@RequestBody @Valid AccountLoginDTO dto) {
+    LoginVO vo = userService.accountLogin(dto.getPhone(), dto.getPassword());
+    return Result.success(vo);
 }
 
-// 全局异常处理器自动捕获
+// 全局异常处理器
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
@@ -1287,42 +1382,19 @@ public class GlobalExceptionHandler {
         return Result.error(e.getMessage());
     }
 }
-```
-
-#### Controller 层
-```java
-// ✅ 推荐：不捕获业务异常
-@PostMapping("/login")
-public Result<LoginVO> login(@RequestBody @Valid AccountLoginDTO dto) {
-    LoginVO vo = userService.accountLogin(dto.getPhone(), dto.getPassword());
-    return Result.success(vo);
-}
 
 // ❌ 禁止：在 Controller 中 try-catch 业务异常
-@PostMapping("/login")
-public Result<LoginVO> login(@RequestBody AccountLoginDTO dto) {
-    try {
-        LoginVO vo = userService.accountLogin(dto.getPhone(), dto.getPassword());
-        return Result.success(vo);
-    } catch (BusinessException e) {  // 不推荐
-        return Result.error(e.getMessage());
-    }
-}
 ```
 
 ### 事务管理
+
 ```java
 // 多表操作必须添加事务注解
 @Transactional(rollbackFor = Exception.class)
 public void createOrder(OrderCreateDTO dto) {
-    // 创建订单
-    tradeOrderMapper.insert(order);
-    
-    // 更新商品状态
-    productMapper.updateById(product);
-    
-    // 发送通知
-    notificationService.send(...);
+    tradeOrderMapper.insert(order);      // 创建订单
+    productMapper.updateById(product);   // 更新商品状态
+    notificationService.send(...);       // 发送通知
 }
 ```
 
@@ -1330,47 +1402,37 @@ public void createOrder(OrderCreateDTO dto) {
 
 ## 🚀 性能优化
 
-### 数据库优化
+### 数据库索引设计
 
-#### 索引设计
 ```sql
 -- 用户表
 KEY `idx_open_id` (`open_id`),
-KEY `idx_phone` (`phone`),
-KEY `idx_status` (`status`)
+KEY `idx_phone`   (`phone`),
+KEY `idx_status`  (`status`)
 
 -- 商品表
-KEY `idx_user_id` (`user_id`),
+KEY `idx_user_id`                        (`user_id`),
 KEY `idx_status_campus_category_create` (`status`, `campus_id`, `category_id`, `create_time`),
-KEY `idx_status_price` (`status`, `price`)
+KEY `idx_status_price`                   (`status`, `price`)
 
 -- 订单表
-KEY `idx_buyer_id` (`buyer_id`),
-KEY `idx_seller_id` (`seller_id`),
-KEY `idx_expire_time` (`expire_time`),
-KEY `idx_confirm_deadline` (`confirm_deadline`)
+KEY `idx_buyer_id`          (`buyer_id`),
+KEY `idx_seller_id`         (`seller_id`),
+KEY `idx_expire_time`       (`expire_time`),
+KEY `idx_confirm_deadline`  (`confirm_deadline`)
 ```
 
-#### 分页查询优化
-```java
-// 使用 MyBatis-Plus 分页插件
-Page<Product> page = new Page<>(pageNum, pageSize);
-LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
-wrapper.eq(Product::getStatus, 1)
-       .orderByDesc(Product::getCreateTime);
-Page<Product> result = productMapper.selectPage(page, wrapper);
-```
+### 避免 N+1 查询
 
-#### 避免 N+1 查询
 ```java
-// ❌ 禁止：循环查询
+// ❌ 禁止：循环内查询（N+1 问题）
 List<Product> products = productMapper.selectList(wrapper);
 for (Product product : products) {
-    User user = userMapper.selectById(product.getUserId());  // N+1问题
-    // ...
+    User user = userMapper.selectById(product.getUserId()); // 每次循环都发查询
 }
 
 // ✅ 推荐：使用 MyBatis XML 关联查询
+// ProductMapper.xml
 <select id="selectProductWithUser" resultMap="ProductDetailMap">
     SELECT p.*, u.nick_name, u.avatar_url
     FROM product p
@@ -1379,15 +1441,15 @@ for (Product product : products) {
 </select>
 ```
 
-### 缓存优化
+### 缓存防护策略
 
-#### 缓存穿透防护
+**防缓存穿透（缓存空值）**
+
 ```java
-// 查询不存在的数据时缓存空值
 String cacheKey = "user:info:" + userId;
 String cached = redisTemplate.opsForValue().get(cacheKey);
 if (cached != null) {
-    return cached.equals("null") ? null : JSON.parseObject(cached, User.class);
+    return "null".equals(cached) ? null : JSON.parseObject(cached, User.class);
 }
 
 User user = userMapper.selectById(userId);
@@ -1395,39 +1457,34 @@ if (user == null) {
     redisTemplate.opsForValue().set(cacheKey, "null", 5, TimeUnit.MINUTES);
     return null;
 }
-
 redisTemplate.opsForValue().set(cacheKey, JSON.toJSONString(user), 30, TimeUnit.MINUTES);
 return user;
 ```
 
-#### 缓存雪崩防护
+**防缓存雪崩（随机过期时间）**
+
 ```java
-// 设置随机过期时间
 int randomSeconds = ThreadLocalRandom.current().nextInt(60, 300);
-redisTemplate.opsForValue().set(key, value, 
-    30 * 60 + randomSeconds, TimeUnit.SECONDS);
+redisTemplate.opsForValue().set(key, value, 30 * 60 + randomSeconds, TimeUnit.SECONDS);
 ```
 
 ### 异步处理
 
-#### 浏览量更新
 ```java
+// 浏览量更新（异步，不阻塞主流程）
 @Async
 public void incrementViewCount(Long productId) {
     productMapper.incrementViewCount(productId);
 }
-```
 
-#### 通知发送
-```java
+// 通知发送（异步）
 @Async
 public void send(Long userId, Integer type, String title, String content) {
     Notification notification = new Notification();
-    // 设置字段
+    // 设置字段 ...
     notificationMapper.insert(notification);
 }
 ```
-
 
 ---
 
@@ -1435,193 +1492,143 @@ public void send(Long userId, Integer type, String title, String content) {
 
 ### 开发相关
 
-**Q: 为什么使用 MyBatis-Plus 而不是原生 MyBatis？**  
-A: MyBatis-Plus 提供了丰富的内置方法（CRUD、分页、条件构造器），大幅减少样板代码。简单的 CRUD 操作无需编写 XML，复杂查询仍可使用 XML。
+**Q：为什么使用 MyBatis-Plus 而不是原生 MyBatis？**
 
-**Q: 订单的 expire_time 和 confirm_deadline 有什么区别？**  
-A: 
-- `expire_time`：订单创建后72小时，用于超时自动取消（OrderExpireTask）
-- `confirm_deadline`：订单创建后7天，用于自动确认收货（OrderAutoConfirmTask）
+A：MyBatis-Plus 提供了丰富的内置方法（CRUD、分页、Lambda 条件构造器），大幅减少样板代码。简单的 CRUD 操作无需编写 XML，复杂多表查询仍可使用 XML，两者可以共存。
 
-**Q: 为什么商品搜索不使用 FULLTEXT 索引？**  
-A: 项目规模较小，LIKE 模糊匹配已满足需求。FULLTEXT 索引需要额外配置和维护成本，且对中文支持需要分词器。
+---
 
-**Q: 如何处理同一商品的并发下单？**  
-A: 使用 Redis 分布式锁（`product:lock:{productId}`），锁定30秒。创建订单前检查是否已有待面交订单，确保同一商品同时只有一个待面交订单。
+**Q：`expire_time` 和 `confirm_deadline` 有什么区别？**
+
+| 字段 | 含义 | 触发任务 |
+|------|------|---------|
+| `expire_time` | 创建后 72 小时，超时自动取消 | `OrderExpireTask`（每 5 分钟） |
+| `confirm_deadline` | 创建后 7 天，自动确认收货 | `OrderAutoConfirmTask`（每天凌晨 2:00） |
+
+---
+
+**Q：为什么商品搜索不使用 FULLTEXT 全文索引？**
+
+A：项目规模较小，`LIKE` 模糊匹配已满足需求。FULLTEXT 索引对中文支持需要额外配置分词器（如 IK Analyzer），引入了不必要的运维成本，后续如有需求可平滑迁移至 Elasticsearch。
+
+---
+
+**Q：如何处理同一商品的并发下单？**
+
+A：使用 Redis 分布式锁（Key：`product:lock:{productId}`，TTL：30 秒）。创建订单前先获取锁，并检查是否已存在待面交订单，确保同一商品同时只有一个有效订单。
+
+---
+
+**Q：账号注销后多久数据会被删除？**
+
+A：申请注销后 30 天内用户可随时恢复账号；超过 30 天后由 `UserDeactivateTask` 执行数据匿名化处理（清空敏感字段、昵称改为"已注销用户"、账号置为封禁状态），**不会物理删除用户行数据**，以保证关联历史数据（订单、评价等）的完整性。
+
+---
+
+**Q：用户综合评分如何计算？**
+
+A：
+1. 单次评价得分 = (描述相符 + 沟通态度 + 交易体验) ÷ 3
+2. 用户综合评分 = 所有收到评价的单次得分平均值
+3. 结果保留一位小数，新用户默认 5.0 分
+
+---
 
 ### 部署相关
 
-**Q: 如何修改数据库连接信息？**  
-A: 编辑 `src/main/resources/application.yml` 中的 `spring.datasource` 配置。
+**Q：如何关闭某个定时任务？**
 
-**Q: 如何配置微信小程序 AppID 和 AppSecret？**  
-A: 编辑 `application.yml` 中的 `wx.appId` 和 `wx.appSecret`。
+A：编辑 `application.yml` 中对应的 `task.enabled.xxx` 设置为 `false` 即可，无需修改代码。
 
-**Q: 文件上传路径如何配置？**  
-A: 编辑 `application.yml` 中的 `upload.path`（本地存储路径）和 `upload.url-prefix`（访问URL前缀）。
+**Q：文件上传路径如何配置？**
 
-**Q: 如何关闭某个定时任务？**  
-A: 编辑 `application.yml` 中的 `task.enabled.xxx` 设置为 `false`。
-
-### 业务相关
-
-**Q: 用户综合评分如何计算？**  
-A: 
-1. 单次评价得分 = (商品描述相符 + 沟通态度 + 交易体验) / 3
-2. 用户综合评分 = 所有收到的评价的单次评价得分的平均值
-3. 保留一位小数，新用户默认5.0分
-
-**Q: 自动好评的规则是什么？**  
-A: 交易完成后7天内未评价，系统自动生成默认好评（三维度均为5分，`is_auto=1`）。
-
-**Q: 商品发布后多久会自动下架？**  
-A: 商品发布后90天自动下架（`auto_off_time`），由 `ProductAutoOffTask` 定时任务执行。
-
-**Q: 账号注销后多久数据会被删除？**  
-A: 当前代码实现为：申请注销后30天内可恢复；超过30天后由 `UserDeactivateTask` 执行“数据匿名化/清理”（清空敏感字段、昵称改为“已注销用户”、并将账号置为封禁状态），不会物理删除用户行数据。
-
----
-
-## 📚 相关文档
-
-### 项目文档
-- [需求+架构文档](./需求+架构文档.md) - 完整的PRD和技术架构说明
-- [开发计划](./plans/) - 功能开发计划和进度跟踪
-- [功能列表](../feature_list.json) - 所有功能模块的详细定义
-
-### 技术文档
-- [Spring Boot 官方文档](https://spring.io/projects/spring-boot)
-- [MyBatis-Plus 官方文档](https://baomidou.com/)
-- [uni-app 官方文档](https://uniapp.dcloud.net.cn/)
-- [微信小程序开发文档](https://developers.weixin.qq.com/miniprogram/dev/framework/)
-
-### 数据库设计
-- 详细的表结构设计见 [需求+架构文档 - 第五章](./需求+架构文档.md#五数据结构设计)
-- 包含所有表的字段定义、索引设计、枚举值说明
-
-### 接口文档
-- 详细的接口定义见 [需求+架构文档 - 第六章](./需求+架构文档.md#六接口设计)
-- 包含请求参数、响应格式、业务规则说明
-
----
-
-## 👥 开发团队与协作
-
-### 双IDE协同开发模式
-
-本项目采用独特的双IDE协同开发模式：
-
-- **Trae IDE（执行者）**：负责编写业务代码和测试代码
-- **Kiro IDE（监督者）**：负责代码审查、质量把控、验收决策
-
-### 协作流程
-1. 执行者从 `feature_list.json` 读取待开发功能
-2. 执行者编写代码并运行测试
-3. 执行者创建 `.ready-for-review` 信号文件
-4. 监督者检测信号并进行多维度代码审查
-5. 监督者独立复跑测试验证
-6. 通过：修改 `passes: true`，创建 `.review-passed`
-7. 驳回：给出具体修改意见，创建 `.review-rejected`
-
-### 质量保障机制
-- MyBatis-Plus 规范审查
-- 功能正确性审查
-- 安全性审查
-- 代码质量审查
-- 测试覆盖审查
-- 数据库一致性审查
-- 独立复跑验证
-
----
-
-## 📄 许可证
-
-本项目为毕业设计项目，仅供学习和参考使用。
-
----
-
-## 📞 联系方式
-
-如有问题或建议，请通过以下方式联系：
-
-- 项目路径：`G:\Code\Graduation_project`
-- 文档位置：`docs/`
-- 任务跟踪：`tasks02.md`
+A：编辑 `application.yml` 中的 `upload.path`（本地存储路径）和 `upload.url-prefix`（访问 URL 前缀）。生产环境建议使用对象存储（OSS/COS）替代本地存储。
 
 ---
 
 ## 🔄 更新日志
 
-### V1.3 (2026-04-18)
+### V1.3（2026-04-18）
 
-#### 后端更新
+**后端更新**
 
-**1. CORS 跨域配置优化**
-- 修改文件：`WebMvcConfig.java`
-- 优化内容：将 `allowedOriginPatterns("*")` 改为明确指定前端开发服务器地址
-- 允许地址：`http://localhost:3000`, `http://127.0.0.1:3000`, `http://localhost:5173`, `http://127.0.0.1:5173`
-- 解决凭证(Credentials)与通配符冲突问题
+1. **CORS 跨域配置优化**（`WebMvcConfig.java`）
+   - 将 `allowedOriginPatterns("*")` 改为明确指定前端开发服务器地址，解决凭证（Credentials）与通配符冲突问题
 
-**2. JWT 拦截器增强 - OPTIONS 预检请求放行**
-- 修改文件：`AdminJwtInterceptor.java`, `JwtInterceptor.java`
-- 新增逻辑：在 `preHandle` 方法开头添加 OPTIONS 请求放行
-- 解决问题：浏览器跨域预检请求(OPTIONS)被拦截返回 401 的问题
-```java
-@Override
-public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-    // 放行 OPTIONS 预检请求，让 CORS 配置处理
-    if ("OPTIONS".equals(request.getMethod())) {
-        return true;
-    }
-    // ... 原有 Token 校验逻辑
-}
-```
+2. **JWT 拦截器增强 - OPTIONS 预检请求放行**（`AdminJwtInterceptor.java`、`JwtInterceptor.java`）
+   - 在 `preHandle` 方法开头添加 OPTIONS 请求放行逻辑，解决浏览器跨域预检请求被拦截返回 401 的问题
 
-**3. 管理端统计接口新增**
-- 新增文件：`src/api/stats.js` (管理端前端)
-- 后端接口：
-  - `GET /admin/stats/overview` - 数据总览（用户/商品/订单/交易总额统计）
-  - `GET /admin/stats/trend` - 趋势数据（折线图，支持7天/30天）
-  - `GET /admin/stats/campus` - 校区维度统计（柱状图）
-  - `GET /admin/stats/category` - 分类维度统计（饼图）
+   ```java
+   @Override
+   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+       // 放行 OPTIONS 预检请求，让 CORS 配置处理
+       if ("OPTIONS".equals(request.getMethod())) {
+           return true;
+       }
+       // ... 原有 Token 校验逻辑
+   }
+   ```
 
-**4. 认证审核接口补充**
-- 修改文件：`admin/src/api/auth.js`
-- 新增接口：
-  - `GET /admin/auth/page` - 分页查询认证列表
-  - `GET /admin/auth/detail/{id}` - 获取认证详情
-  - `GET /admin/auth/history/{authId}` - 获取认证历史记录
-  - `POST /admin/auth/approve` - 审核通过
-  - `POST /admin/auth/reject` - 审核驳回
+3. **管理端统计接口**（`/admin/stats/*`）
+   - 新增 `GET /admin/stats/overview`：数据总览
+   - 新增 `GET /admin/stats/trend`：趋势折线图（支持 7/30 天）
+   - 新增 `GET /admin/stats/campus`：校区维度统计
+   - 新增 `GET /admin/stats/category`：分类维度统计
 
-#### 前端更新
+4. **认证审核接口补充**（`admin/src/api/auth.js`）
+   - 补充完善认证分页查询、详情、历史时间线、通过/驳回接口定义
 
-**1. Dashboard 数据概览页面完整重构**
-- 修改文件：`admin/src/views/dashboard/DashboardView.vue`
-- 功能特性：
-  - 4张统计卡片：用户总数、商品总数、订单总数、交易总额
-  - 待处理事项提醒：认证审核/商品审核待办
-  - 趋势折线图：近7天/30天数据切换
-  - 校区柱状图：各校区用户数/商品数/订单数对比
-  - 分类饼图：商品分类占比环形图
-- 技术实现：
-  - ECharts 按需引入（LineChart/BarChart/PieChart）
-  - 全部使用 `<script setup>` 语法
-  - 响应式布局，窗口变化自动重绘图表
+**前端更新**
 
-**2. 管理端页面开发状态更新**
-- ✅ 登录页 (LoginView.vue)
-- ✅ 数据概览 (DashboardView.vue)
-- ✅ 认证审核 (AuthReview.vue - 含历史时间线)
-- ⏳ 商品审核 (ProductReview.vue - 待开发)
-- ⏳ 用户管理 (UserList.vue - 待开发)
-- ⏳ 其他模块 (订单/举报/分类/校区/学院/Banner/公告/员工管理 - 待开发)
+1. **Dashboard 数据概览页完整重构**（`DashboardView.vue`）
+   - 4 张统计卡片：用户总数、商品总数、订单总数、交易总额
+   - 待处理事项提醒：认证审核/商品审核待办数
+   - 趋势折线图：近 7/30 天数据切换
+   - 校区柱状图、分类环形图
+   - ECharts 按需引入，响应式布局，窗口变化自动重绘
+
+2. **管理端页面开发进度**
+
+   | 状态 | 页面 |
+   |:----:|------|
+   | ✅ 已完成 | 登录页、数据概览、认证审核（含历史时间线）、商品审核、订单管理、用户管理、举报处理 |
+   | ⏳ 待开发 | 商品列表、Banner 管理、公告管理、分类管理、校区管理、学院管理、员工管理 |
 
 ---
 
-**最后更新时间**：2026-04-18  
-**文档版本**：V1.3  
-**项目状态**：开发中
+### V1.1（2026-04-10）
+
+**后端更新**
+
+1. **用户关注体系**
+   - 新增 `user_follow` 表及完整 CRUD 实现
+   - 新增 `/mini/follow/*` 接口组（关注、取关、检查状态、统计）
+   - Redis 缓存关注状态和统计数据
+   - 关注成功后发送站内通知（类型 11 - 新增粉丝）
+
+2. **用户个人信息扩展**
+   - `user` 表新增 `bio`（个人简介）、`ip_region`（IP 属地）字段
+   - 用户信息更新接口同步支持这些字段
+
+3. **校园认证增强**
+   - `campus_auth` 表新增 `real_name` 字段（真实姓名）
+   - 新增 `campus_auth_history` 表，保存每次认证提交完整快照
+   - 支持认证全轨迹回溯，管理端可在一个页面完成历史查看与当前审核
+
+4. **商品评论/留言功能**
+   - 新增 `product_comment` 表，支持两层评论结构
+   - 新增 `/mini/product/comment/*` 接口组（添加、删除、列表、收到的回复、未读数、标记已读）
+   - 被回复人收到站内通知
+
+**前端更新**
+
+1. 新增卖家主页关注按钮
+2. 新增个人资料编辑页面（支持 bio 编辑）
+3. 新增足迹功能页面
+4. 新增粉丝列表展示页
+5. 新增收到的回复展示页
+6. 完善认证历史功能（列表 + 详情 + 内容对比）
 
 ---
 
+*最后更新时间：2026-04-20 ｜ 文档版本：V1.4 ｜ 项目路径：`G:\Code\Graduation_project`*
