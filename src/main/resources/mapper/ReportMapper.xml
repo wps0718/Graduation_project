@@ -52,7 +52,6 @@
             r.target_type AS targetType,
             r.reason_type AS reasonType,
             r.description,
-            r.evidence AS evidenceJson,
             r.status,
             r.handle_result AS handleResult,
             r.handle_time AS handleTime,

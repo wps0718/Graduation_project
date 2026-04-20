@@ -187,15 +187,15 @@ async function onWeChatLogin() {
 }
 
 function goAgreement() {
-  uni.navigateTo({ url: '/pages/agreement/agreement' })
+  uni.navigateTo({ url: '/pages/login-sub/agreement/agreement' })
 }
 
 function goPrivacy() {
-  uni.navigateTo({ url: '/pages/privacy/privacy' })
+  uni.navigateTo({ url: '/pages/login-sub/privacy/privacy' })
 }
 
 function goSmsLogin() {
-  uni.navigateTo({ url: '/pages/login/sms-login' })
+  uni.navigateTo({ url: '/pages/login-sub/login/sms-login' })
 }
 
 onMounted(() => {

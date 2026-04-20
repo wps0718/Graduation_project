@@ -694,14 +694,14 @@ export const mockData = {
         title: '学长学姐闲置大甩卖(南海)',
         image: '/static/pic/推广（南海北）.webp',
         linkType: 2,
-        linkUrl: '/pages/search/search'
+        linkUrl: '/pages/login-sub/search/search'
       },
        {
         id: 2,
         title: '学长学姐闲置大甩卖(广州)',
         image: '/static/pic/推广（广州）.webp',
         linkType: 1,
-        linkUrl: '/pages/search/search'
+        linkUrl: '/pages/login-sub/search/search'
       }
     ]
   },

@@ -26,7 +26,8 @@ public interface ProductMapper extends BaseMapper<Product> {
                                          @Param("status") Integer status);
 
     Page<AdminProductPageVO> getAdminProductPage(Page<AdminProductPageVO> page,
-                                                 @Param("status") Integer status);
+                                                 @Param("status") Integer status,
+                                                 @Param("keyword") String keyword);
 
     @Select("select count(1) from favorite where user_id = #{userId} and product_id = #{productId}")
     Integer countFavoriteByUserAndProduct(@Param("userId") Long userId, @Param("productId") Long productId);

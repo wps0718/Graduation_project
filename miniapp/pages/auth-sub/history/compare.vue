@@ -54,7 +54,7 @@ function pickLatest(list, status) {
 
 function goDetail(id) {
   if (!id) return
-  uni.navigateTo({ url: `/pages/auth/history/detail?id=${id}` })
+  uni.navigateTo({ url: `/pages/auth-sub/history/detail?id=${id}` })
 }
 
 async function loadCompareData() {

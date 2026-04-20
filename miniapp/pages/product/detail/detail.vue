@@ -288,10 +288,10 @@ const seller = computed(() => {
   if (!id) return {}
   return {
     id,
-    nickName: detail.value.sellerNickName,
-    avatarUrl: detail.value.sellerAvatarUrl,
-    score: detail.value.sellerScore,
-    authStatus: detail.value.sellerAuthStatus,
+    nickName: detail.value.publisherNickName,
+    avatarUrl: detail.value.publisherAvatarUrl,
+    score: detail.value.publisherScore,
+    authStatus: detail.value.publisherAuthStatus,
     status: detail.value.sellerStatus
   }
 });
@@ -350,7 +350,7 @@ function saveFootprint(product) {
 function promptLogin() {
   showToast('请先登录')
   setTimeout(() => {
-    uni.navigateTo({ url: '/pages/login/login' })
+    uni.navigateTo({ url: '/pages/login-sub/login/login' })
   }, 300)
 }
 
@@ -498,7 +498,7 @@ async function toggleFavorite() {
 
 function onReport() {
   if (!detail.value || !detail.value.id) return
-  uni.navigateTo({ url: `/pages/report/report?productId=${detail.value.id}` })
+  uni.navigateTo({ url: `/pages/login-sub/report/report?productId=${detail.value.id}` })
 }
 
 function openMenu() {
@@ -528,7 +528,7 @@ async function handleMenuAction(action) {
     return
   }
   if (action === 'report') {
-    uni.navigateTo({ url: `/pages/report/report?productId=${id}` })
+    uni.navigateTo({ url: `/pages/login-sub/report/report?productId=${id}` })
     return
   }
   if (action === 'offShelf') {
@@ -611,7 +611,7 @@ function goSellerProfile() {
     uni.switchTab({ url: '/pages/user/user' })
     return
   }
-  uni.navigateTo({ url: `/pages/seller/profile?id=${seller.value.id}` })
+  uni.navigateTo({ url: `/pages/user-sub/seller/profile?id=${seller.value.id}` })
 }
 
 onLoad((options = {}) => {

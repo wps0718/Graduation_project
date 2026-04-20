@@ -17,14 +17,19 @@
             p.status,
             p.create_time AS createTime,
             p.meeting_point_text AS meetingPointText,
+            <!-- 新增：驳回原因 -->
+            p.reject_reason AS rejectReason,
             c.name AS categoryName,
             ca.name AS campusName,
             mp.name AS meetingPointName,
             u.id AS sellerId,
-            u.nick_name AS sellerNickName,
-            u.avatar_url AS sellerAvatarUrl,
-            u.score AS sellerScore,
-            u.auth_status AS sellerAuthStatus
+            <!-- 重命名别名：sellerNickName -> publisherNickName -->
+            u.nick_name AS publisherNickName,
+            <!-- 重命名别名：sellerAvatarUrl -> publisherAvatarUrl -->
+            u.avatar_url AS publisherAvatarUrl,
+            u.score AS publisherScore,
+            <!-- 重命名别名：sellerAuthStatus -> publisherAuthStatus -->
+            u.auth_status AS publisherAuthStatus
         FROM product p
         LEFT JOIN category c ON p.category_id = c.id
         LEFT JOIN campus ca ON p.campus_id = ca.id
@@ -109,6 +114,8 @@
             p.id,
             p.title,
             p.price,
+            <!-- 新增：商品原价 -->
+            p.original_price AS originalPrice,
             p.condition_level AS conditionLevel,
             p.view_count AS viewCount,
             p.favorite_count AS favoriteCount,
@@ -118,8 +125,12 @@
             c.name AS categoryName,
             ca.name AS campusName,
             u.id AS sellerId,
-            u.nick_name AS sellerNickName,
-            u.avatar_url AS sellerAvatarUrl
+            <!-- 重命名别名：sellerNickName -> publisherNickName -->
+            u.nick_name AS publisherNickName,
+            <!-- 重命名别名：sellerAvatarUrl -> publisherAvatarUrl -->
+            u.avatar_url AS publisherAvatarUrl,
+            <!-- 新增：发布者认证状态 -->
+            u.auth_status AS publisherAuthStatus
         FROM product p
         LEFT JOIN category c ON p.category_id = c.id
         LEFT JOIN campus ca ON p.campus_id = ca.id
@@ -127,6 +138,11 @@
         WHERE p.is_deleted = 0
         <if test="status != null">
             AND p.status = #{status}
+        </if>
+        <!-- 新增：keyword 模糊搜索（商品标题 OR 发布者昵称） -->
+        <if test="keyword != null and keyword != ''">
+            AND (p.title LIKE CONCAT('%', #{keyword}, '%')
+              OR u.nick_name LIKE CONCAT('%', #{keyword}, '%'))
         </if>
         ORDER BY p.create_time DESC
     </select>

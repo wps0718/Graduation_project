@@ -25,6 +25,4 @@ public class ReportSubmitDTO {
 
     @Size(max = 500, message = "举报描述不能超过500字")
     private String description;
-
-    private List<String> evidence;
 }

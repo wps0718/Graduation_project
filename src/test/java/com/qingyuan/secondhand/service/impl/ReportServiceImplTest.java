@@ -49,7 +49,7 @@ class ReportServiceImplTest {
         Mockito.when(reportMapper.insert(Mockito.any(Report.class))).thenReturn(1);
 
         ReportServiceImpl service = new ReportServiceImpl(reportMapper, productMapper, userMapper, tradeOrderMapper, notificationService, objectMapper);
-        ReportSubmitDTO dto = buildSubmitDTO(1L, 1, 2, "虚假商品", List.of("a.png", "b.png"));
+        ReportSubmitDTO dto = buildSubmitDTO(1L, 1, 2, "虚假商品");
 
         service.submitReport(dto);
 
@@ -62,8 +62,6 @@ class ReportServiceImplTest {
         Assertions.assertEquals(2, saved.getReasonType());
         Assertions.assertEquals("虚假商品", saved.getDescription());
         Assertions.assertEquals(0, saved.getStatus());
-        List<String> evidence = objectMapper.readValue(saved.getEvidence(), List.class);
-        Assertions.assertEquals(2, evidence.size());
     }
 
     @Test
@@ -80,7 +78,7 @@ class ReportServiceImplTest {
         Mockito.when(productMapper.selectById(1L)).thenReturn(product);
 
         ReportServiceImpl service = new ReportServiceImpl(reportMapper, productMapper, userMapper, tradeOrderMapper, notificationService, objectMapper);
-        ReportSubmitDTO dto = buildSubmitDTO(1L, 1, 1, "举报自己", null);
+        ReportSubmitDTO dto = buildSubmitDTO(1L, 1, 1, "举报自己");
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.submitReport(dto));
         Assertions.assertEquals("不能举报自己", ex.getMsg());
@@ -97,7 +95,7 @@ class ReportServiceImplTest {
 
         UserContext.setCurrentUserId(10001L);
         ReportServiceImpl service = new ReportServiceImpl(reportMapper, productMapper, userMapper, tradeOrderMapper, notificationService, objectMapper);
-        ReportSubmitDTO dto = buildSubmitDTO(10001L, 2, 1, "举报自己", null);
+        ReportSubmitDTO dto = buildSubmitDTO(10001L, 2, 1, "举报自己");
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.submitReport(dto));
         Assertions.assertEquals("不能举报自己", ex.getMsg());
@@ -118,7 +116,7 @@ class ReportServiceImplTest {
         Mockito.when(reportMapper.selectOne(Mockito.any())).thenReturn(new Report());
 
         ReportServiceImpl service = new ReportServiceImpl(reportMapper, productMapper, userMapper, tradeOrderMapper, notificationService, objectMapper);
-        ReportSubmitDTO dto = buildSubmitDTO(1L, 1, 1, "重复举报", null);
+        ReportSubmitDTO dto = buildSubmitDTO(1L, 1, 1, "重复举报");
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.submitReport(dto));
         Assertions.assertEquals("您已举报过该目标", ex.getMsg());
@@ -137,7 +135,7 @@ class ReportServiceImplTest {
         Mockito.when(productMapper.selectById(1L)).thenReturn(null);
 
         ReportServiceImpl service = new ReportServiceImpl(reportMapper, productMapper, userMapper, tradeOrderMapper, notificationService, objectMapper);
-        ReportSubmitDTO dto = buildSubmitDTO(1L, 1, 1, "不存在商品", null);
+        ReportSubmitDTO dto = buildSubmitDTO(1L, 1, 1, "不存在商品");
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.submitReport(dto));
         Assertions.assertEquals("举报目标不存在", ex.getMsg());
@@ -283,13 +281,12 @@ class ReportServiceImplTest {
         Assertions.assertEquals("该举报已处理", ex.getMsg());
     }
 
-    private ReportSubmitDTO buildSubmitDTO(Long targetId, Integer targetType, Integer reasonType, String description, List<String> evidence) {
+    private ReportSubmitDTO buildSubmitDTO(Long targetId, Integer targetType, Integer reasonType, String description) {
         ReportSubmitDTO dto = new ReportSubmitDTO();
         dto.setTargetId(targetId);
         dto.setTargetType(targetType);
         dto.setReasonType(reasonType);
         dto.setDescription(description);
-        dto.setEvidence(evidence);
         return dto;
     }
 

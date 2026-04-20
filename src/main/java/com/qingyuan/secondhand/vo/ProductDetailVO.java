@@ -29,10 +29,15 @@ public class ProductDetailVO {
     private String meetingPointText;
 
     private Long sellerId;
-    private String sellerNickName;
-    private String sellerAvatarUrl;
-    private BigDecimal sellerScore;
-    private Integer sellerAuthStatus;
+    // 重命名：sellerNickName -> publisherNickName，与前端字段对齐
+    private String publisherNickName;
+    // 重命名：sellerAvatarUrl -> publisherAvatarUrl，与前端字段对齐
+    private String publisherAvatarUrl;
+    private BigDecimal publisherScore;
+    // 重命名：sellerAuthStatus -> publisherAuthStatus，与前端字段对齐
+    private Integer publisherAuthStatus;
+    // 新增：驳回原因
+    private String rejectReason;
 
     private Boolean isFavorited;
     private Boolean isOwner;

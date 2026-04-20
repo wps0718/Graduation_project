@@ -725,12 +725,12 @@ class ProductServiceImplTest {
         vo.setCoverImage("[\"a.png\"]");
         Page<AdminProductPageVO> pageResult = new Page<>(1, 10);
         pageResult.setRecords(List.of(vo));
-        Mockito.when(productMapper.getAdminProductPage(Mockito.any(Page.class), Mockito.eq(1))).thenReturn(pageResult);
+        Mockito.when(productMapper.getAdminProductPage(Mockito.any(Page.class), Mockito.eq(1), Mockito.anyString())).thenReturn(pageResult);
         Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
                 .thenReturn(List.of("a.png"));
 
         ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
-        IPage<AdminProductPageVO> result = service.getAdminProductPage(1, 10, 1);
+        IPage<AdminProductPageVO> result = service.getAdminProductPage(1, 10, 1, "");
 
         Assertions.assertEquals("a.png", result.getRecords().get(0).getCoverImage());
     }

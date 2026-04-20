@@ -163,7 +163,7 @@ function ensureLogin() {
   if (!userStore.isLogin) {
     showToast('请先登录')
     setTimeout(() => {
-      uni.navigateTo({ url: '/pages/login/login' })
+      uni.navigateTo({ url: '/pages/login-sub/login/login' })
     }, 300)
     return false
   }

@@ -37,7 +37,7 @@ function handleResponse(response, resolve, reject) {
       icon: 'none'
     })
     uni.reLaunch({
-      url: '/pages/login/login'
+      url: '/pages/login-sub/login/login'
     })
     reject(response)
     return

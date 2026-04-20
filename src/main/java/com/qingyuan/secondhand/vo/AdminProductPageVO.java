@@ -20,6 +20,12 @@ public class AdminProductPageVO {
     private LocalDateTime createTime;
 
     private Long sellerId;
-    private String sellerNickName;
-    private String sellerAvatarUrl;
+    // 重命名：sellerNickName -> publisherNickName，与前端字段对齐
+    private String publisherNickName;
+    // 重命名：sellerAvatarUrl -> publisherAvatarUrl，与前端字段对齐
+    private String publisherAvatarUrl;
+    // 新增：发布者认证状态
+    private Integer publisherAuthStatus;
+    // 新增：商品原价
+    private BigDecimal originalPrice;
 }

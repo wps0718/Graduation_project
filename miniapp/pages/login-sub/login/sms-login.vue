@@ -227,15 +227,15 @@ function goBack() {
 }
 
 function goAccountLogin() {
-  uni.redirectTo({ url: '/pages/login/login' })
+  uni.redirectTo({ url: '/pages/login-sub/login/login' })
 }
 
 function goAgreement() {
-  uni.navigateTo({ url: '/pages/agreement/agreement' })
+  uni.navigateTo({ url: '/pages/login-sub/agreement/agreement' })
 }
 
 function goPrivacy() {
-  uni.navigateTo({ url: '/pages/privacy/privacy' })
+  uni.navigateTo({ url: '/pages/login-sub/privacy/privacy' })
 }
 
 onMounted(() => {
