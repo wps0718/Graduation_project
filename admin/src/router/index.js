@@ -65,19 +65,23 @@ const routes = [
         name: 'ReportManage',
         meta: { title: '举报处理' }
       },
-      // 内容管理 - Banner管理
+      // 内容管理
       {
-        path: 'banner',
-        component: () => import('@/views/banner/BannerList.vue'),
-        name: 'BannerList',
-        meta: { title: 'Banner管理' }
-      },
-      // 内容管理 - 公告管理
-      {
-        path: 'notice',
-        component: () => import('@/views/notice/NoticeList.vue'),
-        name: 'NoticeList',
-        meta: { title: '公告管理' }
+        path: 'content',
+        children: [
+          {
+            path: 'banner',
+            component: () => import('@/views/content/BannerAdmin.vue'),
+            name: 'BannerAdmin',
+            meta: { title: 'Banner管理' }
+          },
+          {
+            path: 'notice',
+            component: () => import('@/views/content/NoticeAdmin.vue'),
+            name: 'NoticeAdmin',
+            meta: { title: '公告管理' }
+          }
+        ]
       },
       // 系统管理 - 分类管理
       {

@@ -53,3 +53,37 @@ export const batchApproveProduct = (ids) => {
     data: ids
   })
 }
+
+/**
+ * 强制下架商品
+ */
+export const forceOffShelf = (productId, reason) => {
+  return request({
+    url: '/admin/product/force-off',
+    method: 'post',
+    data: { productId, reason }
+  })
+}
+
+/**
+ * 批量强制下架
+ */
+export const batchForceOffShelf = (ids, reason) => {
+  return request({
+    url: '/admin/product/batch-force-off',
+    method: 'post',
+    data: { ids, reason }
+  })
+}
+
+/**
+ * 导出商品列表
+ */
+export const exportProduct = (params) => {
+  return request({
+    url: '/admin/product/export',
+    method: 'get',
+    params,
+    responseType: 'blob'
+  })
+}

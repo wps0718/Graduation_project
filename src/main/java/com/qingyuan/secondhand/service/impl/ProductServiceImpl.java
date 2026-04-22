@@ -27,7 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -267,15 +269,69 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
-    public IPage<AdminProductPageVO> getAdminProductPage(Integer page, Integer pageSize, Integer status, String keyword) {
+    public IPage<AdminProductPageVO> getAdminProductPage(Integer page,
+                                                         Integer pageSize,
+                                                         Integer status,
+                                                         Long categoryId,
+                                                         String keyword,
+                                                         BigDecimal minPrice,
+                                                         BigDecimal maxPrice,
+                                                         String beginTime,
+                                                         String endTime,
+                                                         String sortBy) {
         Page<AdminProductPageVO> pageObj = new Page<>(page, pageSize);
-        Page<AdminProductPageVO> result = productMapper.getAdminProductPage(pageObj, status, keyword);
+        LocalDateTime begin = parseDateStart(beginTime);
+        LocalDateTime end = parseDateEnd(endTime);
+        Page<AdminProductPageVO> result = productMapper.getAdminProductPage(pageObj, status, categoryId, keyword, minPrice, maxPrice, begin, end, sortBy);
         if (result != null && result.getRecords() != null) {
             for (AdminProductPageVO item : result.getRecords()) {
                 item.setCoverImage(parseCoverImage(item.getCoverImage()));
             }
         }
         return result == null ? new Page<>(page, pageSize) : result;
+    }
+
+    @Override
+    public List<AdminProductPageVO> exportAdminProductList(Integer status,
+                                                           Long categoryId,
+                                                           String keyword,
+                                                           BigDecimal minPrice,
+                                                           BigDecimal maxPrice,
+                                                           String beginTime,
+                                                           String endTime,
+                                                           String sortBy) {
+        LocalDateTime begin = parseDateStart(beginTime);
+        LocalDateTime end = parseDateEnd(endTime);
+        List<AdminProductPageVO> rows = productMapper.exportAdminProductList(status, categoryId, keyword, minPrice, maxPrice, begin, end, sortBy);
+        if (rows != null) {
+            for (AdminProductPageVO item : rows) {
+                item.setCoverImage(parseCoverImage(item.getCoverImage()));
+            }
+        }
+        return rows;
+    }
+
+    private LocalDateTime parseDateStart(String date) {
+        if (!StringUtils.hasText(date)) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(date).atStartOfDay();
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    private LocalDateTime parseDateEnd(String date) {
+        if (!StringUtils.hasText(date)) {
+            return null;
+        }
+        try {
+            // 结束时间取当天最后一刻
+            return LocalDate.parse(date).atTime(23, 59, 59);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
     }
 
     @Override

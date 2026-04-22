@@ -16,6 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -29,8 +36,64 @@ public class AdminProductController {
     public Result<IPage<AdminProductPageVO>> page(@RequestParam(defaultValue = "1") Integer page,
                                                   @RequestParam(defaultValue = "10") Integer pageSize,
                                                   @RequestParam(required = false) Integer status,
-                                                  @RequestParam(required = false) String keyword) {
-        return Result.success(productService.getAdminProductPage(page, pageSize, status, keyword));
+                                                  @RequestParam(required = false) Long categoryId,
+                                                  @RequestParam(required = false) String keyword,
+                                                  @RequestParam(required = false) java.math.BigDecimal minPrice,
+                                                  @RequestParam(required = false) java.math.BigDecimal maxPrice,
+                                                  @RequestParam(required = false) String beginTime,
+                                                  @RequestParam(required = false) String endTime,
+                                                  @RequestParam(required = false) String sortBy) {
+        return Result.success(productService.getAdminProductPage(page, pageSize, status, categoryId, keyword, minPrice, maxPrice, beginTime, endTime, sortBy));
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> export(@RequestParam(required = false) Integer status,
+                                         @RequestParam(required = false) Long categoryId,
+                                         @RequestParam(required = false) String keyword,
+                                         @RequestParam(required = false) java.math.BigDecimal minPrice,
+                                         @RequestParam(required = false) java.math.BigDecimal maxPrice,
+                                         @RequestParam(required = false) String beginTime,
+                                         @RequestParam(required = false) String endTime,
+                                         @RequestParam(required = false) String sortBy) {
+        List<AdminProductPageVO> rows = productService.exportAdminProductList(status, categoryId, keyword, minPrice, maxPrice, beginTime, endTime, sortBy);
+
+        // CSV（UTF-8 BOM，Excel 兼容）
+        StringBuilder sb = new StringBuilder();
+        sb.append("\ufeff");
+        sb.append("ID,商品标题,售价,原价,分类,浏览量,发布者,状态,发布时间\n");
+        for (AdminProductPageVO r : rows) {
+            sb.append(safeCsv(r.getId()));
+            sb.append(',').append(safeCsv(r.getTitle()));
+            sb.append(',').append(safeCsv(r.getPrice()));
+            sb.append(',').append(safeCsv(r.getOriginalPrice()));
+            sb.append(',').append(safeCsv(r.getCategoryName()));
+            sb.append(',').append(safeCsv(r.getViewCount()));
+            sb.append(',').append(safeCsv(r.getPublisherNickName()));
+            sb.append(',').append(safeCsv(r.getStatus()));
+            sb.append(',').append(safeCsv(r.getCreateTime()));
+            sb.append('\n');
+        }
+
+        String filename = "商品列表_" + LocalDate.now().format(DateTimeFormatter.ISO_DATE) + ".csv";
+        byte[] bytes = sb.toString().getBytes(StandardCharsets.UTF_8);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv; charset=UTF-8"));
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+        return ResponseEntity.ok().headers(headers).body(bytes);
+    }
+
+    private String safeCsv(Object v) {
+        if (v == null) {
+            return "";
+        }
+        String s = String.valueOf(v);
+        // 简单转义：包含逗号/引号/换行时，用引号包裹，并把引号变成双引号
+        if (s.contains(",") || s.contains("\"") || s.contains("\n") || s.contains("\r")) {
+            s = s.replace("\"", "\"\"");
+            return "\"" + s + "\"";
+        }
+        return s;
     }
 
     @GetMapping("/detail/{productId}")

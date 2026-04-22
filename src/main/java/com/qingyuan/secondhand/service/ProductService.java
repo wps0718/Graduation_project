@@ -38,7 +38,25 @@ public interface ProductService extends IService<Product> {
 
     void deleteProduct(Long productId);
 
-    IPage<AdminProductPageVO> getAdminProductPage(Integer page, Integer pageSize, Integer status, String keyword);
+    IPage<AdminProductPageVO> getAdminProductPage(Integer page,
+                                                  Integer pageSize,
+                                                  Integer status,
+                                                  Long categoryId,
+                                                  String keyword,
+                                                  BigDecimal minPrice,
+                                                  BigDecimal maxPrice,
+                                                  String beginTime,
+                                                  String endTime,
+                                                  String sortBy);
+
+    List<AdminProductPageVO> exportAdminProductList(Integer status,
+                                                   Long categoryId,
+                                                   String keyword,
+                                                   BigDecimal minPrice,
+                                                   BigDecimal maxPrice,
+                                                   String beginTime,
+                                                   String endTime,
+                                                   String sortBy);
 
     ProductDetailVO getAdminProductDetail(Long productId);
 

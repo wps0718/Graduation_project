@@ -9,6 +9,9 @@ import com.qingyuan.secondhand.vo.ProductListVO;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 public interface ProductMapper extends BaseMapper<Product> {
 
     ProductDetailVO getProductDetailById(@Param("productId") Long productId);
@@ -27,7 +30,22 @@ public interface ProductMapper extends BaseMapper<Product> {
 
     Page<AdminProductPageVO> getAdminProductPage(Page<AdminProductPageVO> page,
                                                  @Param("status") Integer status,
-                                                 @Param("keyword") String keyword);
+                                                 @Param("categoryId") Long categoryId,
+                                                 @Param("keyword") String keyword,
+                                                 @Param("minPrice") java.math.BigDecimal minPrice,
+                                                 @Param("maxPrice") java.math.BigDecimal maxPrice,
+                                                 @Param("beginTime") LocalDateTime beginTime,
+                                                 @Param("endTime") LocalDateTime endTime,
+                                                 @Param("sortBy") String sortBy);
+
+    List<AdminProductPageVO> exportAdminProductList(@Param("status") Integer status,
+                                                   @Param("categoryId") Long categoryId,
+                                                   @Param("keyword") String keyword,
+                                                   @Param("minPrice") java.math.BigDecimal minPrice,
+                                                   @Param("maxPrice") java.math.BigDecimal maxPrice,
+                                                   @Param("beginTime") LocalDateTime beginTime,
+                                                   @Param("endTime") LocalDateTime endTime,
+                                                   @Param("sortBy") String sortBy);
 
     @Select("select count(1) from favorite where user_id = #{userId} and product_id = #{productId}")
     Integer countFavoriteByUserAndProduct(@Param("userId") Long userId, @Param("productId") Long productId);
