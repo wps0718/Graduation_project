@@ -139,11 +139,107 @@
         <if test="status != null">
             AND p.status = #{status}
         </if>
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
         <!-- 新增：keyword 模糊搜索（商品标题 OR 发布者昵称） -->
         <if test="keyword != null and keyword != ''">
             AND (p.title LIKE CONCAT('%', #{keyword}, '%')
               OR u.nick_name LIKE CONCAT('%', #{keyword}, '%'))
         </if>
-        ORDER BY p.create_time DESC
+        <if test="minPrice != null">
+            AND p.price &gt;= #{minPrice}
+        </if>
+        <if test="maxPrice != null">
+            AND p.price &lt;= #{maxPrice}
+        </if>
+        <if test="beginTime != null">
+            AND p.create_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND p.create_time &lt;= #{endTime}
+        </if>
+        <choose>
+            <when test="sortBy == 'price-asc'">
+                ORDER BY p.price ASC, p.create_time DESC
+            </when>
+            <when test="sortBy == 'price-desc'">
+                ORDER BY p.price DESC, p.create_time DESC
+            </when>
+            <when test="sortBy == 'viewCount-desc'">
+                ORDER BY p.view_count DESC, p.create_time DESC
+            </when>
+            <when test="sortBy == 'createTime-desc'">
+                ORDER BY p.create_time DESC
+            </when>
+            <otherwise>
+                ORDER BY p.id DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="exportAdminProductList" resultType="com.qingyuan.secondhand.vo.AdminProductPageVO">
+        SELECT
+            p.id,
+            p.title,
+            p.price,
+            p.original_price AS originalPrice,
+            p.condition_level AS conditionLevel,
+            p.view_count AS viewCount,
+            p.favorite_count AS favoriteCount,
+            p.status,
+            p.create_time AS createTime,
+            p.images AS coverImage,
+            c.name AS categoryName,
+            ca.name AS campusName,
+            u.id AS sellerId,
+            u.nick_name AS publisherNickName,
+            u.avatar_url AS publisherAvatarUrl,
+            u.auth_status AS publisherAuthStatus
+        FROM product p
+        LEFT JOIN category c ON p.category_id = c.id
+        LEFT JOIN campus ca ON p.campus_id = ca.id
+        LEFT JOIN user u ON p.user_id = u.id
+        WHERE p.is_deleted = 0
+        <if test="status != null">
+            AND p.status = #{status}
+        </if>
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (p.title LIKE CONCAT('%', #{keyword}, '%')
+              OR u.nick_name LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="minPrice != null">
+            AND p.price &gt;= #{minPrice}
+        </if>
+        <if test="maxPrice != null">
+            AND p.price &lt;= #{maxPrice}
+        </if>
+        <if test="beginTime != null">
+            AND p.create_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND p.create_time &lt;= #{endTime}
+        </if>
+        <choose>
+            <when test="sortBy == 'price-asc'">
+                ORDER BY p.price ASC, p.create_time DESC
+            </when>
+            <when test="sortBy == 'price-desc'">
+                ORDER BY p.price DESC, p.create_time DESC
+            </when>
+            <when test="sortBy == 'viewCount-desc'">
+                ORDER BY p.view_count DESC, p.create_time DESC
+            </when>
+            <when test="sortBy == 'createTime-desc'">
+                ORDER BY p.create_time DESC
+            </when>
+            <otherwise>
+                ORDER BY p.id DESC
+            </otherwise>
+        </choose>
+        LIMIT 5000
     </select>
 </mapper>

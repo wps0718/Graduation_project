@@ -45,8 +45,8 @@
             <el-icon><Document /></el-icon>
             <span>内容管理</span>
           </template>
-          <el-menu-item index="/banner">Banner管理</el-menu-item>
-          <el-menu-item index="/notice">公告管理</el-menu-item>
+          <el-menu-item index="/content/banner">Banner管理</el-menu-item>
+          <el-menu-item index="/content/notice">公告管理</el-menu-item>
         </el-sub-menu>
 
         <el-sub-menu index="5">

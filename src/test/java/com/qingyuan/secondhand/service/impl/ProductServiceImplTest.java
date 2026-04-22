@@ -725,12 +725,40 @@ class ProductServiceImplTest {
         vo.setCoverImage("[\"a.png\"]");
         Page<AdminProductPageVO> pageResult = new Page<>(1, 10);
         pageResult.setRecords(List.of(vo));
-        Mockito.when(productMapper.getAdminProductPage(Mockito.any(Page.class), Mockito.eq(1), Mockito.anyString())).thenReturn(pageResult);
+        
+        // Mock Mapper 方法：需要完整的 9 个参数
+        // (Page, status, categoryId, keyword, minPrice, maxPrice, beginTime, endTime, sortBy)
+        Mockito.when(productMapper.getAdminProductPage(
+                Mockito.any(Page.class),           // page
+                Mockito.eq(1),                     // status = 1
+                Mockito.isNull(),                  // categoryId = null
+                Mockito.eq(""),                    // keyword = ""
+                Mockito.isNull(),                  // minPrice = null
+                Mockito.isNull(),                  // maxPrice = null
+                Mockito.isNull(),                  // beginTime = null
+                Mockito.isNull(),                  // endTime = null
+                Mockito.isNull()                   // sortBy = null
+        )).thenReturn(pageResult);
+        
         Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
                 .thenReturn(List.of("a.png"));
 
         ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
-        IPage<AdminProductPageVO> result = service.getAdminProductPage(1, 10, 1, "");
+        
+        // Service 方法调用：需要完整的 10 个参数
+        // (page, pageSize, status, categoryId, keyword, minPrice, maxPrice, beginTime, endTime, sortBy)
+        IPage<AdminProductPageVO> result = service.getAdminProductPage(
+                1,              // page
+                10,             // pageSize
+                1,              // status
+                null,           // categoryId
+                "",             // keyword
+                null,           // minPrice
+                null,           // maxPrice
+                null,           // beginTime (String)
+                null,           // endTime (String)
+                null            // sortBy
+        );
 
         Assertions.assertEquals("a.png", result.getRecords().get(0).getCoverImage());
     }

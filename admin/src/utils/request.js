@@ -45,6 +45,11 @@ request.interceptors.request.use(
 
 request.interceptors.response.use(
   (response) => {
+    // 下载文件/导出等二进制响应，直接返回 blob
+    if (response.config?.responseType === 'blob') {
+      return response.data
+    }
+
     // 获取响应数据
     const res = response.data
     
