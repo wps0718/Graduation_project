@@ -1,550 +1,589 @@
 <template>
   <div class="banner-admin-page">
-    <el-card class="main-card">
-      <!-- 顶部筛选表单 -->
-      <el-form :model="filterForm" inline class="filter-form">
-        <el-form-item label="所属校区">
-          <el-select v-model="filterForm.campusId" placeholder="请选择校区" clearable>
-            <el-option label="全局/无校区" :value="null" />
-            <el-option
-              v-for="campus in campusList"
-              :key="campus.id"
-              :label="campus.name"
-              :value="campus.id"
-            />
-          </el-select>
-        </el-form-item>
+    <el-card>
+      <template #header>
+        <div class="header-row">
+          <span>Banner管理</span>
+          <el-button type="primary" :icon="Plus" @click="handleAdd">新增Banner</el-button>
+        </div>
+      </template>
 
-        <el-form-item label="状态">
-          <el-select v-model="filterForm.status" placeholder="请选择状态" clearable>
-            <el-option label="启用" :value="1" />
-            <el-option label="停用" :value="0" />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-
-        <el-form-item style="float: right">
-          <el-button type="success" @click="handleAdd">+ 新增 Banner</el-button>
-        </el-form-item>
-      </el-form>
+      <!-- 搜索区 -->
+      <div class="search-bar">
+        <el-select v-model="searchCampusId" placeholder="所属校区" clearable style="width: 130px">
+          <el-option label="全部校区" :value="0" />
+          <el-option
+            v-for="item in campusOptions"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
+          />
+        </el-select>
+        <el-select v-model="searchStatus" placeholder="状态" clearable style="width: 100px">
+          <el-option label="启用" :value="1" />
+          <el-option label="禁用" :value="0" />
+        </el-select>
+        <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
+        <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+      </div>
 
       <!-- 数据表格 -->
       <el-table
-        :data="bannerList"
-        v-loading="tableLoading"
+        :data="tableData"
+        border
         stripe
-        style="width: 100%; margin-top: 20px"
+        v-loading="tableLoading"
+        empty-text="暂无Banner数据"
       >
-        <!-- 缩略图 -->
-        <el-table-column label="缩略图" width="100" align="center">
+        <el-table-column prop="id" label="ID" width="70" align="center" />
+        <el-table-column label="Banner图片" width="150" align="center">
           <template #default="{ row }">
-            <el-image
-              :src="row.imageUrl"
-              :preview-src-list="[row.imageUrl]"
-              style="width: 80px; height: 60px; object-fit: cover; border-radius: 4px"
-              preview-teleported
-            />
+            <template v-if="row.image">
+              <el-image
+                :src="row.image"
+                style="width: 100px; height: 60px; border-radius: 4px"
+                fit="cover"
+                :preview-src-list="[row.image]"
+                preview-teleported
+                lazy
+              />
+            </template>
+            <span v-else>-</span>
           </template>
         </el-table-column>
-
-        <!-- 所属校区 -->
-        <el-table-column prop="campusName" label="所属校区" width="120" />
-
-        <!-- 链接类型 -->
-        <el-table-column label="链接类型" width="100" align="center">
+        <el-table-column prop="title" label="标题" min-width="150" show-overflow-tooltip />
+        <el-table-column label="链接类型" width="110" align="center">
           <template #default="{ row }">
-            <el-tag :type="getLinkTypeTagType(row.linkType)">
-              {{ getLinkTypeName(row.linkType) }}
-            </el-tag>
+            <el-tag v-if="row.linkType === 1" type="primary">商品详情</el-tag>
+            <el-tag v-else-if="row.linkType === 2" type="success">活动页</el-tag>
+            <el-tag v-else-if="row.linkType === 3" type="warning">外部链接</el-tag>
+            <span v-else>-</span>
           </template>
         </el-table-column>
-
-        <!-- 跳转目标 -->
-        <el-table-column prop="linkValue" label="跳转目标" min-width="150" show-overflow-tooltip />
-
-        <!-- 排序值 -->
-        <el-table-column prop="sort" label="排序" width="80" align="center" />
-
-        <!-- 状态 -->
-        <el-table-column label="状态" width="100" align="center">
+        <el-table-column label="所属校区" width="110" align="center">
+          <template #default="{ row }">
+            <template v-if="row.campusId">
+              {{ getCampusName(row.campusId) }}
+            </template>
+            <el-tag v-else type="info">全部校区</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="sort" label="排序" width="70" align="center" />
+        <el-table-column prop="status" label="状态" width="90" align="center">
           <template #default="{ row }">
             <el-switch
               v-model="row.status"
               :active-value="1"
               :inactive-value="0"
-              @change="handleStatusChange(row)"
+              @change="(val) => handleStatusChange(row, val)"
             />
           </template>
         </el-table-column>
-
-        <!-- 操作列 -->
-        <el-table-column label="操作" width="150" align="center" fixed="right">
+        <el-table-column label="展示时间" width="200">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleEdit(row)">修改</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <template v-if="row.startTime && row.endTime">
+              {{ row.startTime }} ~ {{ row.endTime }}
+            </template>
+            <template v-else-if="row.startTime">
+              {{ row.startTime }} 起
+            </template>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="130" align="center" fixed="right">
+          <template #default="{ row }">
+            <el-button type="primary" link :icon="Edit" @click="handleEdit(row)">编辑</el-button>
+            <el-button type="danger" link :icon="Delete" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
 
       <!-- 分页 -->
-      <el-pagination
-        v-model:current-page="pagination.page"
-        v-model:page-size="pagination.pageSize"
-        :page-sizes="[10, 20, 50]"
-        :total="pagination.total"
-        layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 20px; text-align: right"
-        @size-change="handlePageSizeChange"
-        @current-change="handlePageChange"
-      />
+      <div class="pagination-wrapper">
+        <el-pagination
+          layout="total, sizes, prev, pager, next, jumper"
+          :page-sizes="[10, 20, 50]"
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :total="total"
+          @size-change="onSizeChange"
+          @current-change="onCurrentChange"
+        />
+      </div>
     </el-card>
 
-    <!-- 新增/编辑弹窗 -->
+    <!-- 新增/编辑 Dialog -->
     <el-dialog
       v-model="dialogVisible"
-      :title="isEdit ? '编辑 Banner' : '新增 Banner'"
-      width="600px"
+      :title="dialogTitle"
+      width="580px"
+      :close-on-click-modal="false"
       @close="handleDialogClose"
     >
       <el-form
         ref="formRef"
         :model="formData"
         :rules="formRules"
-        label-width="100px"
-        @submit.prevent
+        label-width="90px"
       >
-        <!-- 上传图片 -->
-        <el-form-item label="Banner 图片" prop="imageUrl">
+        <el-form-item label="标题" prop="title">
+          <el-input v-model="formData.title" maxlength="100" show-word-limit placeholder="请输入Banner标题" />
+        </el-form-item>
+
+        <el-form-item label="Banner图片" prop="image">
           <el-upload
-            :action="uploadUrl"
-            :headers="uploadHeaders"
-            :on-success="handleUploadSuccess"
-            :on-error="handleUploadError"
-            :limit="1"
-            list-type="picture-card"
-            :auto-upload="true"
+            class="banner-uploader"
+            :show-file-list="false"
+            accept="image/jpeg,image/png,image/gif"
+            :http-request="handleUpload"
+            :before-upload="beforeUpload"
           >
-            <template #default>
-              <el-icon><Plus /></el-icon>
-            </template>
-            <template #file="{ file }">
-              <div>
-                <img :src="file.url" alt="preview" />
+            <div v-if="formData.image" class="image-preview-wrapper" @click.stop>
+              <el-image
+                :src="formData.image"
+                style="width: 200px; height: 120px; border-radius: 4px"
+                fit="cover"
+              />
+              <div class="image-actions">
+                <span @click.stop="handleRemoveImage">
+                  <el-icon><Delete /></el-icon> 删除
+                </span>
+                <span>点击更换</span>
               </div>
-            </template>
+            </div>
+            <div v-else class="upload-placeholder">
+              <el-icon class="upload-icon" :class="{ 'is-loading': uploadLoading }">
+                <Loading v-if="uploadLoading" />
+                <Plus v-else />
+              </el-icon>
+              <div class="upload-text">{{ uploadLoading ? '上传中...' : '点击上传图片' }}</div>
+              <div class="upload-tip">支持JPG/PNG/GIF，最大5MB</div>
+            </div>
           </el-upload>
         </el-form-item>
 
-        <!-- 所属校区 -->
-        <el-form-item label="所属校区">
-          <el-select v-model="formData.campusId" placeholder="请选择校区（可为空）" clearable>
+        <el-form-item label="所属校区" prop="campusId">
+          <el-select v-model="formData.campusId" clearable placeholder="请选择校区（不选则适用全部校区）" style="width: 100%">
             <el-option
-              v-for="campus in campusList"
-              :key="campus.id"
-              :label="campus.name"
-              :value="campus.id"
+              v-for="item in campusOptions"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
             />
           </el-select>
         </el-form-item>
 
-        <!-- 链接类型 -->
         <el-form-item label="链接类型" prop="linkType">
-          <el-radio-group v-model="formData.linkType">
-            <el-radio :label="1">商品详情</el-radio>
-            <el-radio :label="2">活动页</el-radio>
-            <el-radio :label="3">外部链接</el-radio>
-          </el-radio-group>
+          <el-select v-model="formData.linkType" placeholder="请选择链接类型" style="width: 100%">
+            <el-option label="商品详情" :value="1" />
+            <el-option label="活动页" :value="2" />
+            <el-option label="外部链接" :value="3" />
+          </el-select>
         </el-form-item>
 
-        <!-- 跳转目标 -->
-        <el-form-item
-          :label="getLinkTargetLabel()"
-          prop="linkValue"
-          :rules="getLinkValueRules()"
-        >
+        <el-form-item :label="linkUrlLabel" prop="linkUrl" v-if="formData.linkType">
           <el-input
-            v-model="formData.linkValue"
-            :placeholder="getLinkTargetPlaceholder()"
+            v-model="formData.linkUrl"
+            :placeholder="linkUrlPlaceholder"
             clearable
           />
         </el-form-item>
 
-        <!-- 排序 -->
         <el-form-item label="排序" prop="sort">
-          <el-input-number v-model="formData.sort" :min="0" :max="9999" />
+          <el-input-number v-model="formData.sort" :min="0" :max="999" style="width: 100%" />
         </el-form-item>
 
-        <!-- 状态 -->
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="formData.status">
-            <el-radio :label="1">启用</el-radio>
-            <el-radio :label="0">停用</el-radio>
+            <el-radio :value="1">启用</el-radio>
+            <el-radio :value="0">禁用</el-radio>
           </el-radio-group>
+        </el-form-item>
+
+        <el-form-item label="展示时间">
+          <el-date-picker
+            v-model="timeRange"
+            type="datetimerange"
+            range-separator="至"
+            start-placeholder="开始时间"
+            end-placeholder="结束时间"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 100%"
+          />
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
-          {{ isEdit ? '更新' : '新增' }}
-        </el-button>
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确 认</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, nextTick, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
-import { getToken } from '@/utils/auth'
+import { Plus, Edit, Delete, Search, Refresh, Loading } from '@element-plus/icons-vue'
 import {
-  getBannerList,
+  getBannerPage,
   addBanner,
   updateBanner,
   deleteBanner,
-  getCampusList,
-  UPLOAD_URL
-} from '@/api/content'
+  getCampusListForBanner,
+  uploadBannerImage
+} from '@/api/banner'
 
-// ==================== 数据定义 ====================
+// ==================== 校区选项 ====================
+const campusOptions = ref([])
 
-const filterForm = reactive({
-  campusId: null,
-  status: undefined
-})
-
-const formData = reactive({
-  id: null,
-  imageUrl: '',
-  campusId: null,
-  linkType: 1,
-  linkValue: '',
-  sort: 0,
-  status: 1
-})
-
-const formRules = {
-  imageUrl: [{ required: true, message: '请上传 Banner 图片', trigger: 'change' }],
-  linkType: [{ required: true, message: '请选择链接类型', trigger: 'change' }],
-  linkValue: [{ required: true, message: '请输入跳转目标', trigger: 'blur' }],
-  sort: [{ required: true, message: '请输入排序值', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }]
-}
-
-const bannerList = ref([])
-const campusList = ref([])
-const tableLoading = ref(false)
-const dialogVisible = ref(false)
-const submitLoading = ref(false)
-const isEdit = ref(false)
-const formRef = ref(null)
-
-const pagination = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0
-})
-
-const uploadUrl = computed(() => UPLOAD_URL)
-const uploadHeaders = computed(() => ({
-  Authorization: `Bearer ${getToken()}`
-}))
-
-// ==================== 方法定义 ====================
-
-/**
- * 获取链接类型名称
- */
-const getLinkTypeName = (type) => {
-  const typeMap = {
-    1: '商品详情',
-    2: '活动页',
-    3: '外部链接'
-  }
-  return typeMap[type] || '未知'
-}
-
-/**
- * 获取链接类型标签类型
- */
-const getLinkTypeTagType = (type) => {
-  const typeMap = {
-    1: 'success',
-    2: 'primary',
-    3: 'info'
-  }
-  return typeMap[type] || 'info'
-}
-
-/**
- * 获取链接目标标签
- */
-const getLinkTargetLabel = () => {
-  const labelMap = {
-    1: '商品 ID',
-    2: '活动页 URL',
-    3: '外部链接'
-  }
-  return labelMap[formData.linkType] || '跳转目标'
-}
-
-/**
- * 获取链接目标占位符
- */
-const getLinkTargetPlaceholder = () => {
-  const placeholderMap = {
-    1: '请输入商品 ID',
-    2: '请输入活动页 URL',
-    3: '请输入完整的外部链接 URL'
-  }
-  return placeholderMap[formData.linkType] || '请输入跳转目标'
-}
-
-/**
- * 获取链接值校验规则
- */
-const getLinkValueRules = () => {
-  const baseRule = { required: true, message: '请输入跳转目标', trigger: 'blur' }
-
-  if (formData.linkType === 1) {
-    return [
-      baseRule,
-      { pattern: /^\d+$/, message: '商品 ID 必须为数字', trigger: 'blur' }
-    ]
-  }
-
-  if (formData.linkType === 3) {
-    return [
-      baseRule,
-      { pattern: /^https?:\/\/.+/, message: '请输入有效的 URL', trigger: 'blur' }
-    ]
-  }
-
-  return [baseRule]
-}
-
-/**
- * 加载 Banner 列表
- */
-const loadBannerList = async () => {
-  tableLoading.value = true
+const fetchCampusOptions = async () => {
   try {
-    const res = await getBannerList(
-      pagination.page,
-      pagination.pageSize,
-      filterForm.status,
-      filterForm.campusId
-    )
+    const res = await getCampusListForBanner()
     if (res.code === 1) {
-      bannerList.value = res.data.records || []
-      pagination.total = res.data.total || 0
+      campusOptions.value = res.data || []
     }
   } catch (error) {
-    ElMessage.error('加载 Banner 列表失败')
+    console.error('获取校区列表失败:', error)
+    ElMessage.error('获取校区列表失败')
+  }
+}
+
+const getCampusName = (campusId) => {
+  if (!campusId) return null
+  const campus = campusOptions.value.find(c => c.id === campusId)
+  return campus ? campus.name : campusId
+}
+
+// ==================== 搜索条件 ====================
+const searchCampusId = ref(null)
+const searchStatus = ref(null)
+
+// ==================== 表格数据 ====================
+const tableData = ref([])
+const tableLoading = ref(false)
+const total = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+const fetchList = async () => {
+  tableLoading.value = true
+  try {
+    const params = {
+      page: currentPage.value,
+      pageSize: pageSize.value
+    }
+    if (searchCampusId.value) {
+      params.campusId = searchCampusId.value
+    }
+    if (searchStatus.value !== null && searchStatus.value !== undefined) {
+      params.status = searchStatus.value
+    }
+    const res = await getBannerPage(params)
+    if (res.code === 1) {
+      tableData.value = res.data.records || []
+      total.value = res.data.total || 0
+    }
+  } catch (error) {
+    console.error('获取Banner列表失败:', error)
+    ElMessage.error('获取Banner列表失败')
   } finally {
     tableLoading.value = false
   }
 }
 
-/**
- * 加载校区列表
- */
-const loadCampusList = async () => {
+const handleSearch = () => {
+  currentPage.value = 1
+  fetchList()
+}
+
+const handleReset = () => {
+  searchCampusId.value = null
+  searchStatus.value = null
+  currentPage.value = 1
+  fetchList()
+}
+
+const onSizeChange = () => {
+  currentPage.value = 1
+  fetchList()
+}
+
+const onCurrentChange = () => {
+  fetchList()
+}
+
+// ==================== Dialog ====================
+const dialogVisible = ref(false)
+const dialogTitle = ref('新增Banner')
+const formRef = ref(null)
+const submitLoading = ref(false)
+const uploadLoading = ref(false)
+const timeRange = ref([])
+
+const formData = reactive({
+  id: null,
+  title: '',
+  image: '',
+  linkType: null,
+  linkUrl: '',
+  campusId: null,
+  sort: 0,
+  status: 1,
+  startTime: null,
+  endTime: null
+})
+
+// 计算 linkUrl 的 label
+const linkUrlLabel = computed(() => {
+  const labelMap = {
+    1: '商品ID',
+    2: '活动路径',
+    3: '外部链接'
+  }
+  return labelMap[formData.linkType] || '链接地址'
+})
+
+// 计算 linkUrl 的 placeholder
+const linkUrlPlaceholder = computed(() => {
+  const placeholderMap = {
+    1: '请输入商品ID（数字）',
+    2: '请输入活动页路径，如 /pages/activity/xxx',
+    3: '请输入完整URL，如 https://...'
+  }
+  return placeholderMap[formData.linkType] || '请输入链接地址'
+})
+
+const formRules = {
+  title: [
+    { required: true, message: '请输入Banner标题', trigger: 'blur' },
+    { max: 100, message: '标题不能超过100个字符', trigger: 'blur' }
+  ],
+  image: [
+    {
+      validator: (rule, value, callback) => {
+        if (!formData.image) {
+          return callback(new Error('请上传Banner图片'))
+        }
+        callback()
+      },
+      trigger: 'change'
+    }
+  ],
+  linkType: [
+    { required: true, message: '请选择链接类型', trigger: 'change' }
+  ],
+  linkUrl: [
+    {
+      validator: (rule, value, callback) => {
+        if (!formData.linkType) {
+          return callback()
+        }
+        if (!value || !value.trim()) {
+          return callback(new Error('请填写链接地址'))
+        }
+        if (formData.linkType === 1 && !/^\d+$/.test(value)) {
+          return callback(new Error('商品ID必须为纯数字'))
+        }
+        if (formData.linkType === 3 && !/^https?:\/\/.+/.test(value)) {
+          return callback(new Error('外部链接必须以 http:// 或 https:// 开头'))
+        }
+        callback()
+      },
+      trigger: 'blur'
+    }
+  ],
+  sort: [{ required: true, message: '请输入排序值', trigger: 'blur' }],
+  status: [{ required: true, message: '请选择状态', trigger: 'change' }]
+}
+
+// ==================== 图片上传 ====================
+const beforeUpload = (file) => {
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif']
+  if (!allowedTypes.includes(file.type)) {
+    ElMessage.error('只支持 JPG/PNG/GIF 格式的图片')
+    return false
+  }
+  const maxSize = 5 * 1024 * 1024 // 5MB
+  if (file.size > maxSize) {
+    ElMessage.error('图片大小不能超过 5MB')
+    return false
+  }
+  return true
+}
+
+const handleUpload = async ({ file }) => {
+  uploadLoading.value = true
   try {
-    const res = await getCampusList()
+    const formDataObj = new FormData()
+    formDataObj.append('file', file)
+    formDataObj.append('type', 'banner')
+    const res = await uploadBannerImage(formDataObj)
     if (res.code === 1) {
-      campusList.value = res.data || []
+      formData.image = res.data.url
+      ElMessage.success('图片上传成功')
+    } else {
+      ElMessage.error(res.msg || '上传失败')
     }
   } catch (error) {
-    ElMessage.error('加载校区列表失败')
+    console.error('上传失败:', error)
+    ElMessage.error('图片上传失败，请重试')
+  } finally {
+    uploadLoading.value = false
   }
 }
 
-/**
- * 搜索
- */
-const handleSearch = () => {
-  pagination.page = 1
-  loadBannerList()
+const handleRemoveImage = () => {
+  formData.image = ''
 }
 
-/**
- * 重置筛选
- */
-const handleReset = () => {
-  filterForm.campusId = null
-  filterForm.status = undefined
-  pagination.page = 1
-  loadBannerList()
-}
-
-/**
- * 新增 Banner
- */
+// ==================== 表单操作 ====================
 const handleAdd = () => {
-  isEdit.value = false
   formData.id = null
-  formData.imageUrl = ''
+  formData.title = ''
+  formData.image = ''
+  formData.linkType = null
+  formData.linkUrl = ''
   formData.campusId = null
-  formData.linkType = 1
-  formData.linkValue = ''
   formData.sort = 0
   formData.status = 1
+  formData.startTime = null
+  formData.endTime = null
+  timeRange.value = []
+  dialogTitle.value = '新增Banner'
   dialogVisible.value = true
 }
 
-/**
- * 编辑 Banner
- */
 const handleEdit = (row) => {
-  isEdit.value = true
   formData.id = row.id
-  formData.imageUrl = row.imageUrl
-  formData.campusId = row.campusId
+  formData.title = row.title
+  formData.image = row.image
   formData.linkType = row.linkType
-  formData.linkValue = row.linkValue
+  formData.linkUrl = row.linkUrl
+  formData.campusId = row.campusId
   formData.sort = row.sort
   formData.status = row.status
+  formData.startTime = row.startTime
+  formData.endTime = row.endTime
+  timeRange.value = row.startTime && row.endTime ? [row.startTime, row.endTime] : []
+  dialogTitle.value = '编辑Banner'
   dialogVisible.value = true
 }
 
-/**
- * 删除 Banner
- */
-const handleDelete = (row) => {
-  ElMessageBox.confirm('确定删除该 Banner 吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  })
-    .then(async () => {
-      try {
-        const res = await deleteBanner(row.id)
-        if (res.code === 1) {
-          ElMessage.success('删除成功')
-          loadBannerList()
-        }
-      } catch (error) {
-        ElMessage.error('删除失败')
-      }
-    })
-    .catch(() => {})
-}
-
-/**
- * 状态切换
- */
-const handleStatusChange = async (row) => {
-  try {
-    const res = await updateBanner({
-      id: row.id,
-      status: row.status
-    })
-    if (res.code === 1) {
-      ElMessage.success('状态更新成功')
-    } else {
-      row.status = row.status === 1 ? 0 : 1
-    }
-  } catch (error) {
-    row.status = row.status === 1 ? 0 : 1
-    ElMessage.error('状态更新失败')
-  }
-}
-
-/**
- * 上传成功回调
- */
-const handleUploadSuccess = (response) => {
-  if (response.code === 1) {
-    formData.imageUrl = response.data
-    ElMessage.success('图片上传成功')
-  } else {
-    ElMessage.error(response.msg || '图片上传失败')
-  }
-}
-
-/**
- * 上传失败回调
- */
-const handleUploadError = () => {
-  ElMessage.error('图片上传失败')
-}
-
-/**
- * 提交表单
- */
 const handleSubmit = async () => {
-  if (!formRef.value) return
-
-  try {
-    await formRef.value.validate()
-  } catch (error) {
-    return
-  }
+  const valid = await formRef.value?.validate().catch(() => false)
+  if (!valid) return
 
   submitLoading.value = true
   try {
-    const submitData = {
-      imageUrl: formData.imageUrl,
-      campusId: formData.campusId,
-      linkType: formData.linkType,
-      linkValue: formData.linkValue,
-      sort: formData.sort,
-      status: formData.status
+    // 处理时间范围
+    if (timeRange.value && timeRange.value.length === 2) {
+      formData.startTime = timeRange.value[0]
+      formData.endTime = timeRange.value[1]
+    } else {
+      formData.startTime = null
+      formData.endTime = null
     }
 
-    if (isEdit.value) {
-      submitData.id = formData.id
-      const res = await updateBanner(submitData)
-      if (res.code === 1) {
-        ElMessage.success('更新成功')
-        dialogVisible.value = false
-        loadBannerList()
-      }
+    // 处理 campusId（空字符串/null转null）
+    if (!formData.campusId) {
+      formData.campusId = null
+    }
+
+    const payload = { ...formData }
+    delete payload.id
+
+    let res
+    if (formData.id) {
+      res = await updateBanner(formData.id, payload)
     } else {
-      const res = await addBanner(submitData)
-      if (res.code === 1) {
-        ElMessage.success('新增成功')
-        dialogVisible.value = false
-        loadBannerList()
-      }
+      res = await addBanner(payload)
+    }
+
+    if (res.code === 1) {
+      ElMessage.success(formData.id ? '修改成功' : '新增成功')
+      dialogVisible.value = false
+      fetchList()
+    } else {
+      ElMessage.error(res.msg || '操作失败')
     }
   } catch (error) {
-    ElMessage.error(isEdit.value ? '更新失败' : '新增失败')
+    console.error('提交失败:', error)
+    ElMessage.error(error.msg || '操作失败，请稍后重试')
   } finally {
     submitLoading.value = false
   }
 }
 
-/**
- * 弹窗关闭回调
- */
 const handleDialogClose = () => {
-  formRef.value?.resetFields()
+  timeRange.value = []
+  nextTick(() => {
+    formRef.value?.resetFields()
+    // resetFields 不会清除非表单绑定的字段，手动清空
+    formData.image = ''
+  })
 }
 
-/**
- * 分页变化
- */
-const handlePageChange = () => {
-  loadBannerList()
+// ==================== 删除操作 ====================
+const handleDelete = (row) => {
+  ElMessageBox.confirm(
+    `确认删除Banner「${row.title}」吗？`,
+    '警告',
+    {
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消',
+      confirmButtonClass: 'el-button--danger',
+      type: 'warning'
+    }
+  )
+    .then(async () => {
+      try {
+        const res = await deleteBanner(row.id)
+        if (res.code === 1) {
+          ElMessage.success('删除成功')
+          fetchList()
+        } else {
+          ElMessage.error(res.msg || '删除失败')
+        }
+      } catch (error) {
+        console.error('删除失败:', error)
+        ElMessage.error(error.msg || '删除失败，请稍后重试')
+      }
+    })
+    .catch(() => {})
 }
 
-const handlePageSizeChange = () => {
-  pagination.page = 1
-  loadBannerList()
+// ==================== 状态切换 ====================
+const handleStatusChange = async (row, newVal) => {
+  try {
+    const payload = {
+      title: row.title,
+      image: row.image,
+      linkType: row.linkType,
+      linkUrl: row.linkUrl,
+      campusId: row.campusId,
+      sort: row.sort,
+      status: newVal,
+      startTime: row.startTime,
+      endTime: row.endTime
+    }
+    const res = await updateBanner(row.id, payload)
+    if (res.code === 1) {
+      ElMessage.success('状态更新成功')
+    } else {
+      row.status = newVal === 1 ? 0 : 1
+      ElMessage.error(res.msg || '状态更新失败')
+    }
+  } catch (error) {
+    row.status = newVal === 1 ? 0 : 1
+    ElMessage.error(error.msg || '状态更新失败')
+  }
 }
 
-// ==================== 生命周期 ====================
-
+// ==================== 初始化 ====================
 onMounted(() => {
-  loadCampusList()
-  loadBannerList()
+  fetchCampusOptions()
+  fetchList()
 })
 </script>
 
@@ -552,25 +591,100 @@ onMounted(() => {
 .banner-admin-page {
   padding: 20px;
 }
-
-.main-card {
-  background: #f0f2f5;
-  border-radius: 8px;
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
-
-.filter-form {
-  margin-bottom: 20px;
-}
-
-:deep(.el-form-item) {
+.search-bar {
   margin-bottom: 16px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
 }
-
-:deep(.el-select) {
-  width: 100%;
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
 }
-
-:deep(.el-input-number) {
+.banner-uploader {
+  width: 200px;
+}
+.banner-uploader :deep(.el-upload) {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 200px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.banner-uploader :deep(.el-upload):hover {
+  border-color: #409eff;
+}
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #8c939d;
+  width: 200px;
+  height: 120px;
+}
+.upload-icon {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+.upload-icon.is-loading {
+  animation: rotating 2s linear infinite;
+}
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.upload-text {
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.upload-tip {
+  font-size: 11px;
+  color: #c0c4cc;
+}
+.image-preview-wrapper {
+  position: relative;
+  width: 200px;
+  height: 120px;
+}
+.image-actions {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.image-preview-wrapper:hover .image-actions {
+  display: flex;
+}
+.image-actions span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 </style>
