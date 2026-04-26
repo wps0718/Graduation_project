@@ -1,417 +1,387 @@
 <template>
   <div class="notice-admin-page">
-    <el-card class="main-card">
-      <!-- 顶部筛选表单 -->
-      <el-form :model="filterForm" inline class="filter-form">
-        <el-form-item label="公告类型">
-          <el-select v-model="filterForm.type" placeholder="请选择类型" clearable>
-            <el-option label="系统公告" :value="1" />
-            <el-option label="活动公告" :value="2" />
-          </el-select>
-        </el-form-item>
+    <el-card>
+      <template #header>
+        <div class="header-row">
+          <span>公告管理</span>
+          <el-button type="primary" :icon="Plus" @click="handleAdd">新增公告</el-button>
+        </div>
+      </template>
 
-        <el-form-item label="显示状态">
-          <el-select v-model="filterForm.status" placeholder="请选择状态" clearable>
-            <el-option label="显示" :value="1" />
-            <el-option label="隐藏" :value="0" />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-
-        <el-form-item style="float: right">
-          <el-button type="success" @click="handleAdd">+ 发布公告</el-button>
-        </el-form-item>
-      </el-form>
+      <!-- 搜索区 -->
+      <div class="search-bar">
+        <el-select
+          v-model="searchType"
+          placeholder="公告类型"
+          clearable
+          style="width: 120px"
+        >
+          <el-option label="系统公告" :value="1" />
+          <el-option label="活动公告" :value="2" />
+        </el-select>
+        <el-select
+          v-model="searchStatus"
+          placeholder="状态"
+          clearable
+          style="width: 100px"
+        >
+          <el-option label="启用" :value="1" />
+          <el-option label="禁用" :value="0" />
+        </el-select>
+        <el-input
+          v-model="searchTitle"
+          placeholder="请输入公告标题搜索"
+          clearable
+          style="width: 220px"
+          @keyup.enter="handleSearch"
+        />
+        <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
+        <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+      </div>
 
       <!-- 数据表格 -->
       <el-table
-        :data="noticeList"
-        v-loading="tableLoading"
+        :data="tableData"
+        border
         stripe
-        style="width: 100%; margin-top: 20px"
+        v-loading="tableLoading"
+        empty-text="暂无公告数据"
+        style="width: 100%"
       >
-        <!-- 标题 -->
-        <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
-
-        <!-- 类型 -->
-        <el-table-column label="类型" width="120" align="center">
+        <el-table-column prop="id" label="ID" width="80" align="center" />
+        <el-table-column prop="title" label="公告标题" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="type" label="公告类型" width="110" align="center">
           <template #default="{ row }">
-            <el-tag :type="getTypeTagType(row.type)">
-              {{ getTypeName(row.type) }}
-            </el-tag>
+            <el-tag v-if="row.type === 1" type="danger">系统公告</el-tag>
+            <el-tag v-else-if="row.type === 2" type="success">活动公告</el-tag>
+            <el-tag v-else type="info">未知</el-tag>
           </template>
         </el-table-column>
-
-        <!-- 排序 -->
-        <el-table-column prop="sort" label="排序" width="80" align="center" />
-
-        <!-- 创建时间 -->
-        <el-table-column prop="createTime" label="创建时间" width="180" align="center" />
-
-        <!-- 状态 -->
-        <el-table-column label="状态" width="100" align="center">
+        <el-table-column prop="content" label="公告内容" min-width="250" show-overflow-tooltip />
+        <el-table-column prop="status" label="状态" width="100" align="center">
           <template #default="{ row }">
             <el-switch
               v-model="row.status"
               :active-value="1"
               :inactive-value="0"
-              @change="handleStatusChange(row)"
+              @change="(val) => handleStatusChange(row, val)"
             />
           </template>
         </el-table-column>
-
-        <!-- 操作列 -->
+        <el-table-column prop="createTime" label="创建时间" width="180" align="center">
+          <template #default="{ row }">
+            {{ formatDateTime(row.createTime) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="150" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="handleEdit(row)">修改</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button type="primary" link :icon="Edit" @click="handleEdit(row)">编辑</el-button>
+            <el-button type="danger" link :icon="Delete" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
 
       <!-- 分页 -->
-      <el-pagination
-        v-model:current-page="pagination.page"
-        v-model:page-size="pagination.pageSize"
-        :page-sizes="[10, 20, 50]"
-        :total="pagination.total"
-        layout="total, sizes, prev, pager, next, jumper"
-        style="margin-top: 20px; text-align: right"
-        @size-change="handlePageSizeChange"
-        @current-change="handlePageChange"
-      />
+      <div class="pagination-wrapper">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          :total="total"
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="onSizeChange"
+          @current-change="onCurrentChange"
+        />
+      </div>
     </el-card>
 
-    <!-- 新增/编辑弹窗 -->
+    <!-- 新增/编辑 Dialog -->
     <el-dialog
       v-model="dialogVisible"
-      :title="isEdit ? '编辑公告' : '发布公告'"
-      width="650px"
-      @close="handleDialogClose"
+      :title="dialogTitle"
+      width="600px"
+      :close-on-click-modal="false"
+      @closed="handleDialogClose"
     >
       <el-form
         ref="formRef"
         :model="formData"
         :rules="formRules"
-        label-width="100px"
-        @submit.prevent
+        label-width="80px"
       >
-        <!-- 公告标题 -->
         <el-form-item label="公告标题" prop="title">
           <el-input
             v-model="formData.title"
-            placeholder="请输入公告标题（最多 50 字）"
-            maxlength="50"
+            maxlength="100"
             show-word-limit
-            clearable
+            placeholder="请输入公告标题"
           />
         </el-form-item>
-
-        <!-- 公告类型 -->
         <el-form-item label="公告类型" prop="type">
-          <el-select v-model="formData.type" placeholder="请选择公告类型">
+          <el-select v-model="formData.type" placeholder="请选择公告类型" style="width: 100%">
             <el-option label="系统公告" :value="1" />
             <el-option label="活动公告" :value="2" />
           </el-select>
         </el-form-item>
-
-        <!-- 公告正文 -->
-        <el-form-item label="公告正文" prop="content">
+        <el-form-item label="状态" prop="status">
+          <el-radio-group v-model="formData.status">
+            <el-radio :value="1">启用</el-radio>
+            <el-radio :value="0">禁用</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="公告内容" prop="content">
           <el-input
             v-model="formData.content"
             type="textarea"
             :rows="6"
-            placeholder="请输入公告内容（最多 500 字）"
-            maxlength="500"
+            maxlength="2000"
             show-word-limit
+            placeholder="请输入公告内容"
           />
         </el-form-item>
-
-        <!-- 排序 -->
-        <el-form-item label="排序" prop="sort">
-          <el-input-number v-model="formData.sort" :min="0" :max="9999" />
-        </el-form-item>
-
-        <!-- 状态 -->
-        <el-form-item label="状态" prop="status">
-          <el-radio-group v-model="formData.status">
-            <el-radio :label="1">立即发布</el-radio>
-            <el-radio :label="0">草稿</el-radio>
-          </el-radio-group>
-        </el-form-item>
       </el-form>
-
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
-          {{ isEdit ? '更新' : '发布' }}
-        </el-button>
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确 认</el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  getNoticeList,
-  addNotice,
-  updateNotice,
-  deleteNotice
-} from '@/api/content'
+import { Plus, Search, Refresh, Edit, Delete } from '@element-plus/icons-vue'
+import { getNoticePage, addNotice, updateNotice, deleteNotice } from '@/api/notice'
 
-// ==================== 数据定义 ====================
+// 搜索条件
+const searchTitle = ref('')
+const searchType = ref(null)
+const searchStatus = ref(null)
 
-const filterForm = reactive({
-  type: undefined,
-  status: undefined
-})
+// 表格数据
+const tableData = ref([])
+const tableLoading = ref(false)
+const total = ref(0)
+const currentPage = ref(1)
+const pageSize = ref(10)
 
+// Dialog
+const dialogVisible = ref(false)
+const dialogTitle = computed(() => formData.id ? '编辑公告' : '新增公告')
+const formRef = ref(null)
+const submitLoading = ref(false)
 const formData = reactive({
   id: null,
   title: '',
   content: '',
-  type: 1,
-  sort: 0,
+  type: null,
   status: 1
 })
 
+// 表单校验规则
 const formRules = {
   title: [
     { required: true, message: '请输入公告标题', trigger: 'blur' },
-    { max: 50, message: '标题最多 50 字', trigger: 'blur' }
+    { min: 1, max: 100, message: '标题长度在 1 到 100 个字符', trigger: 'blur' }
+  ],
+  type: [
+    { required: true, message: '请选择公告类型', trigger: 'change' }
+  ],
+  status: [
+    { required: true, message: '请选择状态', trigger: 'change' }
   ],
   content: [
     { required: true, message: '请输入公告内容', trigger: 'blur' },
-    { max: 500, message: '内容最多 500 字', trigger: 'blur' }
-  ],
-  type: [{ required: true, message: '请选择公告类型', trigger: 'change' }],
-  sort: [{ required: true, message: '请输入排序值', trigger: 'blur' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }]
+    { min: 1, max: 2000, message: '内容长度在 1 到 2000 个字符', trigger: 'blur' }
+  ]
 }
 
-const noticeList = ref([])
-const tableLoading = ref(false)
-const dialogVisible = ref(false)
-const submitLoading = ref(false)
-const isEdit = ref(false)
-const formRef = ref(null)
-
-const pagination = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0
-})
-
-// ==================== 方法定义 ====================
-
-/**
- * 获取公告类型名称
- */
-const getTypeName = (type) => {
-  const typeMap = {
-    1: '系统公告',
-    2: '活动公告'
-  }
-  return typeMap[type] || '未知'
+// 格式化日期时间为北京时间（东八区）
+const formatDateTime = (val) => {
+  if (!val) return '-'
+  const date = new Date(val)
+  if (isNaN(date.getTime())) return String(val).replace('T', ' ').slice(0, 19)
+  const pad = (n) => String(n).padStart(2, '0')
+  const y = date.getFullYear()
+  const m = pad(date.getMonth() + 1)
+  const d = pad(date.getDate())
+  const h = pad(date.getHours())
+  const min = pad(date.getMinutes())
+  const s = pad(date.getSeconds())
+  return `${y}-${m}-${d} ${h}:${min}:${s}`
 }
 
-/**
- * 获取公告类型标签类型
- */
-const getTypeTagType = (type) => {
-  const typeMap = {
-    1: 'danger',
-    2: 'primary'
-  }
-  return typeMap[type] || 'info'
-}
-
-/**
- * 加载公告列表
- */
-const loadNoticeList = async () => {
+// 获取公告列表
+const fetchList = async () => {
   tableLoading.value = true
   try {
-    const res = await getNoticeList(
-      pagination.page,
-      pagination.pageSize,
-      filterForm.type,
-      filterForm.status
-    )
+    const res = await getNoticePage({
+      page: currentPage.value,
+      pageSize: pageSize.value,
+      type: searchType.value ?? undefined,
+      status: searchStatus.value ?? undefined
+    })
     if (res.code === 1) {
-      noticeList.value = res.data.records || []
-      pagination.total = res.data.total || 0
+      tableData.value = res.data.records || []
+      total.value = res.data.total || 0
     }
   } catch (error) {
-    ElMessage.error('加载公告列表失败')
+    console.error('获取公告列表失败:', error)
+    ElMessage.error('获取公告列表失败')
   } finally {
     tableLoading.value = false
   }
 }
 
-/**
- * 搜索
- */
+// 搜索
 const handleSearch = () => {
-  pagination.page = 1
-  loadNoticeList()
+  currentPage.value = 1
+  fetchList()
 }
 
-/**
- * 重置筛选
- */
+// 重置
 const handleReset = () => {
-  filterForm.type = undefined
-  filterForm.status = undefined
-  pagination.page = 1
-  loadNoticeList()
+  searchTitle.value = ''
+  searchType.value = null
+  searchStatus.value = null
+  currentPage.value = 1
+  fetchList()
 }
 
-/**
- * 新增公告
- */
+// 新增
 const handleAdd = () => {
-  isEdit.value = false
+  resetForm()
+  dialogVisible.value = true
+}
+
+// 编辑
+const handleEdit = (row) => {
+  resetForm()
+  Object.assign(formData, {
+    id: row.id,
+    title: row.title,
+    content: row.content,
+    type: row.type,
+    status: row.status
+  })
+  dialogVisible.value = true
+}
+
+// 重置表单
+const resetForm = () => {
   formData.id = null
   formData.title = ''
   formData.content = ''
-  formData.type = 1
-  formData.sort = 0
+  formData.type = null
   formData.status = 1
-  dialogVisible.value = true
+  formRef.value?.resetFields()
 }
 
-/**
- * 编辑公告
- */
-const handleEdit = (row) => {
-  isEdit.value = true
-  formData.id = row.id
-  formData.title = row.title
-  formData.content = row.content
-  formData.type = row.type
-  formData.sort = row.sort
-  formData.status = row.status
-  dialogVisible.value = true
-}
-
-/**
- * 删除公告
- */
-const handleDelete = (row) => {
-  ElMessageBox.confirm('确定删除该公告吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
+// Dialog 关闭回调
+const handleDialogClose = () => {
+  nextTick(() => {
+    formRef.value?.resetFields()
   })
-    .then(async () => {
-      try {
-        const res = await deleteNotice(row.id)
-        if (res.code === 1) {
-          ElMessage.success('删除成功')
-          loadNoticeList()
-        }
-      } catch (error) {
-        ElMessage.error('删除失败')
-      }
-    })
-    .catch(() => {})
 }
 
-/**
- * 状态切换
- */
-const handleStatusChange = async (row) => {
-  try {
-    const res = await updateNotice({
-      id: row.id,
-      status: row.status
-    })
-    if (res.code === 1) {
-      ElMessage.success('状态更新成功')
-    } else {
-      row.status = row.status === 1 ? 0 : 1
-    }
-  } catch (error) {
-    row.status = row.status === 1 ? 0 : 1
-    ElMessage.error('状态更新失败')
-  }
-}
-
-/**
- * 提交表单
- */
+// 提交表单
 const handleSubmit = async () => {
-  if (!formRef.value) return
-
-  try {
-    await formRef.value.validate()
-  } catch (error) {
-    return
-  }
+  const valid = await formRef.value?.validate().catch(() => false)
+  if (!valid) return
 
   submitLoading.value = true
   try {
-    const submitData = {
-      title: formData.title,
-      content: formData.content,
-      type: formData.type,
-      sort: formData.sort,
-      status: formData.status
-    }
-
-    if (isEdit.value) {
-      submitData.id = formData.id
-      const res = await updateNotice(submitData)
-      if (res.code === 1) {
-        ElMessage.success('更新成功')
-        dialogVisible.value = false
-        loadNoticeList()
-      }
+    const api = formData.id ? updateNotice : addNotice
+    const res = await api({ ...formData })
+    if (res.code === 1) {
+      ElMessage.success(formData.id ? '修改成功' : '新增成功')
+      dialogVisible.value = false
+      fetchList()
     } else {
-      const res = await addNotice(submitData)
-      if (res.code === 1) {
-        ElMessage.success('发布成功')
-        dialogVisible.value = false
-        loadNoticeList()
-      }
+      ElMessage.error(res.msg || '操作失败')
     }
   } catch (error) {
-    ElMessage.error(isEdit.value ? '更新失败' : '发布失败')
+    console.error('提交失败:', error)
+    ElMessage.error(error.msg || '操作失败，请稍后重试')
   } finally {
     submitLoading.value = false
   }
 }
 
-/**
- * 弹窗关闭回调
- */
-const handleDialogClose = () => {
-  formRef.value?.resetFields()
+// 删除
+const handleDelete = (row) => {
+  ElMessageBox.confirm(
+    `确认删除公告「${row.title}」吗？删除后不可恢复。`,
+    '警告',
+    {
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消',
+      confirmButtonClass: 'el-button--danger',
+      type: 'warning'
+    }
+  )
+    .then(async () => {
+      try {
+        const res = await deleteNotice(row.id)
+        if (res.code === 1) {
+          ElMessage.success('删除成功')
+          fetchList()
+        } else {
+          ElMessage.error(res.msg || '删除失败')
+        }
+      } catch (error) {
+        console.error('删除失败:', error)
+        ElMessage.error(error.msg || '删除失败，请稍后重试')
+      }
+    })
+    .catch((action) => {
+      if (action !== 'cancel') {
+        ElMessage.error('删除失败')
+      }
+    })
 }
 
-/**
- * 分页变化
- */
-const handlePageChange = () => {
-  loadNoticeList()
+// 状态切换
+const handleStatusChange = async (row, newVal) => {
+  try {
+    const res = await updateNotice({
+      id: row.id,
+      title: row.title,
+      content: row.content,
+      type: row.type,
+      status: newVal
+    })
+    if (res.code === 1) {
+      ElMessage.success('状态更新成功')
+    } else {
+      // 失败时还原状态
+      row.status = newVal === 1 ? 0 : 1
+      ElMessage.error(res.msg || '状态更新失败')
+    }
+  } catch (error) {
+    // 请求失败还原状态
+    row.status = newVal === 1 ? 0 : 1
+    ElMessage.error(error.msg || '状态更新失败')
+  }
 }
 
-const handlePageSizeChange = () => {
-  pagination.page = 1
-  loadNoticeList()
+// 分页大小变化
+const onSizeChange = (val) => {
+  pageSize.value = val
+  currentPage.value = 1
+  fetchList()
 }
 
-// ==================== 生命周期 ====================
+// 页码变化
+const onCurrentChange = (val) => {
+  currentPage.value = val
+  fetchList()
+}
 
+// 初始化
 onMounted(() => {
-  loadNoticeList()
+  fetchList()
 })
 </script>
 
@@ -419,25 +389,21 @@ onMounted(() => {
 .notice-admin-page {
   padding: 20px;
 }
-
-.main-card {
-  background: #f0f2f5;
-  border-radius: 8px;
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
-
-.filter-form {
-  margin-bottom: 20px;
-}
-
-:deep(.el-form-item) {
+.search-bar {
   margin-bottom: 16px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
 }
-
-:deep(.el-select) {
-  width: 100%;
-}
-
-:deep(.el-input-number) {
-  width: 100%;
+.pagination-wrapper {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>
