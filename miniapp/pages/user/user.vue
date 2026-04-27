@@ -26,11 +26,11 @@
           <text class="user-card__stat-value">{{ scoreText }}</text>
           <text class="user-card__stat-label">信誉评分</text>
         </view>
-        <view class="user-card__stat">
+        <view class="user-card__stat" @click="goMyProducts(1)">
           <text class="user-card__stat-value">{{ stats.onSaleCount || 0 }}</text>
           <text class="user-card__stat-label">在售</text>
         </view>
-        <view class="user-card__stat">
+        <view class="user-card__stat" @click="goMyProducts(3)">
           <text class="user-card__stat-value">{{ stats.soldCount || 0 }}</text>
           <text class="user-card__stat-label">已售</text>
         </view>
@@ -192,6 +192,13 @@ function goHelp() {
 function goFootprint() {
   if (!ensureLogin()) return
   uni.navigateTo({ url: '/pages/user-sub/footprint/footprint' })
+}
+
+function goMyProducts(status) {
+  if (!ensureLogin()) return
+  uni.navigateTo({
+    url: `/pages/product/my-list/my-list?status=${status}`
+  })
 }
 
 async function loadUnreadCount() {

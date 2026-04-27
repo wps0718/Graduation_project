@@ -36,7 +36,7 @@
           :key="item.id"
           @click="handleBannerClick(item)"
         >
-          <image :src="item.image" mode="aspectFill" class="banner-image" @error="handleBannerImageError(item)" />
+          <image :src="item.image" mode="aspectFill" class="banner-image" />
         </swiper-item>
       </swiper>
     </view>
@@ -58,12 +58,6 @@
             />
           </view>
           <text class="category-text">{{ item.name }}</text>
-        </view>
-        <view class="category-item" @click="goPickupPackage">
-          <view class="category-icon">
-            <image src="/static/svg/Pick_up_Package.svg" class="category-icon-img" />
-          </view>
-          <text class="category-text">代拿快递</text>
         </view>
         <!-- 更多分类 -->
         <view class="category-item" @click="goSearch">
@@ -100,6 +94,21 @@
     <view v-if="productList.length > 0" class="load-more">
       <text>{{ hasMore ? '加载中...' : '没有更多了' }}</text>
     </view>
+
+    <!-- 系统公告弹窗 -->
+    <view v-if="noticeVisible" class="notice-mask" @click.stop>
+      <view class="notice-modal">
+        <view class="notice-modal__header">
+          <text class="notice-modal__title">📢 {{ currentNotice?.title || '系统公告' }}</text>
+        </view>
+        <scroll-view scroll-y class="notice-modal__body">
+          <text class="notice-modal__content">{{ currentNotice?.content }}</text>
+        </scroll-view>
+        <view class="notice-modal__footer" @click="closeNotice">
+          <text class="notice-modal__btn">我知道了</text>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -108,6 +117,7 @@ import { ref } from 'vue'
 import { onLoad, onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useAppStore } from '@/store/app'
 import { get } from '@/utils/request'
+import { getToken } from '@/utils/auth'
 import { normalizeProductCardData } from '@/utils/image'
 import ProductCard from '@/components/product-card/product-card.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
@@ -150,6 +160,8 @@ const LOCAL_BANNERS = [
 ]
 const remoteBannerList = ref([])
 const useRemoteBanners = ref(false)
+const noticeVisible = ref(false)
+const currentNotice = ref(null)
 
 onLoad(async () => {
   try {
@@ -160,6 +172,7 @@ onLoad(async () => {
   await loadBanners()
   await loadCategories()
   await loadProducts(true)
+  await loadLatestNotice()
 })
 
 onShow(() => {
@@ -241,35 +254,30 @@ function handleCategoryIconError(item) {
 }
 
 async function loadBanners() {
-  useRemoteBanners.value = false
-  bannerList.value = LOCAL_BANNERS
-  if (!appStore.currentCampusId) return
+  if (!appStore.currentCampusId) {
+    bannerList.value = LOCAL_BANNERS
+    return
+  }
   try {
-    const res = await get('/mini/banner/list', { campusId: appStore.currentCampusId }, { showLoading: false })
-    remoteBannerList.value = Array.isArray(res) ? res : []
+    const res = await get('/mini/banner/list',
+      { campusId: appStore.currentCampusId },
+      { showLoading: false }
+    )
+    const remote = Array.isArray(res) ? res : []
+    if (remote.length > 0) {
+      bannerList.value = remote
+      useRemoteBanners.value = true
+    } else {
+      bannerList.value = LOCAL_BANNERS
+      useRemoteBanners.value = false
+    }
   } catch (e) {
     console.error('加载Banner失败', e)
+    bannerList.value = LOCAL_BANNERS
+    useRemoteBanners.value = false
   }
 }
 
-async function handleBannerImageError(item) {
-  if (useRemoteBanners.value) return
-  const id = String(item?.id || '')
-  if (!id.startsWith('local-')) return
-  if (!appStore.currentCampusId) return
-  if (!remoteBannerList.value || remoteBannerList.value.length === 0) {
-    try {
-      const res = await get('/mini/banner/list', { campusId: appStore.currentCampusId }, { showLoading: false })
-      remoteBannerList.value = Array.isArray(res) ? res : []
-    } catch (e) {
-      return
-    }
-  }
-  if (remoteBannerList.value && remoteBannerList.value.length > 0) {
-    useRemoteBanners.value = true
-    bannerList.value = remoteBannerList.value
-  }
-}
 
 async function loadCategories() {
   try {
@@ -346,28 +354,66 @@ function goSearch() {
   })
 }
 
-function goPickupPackage() {
-  const title = encodeURIComponent('代拿快递')
-  uni.navigateTo({
-    url: `/pages/login-sub/search/search?keyword=${title}`
-  })
-}
 
 function handleBannerClick(item) {
   if (!item.linkUrl) return
-  
+
   if (item.linkType === 1) {
-     uni.navigateTo({ url: `/pages/product/detail/detail?id=${item.linkUrl}` })
+    uni.navigateTo({ url: `/pages/product/detail/detail?id=${item.linkUrl}` })
   } else if (item.linkType === 2) {
-     uni.navigateTo({ url: item.linkUrl })
-  } else {
+    uni.navigateTo({ url: item.linkUrl })
+  } else if (item.linkType === 3) {
+    // 外部链接：使用web-view打开
+    uni.navigateTo({ url: `/pages/web-view/web-view?url=${encodeURIComponent(item.linkUrl)}` })
   }
 }
 
 function handleCategoryClick(item) {
-  uni.navigateTo({
-    url: `/pages/login-sub/search/search?categoryId=${item.id}`
-  })
+  if (item.name === '代拿快递') {
+    const keyword = encodeURIComponent('代拿快递')
+    uni.navigateTo({
+      url: `/pages/login-sub/search/search?keyword=${keyword}`
+    })
+  } else {
+    uni.navigateTo({
+      url: `/pages/login-sub/search/search?categoryId=${item.id}`
+    })
+  }
+}
+
+async function loadLatestNotice() {
+  try {
+    const token = getToken()
+    if (!token) {
+      console.log('用户未登录，跳过加载公告')
+      return
+    }
+
+    const res = await get('/mini/notification/list',
+      { category: 2, page: 1, pageSize: 5 },
+      { showLoading: false }
+    )
+    const records = Array.isArray(res) ? res : (res?.records || [])
+    const notices = records.filter(item => item.type === 5)
+    if (!notices.length) return
+
+    const notice = notices[0]
+    const shownId = uni.getStorageSync('lastShownNoticeId')
+    if (String(shownId) === String(notice.id)) return
+
+    currentNotice.value = notice
+    noticeVisible.value = true
+  } catch(e) {
+    console.error('加载公告失败', e)
+  }
+}
+
+function closeNotice() {
+  if (currentNotice.value) {
+    uni.setStorageSync('lastShownNoticeId', String(currentNotice.value.id))
+  }
+  noticeVisible.value = false
+  currentNotice.value = null
 }
 </script>
 
@@ -549,5 +595,67 @@ function handleCategoryClick(item) {
   text-align: center;
   font-size: var(--font-sm);
   color: var(--text-secondary);
+}
+
+/* 系统公告弹窗 */
+.notice-mask {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notice-modal {
+  background: #fff;
+  border-radius: 24rpx;
+  width: 600rpx;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
+}
+
+.notice-modal__header {
+  padding: 32rpx 32rpx 24rpx;
+  border-bottom: 1rpx solid var(--border-light);
+}
+
+.notice-modal__title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.notice-modal__body {
+  padding: 24rpx 32rpx;
+  max-height: 400rpx;
+  flex: 1;
+}
+
+.notice-modal__content {
+  font-size: 25rpx;
+  color: #666;
+  line-height: 1.6;
+  text-align: center;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+.notice-modal__footer {
+  padding: 25rpx;
+  border-top: 1rpx solid var(--border-light);
+  text-align: center;
+}
+
+.notice-modal__btn {
+  color: var(--primary-color);
+  font-size: var(--font-md);
+  font-weight: 600;
 }
 </style>
