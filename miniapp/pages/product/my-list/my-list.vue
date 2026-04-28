@@ -1,104 +1,125 @@
 <template>
   <view class="container">
-    <!-- 顶部状态筛选Tab -->
+    <!-- 状态筛选Tab -->
     <view class="status-tabs">
       <view
         v-for="tab in statusTabs"
         :key="tab.value"
         class="status-tab"
-        :class="{ 'is-active': currentStatus === tab.value }"
+        :class="{ 'active': currentStatus === tab.value }"
         @click="switchStatus(tab.value)"
       >
         <text class="status-tab__text">{{ tab.label }}</text>
+        <view v-if="currentStatus === tab.value" class="status-tab__line"></view>
       </view>
     </view>
 
     <!-- 商品列表 -->
-    <view class="product-list" v-if="productList.length > 0">
-      <view
-        v-for="item in productList"
-        :key="item.id"
-        class="product-item"
-      >
-        <!-- 商品信息区 -->
-        <view class="product-item__main" @click="goDetail(item.id)">
-          <view class="product-item__img-wrap">
+    <scroll-view
+      scroll-y
+      class="scroll-view"
+      @scrolltolower="onReachBottom"
+      refresher-enabled
+      :refresher-triggered="refreshing"
+      @refresherrefresh="onRefresh"
+    >
+      <view class="product-list" v-if="productList.length > 0">
+        <view
+          v-for="item in productList"
+          :key="item.id"
+          class="product-item"
+          @click="goDetail(item.id)"
+        >
+          <!-- 商品图片区 -->
+          <view class="product-item__image-wrap">
             <image
-              :src="item.coverImage || item.images?.[0]"
+              :src="item.coverImage || item.images?.[0] || '/static/pic/placeholder.png'"
               mode="aspectFill"
-              class="product-item__img"
+              class="product-item__image"
+              lazy-load
             />
-            <!-- 已售出遮罩 -->
-            <view v-if="item.status === 3" class="product-item__sold-mask">
-              <text class="product-item__sold-text">已售出</text>
+            <!-- 状态标签 -->
+            <view v-if="item.status === 3" class="status-badge status-badge--sold">
+              已售出
             </view>
-            <!-- 已下架遮罩 -->
-            <view v-if="item.status === 2" class="product-item__off-mask">
-              <text class="product-item__off-text">已下架</text>
+            <view v-else-if="item.status === 2" class="status-badge status-badge--off">
+              已下架
             </view>
-            <!-- 待审核标签 -->
-            <view v-if="item.status === 0" class="product-item__pending-tag">
-              <text>待审核</text>
+            <view v-else-if="item.status === 0" class="status-badge status-badge--pending">
+              待审核
             </view>
-            <!-- 审核驳回标签 -->
-            <view v-if="item.status === 4" class="product-item__reject-tag">
-              <text>已驳回</text>
+            <view v-else-if="item.status === 4" class="status-badge status-badge--reject">
+              已驳回
             </view>
           </view>
+
+          <!-- 商品信息区 -->
           <view class="product-item__info">
             <text class="product-item__title">{{ item.title }}</text>
-            <text class="product-item__price">¥{{ item.price }}</text>
-            <text class="product-item__time">{{ item.createTime }}</text>
+            <view class="product-item__meta">
+              <text class="product-item__price">¥{{ item.price }}</text>
+              <text class="product-item__time">{{ formatTime(item.createTime) }}</text>
+            </view>
+          </view>
+
+          <!-- 操作按钮 -->
+          <view class="product-item__actions" @click.stop>
+            <!-- 在售状态 -->
+            <template v-if="item.status === 1">
+              <view class="action-btn action-btn--text" @click="handleEdit(item)">
+                编辑
+              </view>
+              <view class="action-btn action-btn--text" @click="handleOffShelf(item)">
+                下架
+              </view>
+            </template>
+
+            <!-- 已下架 -->
+            <template v-else-if="item.status === 2">
+              <view class="action-btn action-btn--primary" @click="handleOnShelf(item)">
+                上架
+              </view>
+              <view class="action-btn action-btn--text" @click="handleDelete(item)">
+                删除
+              </view>
+            </template>
+
+            <!-- 待审核 -->
+            <template v-else-if="item.status === 0">
+              <text class="tips-text">审核中，请耐心等待</text>
+            </template>
+
+            <!-- 已驳回 -->
+            <template v-else-if="item.status === 4">
+              <view class="action-btn action-btn--primary" @click="handleEdit(item)">
+                重新编辑
+              </view>
+            </template>
+
+            <!-- 已售出 -->
+            <template v-else-if="item.status === 3">
+              <text class="tips-text">交易已完成</text>
+            </template>
           </view>
         </view>
-
-        <!-- 操作按钮区 -->
-        <view class="product-item__actions">
-          <!-- 在售状态的操作 -->
-          <template v-if="item.status === 1">
-            <view class="action-btn action-btn--default" @click="handleEdit(item)">
-              <text>编辑</text>
-            </view>
-            <view class="action-btn action-btn--warning" @click="handleOffShelf(item)">
-              <text>下架</text>
-            </view>
-            <view class="action-btn action-btn--primary" @click="handleMarkSold(item)">
-              <text>标记售出</text>
-            </view>
-          </template>
-
-          <!-- 已下架状态的操作 -->
-          <template v-if="item.status === 2">
-            <view class="action-btn action-btn--primary" @click="handleOnShelf(item)">
-              <text>重新上架</text>
-            </view>
-            <view class="action-btn action-btn--danger" @click="handleDelete(item)">
-              <text>删除</text>
-            </view>
-          </template>
-
-          <!-- 审核驳回状态的操作 -->
-          <template v-if="item.status === 4">
-            <view class="action-btn action-btn--default" @click="handleEdit(item)">
-              <text>修改后重新提交</text>
-            </view>
-          </template>
-        </view>
       </view>
-    </view>
 
-    <empty-state v-else-if="!loading" type="no-data" text="暂无商品" />
+      <!-- 空状态 -->
+      <empty-state v-else-if="!loading" type="no-data" text="暂无商品" />
 
-    <view v-if="productList.length > 0" class="load-more">
-      <text>{{ hasMore ? '加载中...' : '没有更多了' }}</text>
-    </view>
+      <!-- 加载更多 -->
+      <view v-if="productList.length > 0" class="load-more">
+        <text class="load-more__text">{{ hasMore ? '加载中...' : '没有更多了' }}</text>
+      </view>
+    </scroll-view>
   </view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { onLoad, onReachBottom, onPullDownRefresh } from '@dcloudio/uni-app'
+import { onLoad, onShow } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
+import { isLoggedIn } from '@/utils/auth'
 import EmptyState from '@/components/empty-state/empty-state.vue'
 
 const statusTabs = [
@@ -112,16 +133,34 @@ const statusTabs = [
 const currentStatus = ref(null)
 const productList = ref([])
 const loading = ref(false)
+const refreshing = ref(false)
 const hasMore = ref(true)
 const page = ref(1)
 const pageSize = 10
 
 onLoad((options) => {
-  // 支持从个人中心"在售"入口跳转并自动选中对应Tab
+  if (!isLoggedIn()) {
+    uni.showModal({
+      title: '提示',
+      content: '请先登录',
+      showCancel: false,
+      success: () => {
+        uni.reLaunch({ url: '/pages/login-sub/login/login' })
+      }
+    })
+    return
+  }
+
   if (options && options.status !== undefined) {
     currentStatus.value = Number(options.status)
   }
   loadList(true)
+})
+
+onShow(() => {
+  if (isLoggedIn() && productList.value.length === 0) {
+    loadList(true)
+  }
 })
 
 function switchStatus(status) {
@@ -137,6 +176,7 @@ async function loadList(refresh = false) {
     hasMore.value = true
   }
   loading.value = true
+  
   try {
     const params = {
       page: page.value,
@@ -145,23 +185,49 @@ async function loadList(refresh = false) {
     if (currentStatus.value !== null) {
       params.status = currentStatus.value
     }
+    
     const res = await get('/mini/product/my-list', params)
     const list = res?.records || []
+    
     if (refresh) {
       productList.value = list
     } else {
       productList.value = [...productList.value, ...list]
     }
+    
     if (list.length < pageSize) {
       hasMore.value = false
     } else {
       page.value++
     }
   } catch(e) {
-    console.error('加载失败', e)
+    console.error('❌ 加载失败', e)
   } finally {
     loading.value = false
+    refreshing.value = false
   }
+}
+
+function formatTime(timeStr) {
+  if (!timeStr) return ''
+  const date = new Date(timeStr.replace(/-/g, '/'))
+  const now = new Date()
+  const diff = now - date
+  const day = 24 * 60 * 60 * 1000
+  
+  if (diff < day) {
+    const hours = Math.floor(diff / (60 * 60 * 1000))
+    if (hours === 0) {
+      const minutes = Math.floor(diff / (60 * 1000))
+      return minutes === 0 ? '刚刚' : `${minutes}分钟前`
+    }
+    return `${hours}小时前`
+  }
+  
+  const days = Math.floor(diff / day)
+  if (days < 7) return `${days}天前`
+  
+  return timeStr.substring(0, 10)
 }
 
 function goDetail(id) {
@@ -195,28 +261,6 @@ async function handleOnShelf(item) {
   } catch(e) {}
 }
 
-async function handleMarkSold(item) {
-  uni.showModal({
-    title: '确认已售出',
-    content: `确定「${item.title}」已售出吗？标记后商品将显示"已售出"状态。`,
-    confirmText: '确认售出',
-    success: async (res) => {
-      if (!res.confirm) return
-      try {
-        // 调用下架接口将status改为已售出
-        // 注意：需要后端支持 /mini/product/mark-sold 接口
-        // 如果后端暂无此接口，临时使用off-shelf接口
-        await post('/mini/product/mark-sold', { productId: item.id })
-        uni.showToast({ title: '已标记为售出', icon: 'success' })
-        loadList(true)
-      } catch(e) {
-        // 如果接口不存在，提示用户
-        uni.showToast({ title: '操作失败，请联系管理员', icon: 'none' })
-      }
-    }
-  })
-}
-
 async function handleDelete(item) {
   uni.showModal({
     title: '确认删除',
@@ -234,166 +278,188 @@ async function handleDelete(item) {
   })
 }
 
-onReachBottom(() => {
-  if (hasMore.value && !loading.value) loadList(false)
-})
+function onReachBottom() {
+  if (hasMore.value && !loading.value) {
+    loadList(false)
+  }
+}
 
-onPullDownRefresh(async () => {
-  await loadList(true)
-  uni.stopPullDownRefresh()
-})
+function onRefresh() {
+  refreshing.value = true
+  loadList(true)
+}
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .container {
   min-height: 100vh;
-  background-color: var(--bg-page);
+  background-color: #f7f7f7;
 }
+
 .status-tabs {
   display: flex;
-  background: var(--bg-white);
-  padding: var(--spacing-sm) var(--spacing-md);
-  gap: var(--spacing-sm);
+  background: #fff;
+  padding: 0 32rpx;
   position: sticky;
   top: 0;
   z-index: 10;
-  overflow-x: auto;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
 }
+
 .status-tab {
-  padding: 12rpx 28rpx;
-  border-radius: var(--radius-round);
-  background: var(--bg-grey);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.status-tab.is-active {
-  background: var(--primary-bg);
-}
-.status-tab__text {
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
-}
-.status-tab.is-active .status-tab__text {
-  color: var(--primary-color);
-  font-weight: 600;
-}
-.product-list {
-  padding: var(--spacing-md);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-}
-.product-item {
-  background: var(--bg-white);
-  border-radius: 20rpx;
-  overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
-}
-.product-item__main {
-  display: flex;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-}
-.product-item__img-wrap {
-  position: relative;
-  width: 180rpx;
-  height: 180rpx;
-  flex-shrink: 0;
-  border-radius: 12rpx;
-  overflow: hidden;
-}
-.product-item__img {
-  width: 100%;
-  height: 100%;
-}
-.product-item__sold-mask,
-.product-item__off-mask {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.product-item__sold-text,
-.product-item__off-text {
-  color: #fff;
-  font-size: var(--font-sm);
-  font-weight: bold;
-}
-.product-item__pending-tag,
-.product-item__reject-tag {
-  position: absolute;
-  top: 8rpx;
-  right: 8rpx;
-  padding: 4rpx 12rpx;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-xs);
-}
-.product-item__pending-tag {
-  background: var(--warning-color);
-  color: #fff;
-}
-.product-item__reject-tag {
-  background: var(--danger-color);
-  color: #fff;
-}
-.product-item__info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
+  align-items: center;
+  padding: 24rpx 0;
+  position: relative;
 }
-.product-item__title {
-  font-size: var(--font-md);
-  color: var(--text-primary);
+
+.status-tab__text {
+  font-size: 28rpx;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.status-tab.active .status-tab__text {
+  color: #1677ff;
+  font-weight: 600;
+  font-size: 30rpx;
+}
+
+.status-tab__line {
+  width: 40rpx;
+  height: 6rpx;
+  background: #1677ff;
+  border-radius: 3rpx;
+  margin-top: 8rpx;
+}
+
+.scroll-view {
+  height: calc(100vh - 88rpx);
+}
+
+.product-list {
+  padding: 24rpx 32rpx;
+}
+
+.product-item {
+  background: #fff;
+  border-radius: 16rpx;
+  margin-bottom: 24rpx;
+  overflow: hidden;
+}
+
+.product-item__image-wrap {
+  position: relative;
+  width: 100%;
+  height: 420rpx;
+  background: #f5f5f5;
+}
+
+.product-item__image {
+  width: 100%;
+  height: 100%;
+}
+
+.status-badge {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  color: #fff;
   font-weight: 500;
+}
+
+.status-badge--sold {
+  background: rgba(0,0,0,0.6);
+}
+
+.status-badge--off {
+  background: rgba(255,152,0,0.9);
+}
+
+.status-badge--pending {
+  background: rgba(24,144,255,0.9);
+}
+
+.status-badge--reject {
+  background: rgba(245,34,45,0.9);
+}
+
+.product-item__info {
+  padding: 24rpx 32rpx 16rpx;
+}
+
+.product-item__title {
+  font-size: 30rpx;
+  color: #333;
+  line-height: 1.5;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
+
+.product-item__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 16rpx;
+}
+
 .product-item__price {
-  font-size: var(--font-lg);
-  color: var(--danger-color);
-  font-weight: bold;
+  font-size: 36rpx;
+  color: #ff4d4f;
+  font-weight: 600;
 }
+
 .product-item__time {
-  font-size: var(--font-xs);
-  color: var(--text-secondary);
+  font-size: 24rpx;
+  color: #999;
 }
+
 .product-item__actions {
   display: flex;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
   justify-content: flex-end;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx 32rpx 24rpx;
 }
+
 .action-btn {
-  padding: 12rpx 28rpx;
-  border-radius: var(--radius-round);
-  font-size: var(--font-sm);
-  border: 1rpx solid;
+  padding: 12rpx 32rpx;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  transition: all 0.3s;
 }
-.action-btn--default {
-  border-color: var(--border-base);
-  color: var(--text-regular);
+
+.action-btn--text {
+  color: #666;
+  border: 1rpx solid #e5e5e5;
+  background: #fff;
 }
+
 .action-btn--primary {
-  border-color: var(--primary-color);
-  color: var(--primary-color);
+  color: #1677ff;
+  border: 1rpx solid #1677ff;
+  background: #e6f7ff;
 }
-.action-btn--warning {
-  border-color: var(--warning-color);
-  color: var(--warning-color);
+
+.tips-text {
+  font-size: 24rpx;
+  color: #999;
 }
-.action-btn--danger {
-  border-color: var(--danger-color);
-  color: var(--danger-color);
-}
+
 .load-more {
+  padding: 32rpx;
   text-align: center;
-  padding: var(--spacing-md);
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
+}
+
+.load-more__text {
+  font-size: 26rpx;
+  color: #999;
 }
 </style>
