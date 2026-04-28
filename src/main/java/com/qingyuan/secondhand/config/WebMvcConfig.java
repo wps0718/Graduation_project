@@ -48,7 +48,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         // 商品公开接口（首页必需）
                         "/mini/product/list",
                         "/mini/product/detail/**",
-                        "/mini/product/my-list",
                         // 搜索相关（首页必需）
                         "/mini/search/hot-keywords",
                         // 收藏相关

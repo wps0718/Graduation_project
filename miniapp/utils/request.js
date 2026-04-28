@@ -18,10 +18,27 @@ function getMockResponse(url, method) {
 
 function handleResponse(response, resolve, reject) {
   const { code, msg, data } = response || {}
+
   if (code === 1) {
     resolve(data)
     return
   }
+
+  // 未登录统一处理
+  if (code === 0 && (msg === '未登录' || msg === 'Unauthorized')) {
+    uni.showModal({
+      title: '登录过期',
+      content: '您的登录已过期，请重新登录',
+      showCancel: false,
+      success: () => {
+        logout()
+        uni.reLaunch({ url: '/pages/login-sub/login/login' })
+      }
+    })
+    reject(response)
+    return
+  }
+
   if (code === 0) {
     uni.showToast({
       title: msg || '请求失败',
@@ -30,18 +47,7 @@ function handleResponse(response, resolve, reject) {
     reject(response)
     return
   }
-  if (code === 401) {
-    logout()
-    uni.showToast({
-      title: '登录已过期，请重新登录',
-      icon: 'none'
-    })
-    uni.reLaunch({
-      url: '/pages/login-sub/login/login'
-    })
-    reject(response)
-    return
-  }
+
   uni.showToast({
     title: msg || '服务异常',
     icon: 'none'
@@ -77,7 +83,7 @@ function realRequest(url, method, data, options) {
     })
   }
 
-  // 过滤 undefined 和 null 参数，防止后端转换错误
+  // 过滤无效参数
   const cleanData = {}
   if (data && typeof data === 'object') {
     Object.keys(data).forEach(key => {
@@ -89,18 +95,37 @@ function realRequest(url, method, data, options) {
   }
 
   const token = getToken()
+
+  // GET 请求参数拼接到 URL
+  let finalUrl = BASE_URL + url
+  let requestData = cleanData
+
+  if (method === 'GET' && Object.keys(cleanData).length > 0) {
+    const queryString = Object.keys(cleanData)
+      .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(cleanData[key]))
+      .join('&')
+    finalUrl = finalUrl + '?' + queryString
+    requestData = {}
+  }
+
+  // 调试日志（生产环境可删除）
+  console.log('📍 [Request]', method, url, cleanData)
+  console.log('Token:', token ? '✅ 已携带' : '❌ 无')
+
   return new Promise((resolve, reject) => {
     uni.request({
-      url: BASE_URL + url,
+      url: finalUrl,
       method,
-      data: cleanData,
+      data: requestData,
       header: {
-        Authorization: token ? `Bearer ${token}` : ''
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
       },
       success: (res) => {
         if (showLoading) {
           uni.hideLoading()
         }
+        console.log('📍 [Response]', url, res.data)
         const response = res.data || {}
         handleResponse(response, resolve, reject)
       },
@@ -108,6 +133,7 @@ function realRequest(url, method, data, options) {
         if (showLoading) {
           uni.hideLoading()
         }
+        console.error('❌ [Request Failed]', url, err)
         uni.showToast({
           title: '网络异常，请稍后重试',
           icon: 'none'
@@ -159,7 +185,7 @@ export function uploadFile(url, filePath, options = {}) {
       name,
       formData,
       header: {
-        Authorization: token ? `Bearer ${token}` : ''
+        'Authorization': token ? `Bearer ${token}` : ''
       },
       success: (res) => {
         if (showLoading) {

@@ -20,6 +20,7 @@ import com.qingyuan.secondhand.vo.AdminProductPageVO;
 import com.qingyuan.secondhand.vo.ProductDetailVO;
 import com.qingyuan.secondhand.vo.ProductListVO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> implements ProductService {
 
     private final ProductMapper productMapper;
@@ -165,9 +167,13 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     @Override
     public IPage<ProductListVO> getMyProductList(Integer page, Integer pageSize, Integer status) {
         Long userId = UserContext.getCurrentUserId();
+        log.info("📍 [ProductService] 获取我的商品列表，用户ID: {}, 页码: {}, 状态: {}", userId, page, status);
+
         if (userId == null) {
+            log.error("❌ [ProductService] 用户ID为空！");
             throw new BusinessException("未登录");
         }
+
         Page<ProductListVO> pageObj = new Page<>(page, pageSize);
         Page<ProductListVO> result = productMapper.getMyProductList(pageObj, userId, status);
         if (result != null && result.getRecords() != null) {
@@ -175,6 +181,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                 item.setCoverImage(parseCoverImage(item.getCoverImage()));
             }
         }
+
+        log.info("✅ [ProductService] 返回 {} 条商品记录",
+                result == null || result.getRecords() == null ? 0 : result.getRecords().size());
         return result == null ? new Page<>(page, pageSize) : result;
     }
 
