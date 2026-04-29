@@ -30,9 +30,12 @@ public interface ProductService extends IService<Product> {
                                         BigDecimal maxPrice,
                                         String sortBy);
 
-    IPage<ProductListVO> getMyProductList(Integer page, Integer pageSize, Integer status);
+    IPage<ProductListVO> getMyProductList(Integer page, Integer pageSize, Integer status,
+                                          String keyword, String sortBy, String order);
 
     void offShelf(Long productId);
+
+    void markSold(Long productId);
 
     void onShelf(Long productId);
 

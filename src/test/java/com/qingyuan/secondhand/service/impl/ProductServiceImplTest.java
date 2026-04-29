@@ -388,19 +388,23 @@ class ProductServiceImplTest {
         ProductListVO vo = new ProductListVO();
         vo.setId(1L);
         vo.setCoverImage("[\"1.png\"]");
+        vo.setStatus(1); // 在售状态
         Page<ProductListVO> pageResult = new Page<>(1, 10);
         pageResult.setRecords(List.of(vo));
-        Mockito.when(productMapper.getMyProductList(Mockito.any(Page.class), Mockito.eq(10001L), Mockito.eq(1)))
+        Mockito.when(productMapper.getMyProductList(Mockito.any(Page.class), Mockito.eq(10001L), Mockito.eq(1),
+                Mockito.isNull(), Mockito.isNull(), Mockito.isNull()))
                 .thenReturn(pageResult);
         Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
                 .thenReturn(List.of("1.png"));
 
         UserContext.setCurrentUserId(10001L);
         ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
-        IPage<ProductListVO> result = service.getMyProductList(1, 10, 1);
+        IPage<ProductListVO> result = service.getMyProductList(1, 10, 1, null, null, null);
 
-        Mockito.verify(productMapper).getMyProductList(Mockito.any(Page.class), Mockito.eq(10001L), Mockito.eq(1));
+        Mockito.verify(productMapper).getMyProductList(Mockito.any(Page.class), Mockito.eq(10001L), Mockito.eq(1),
+                Mockito.isNull(), Mockito.isNull(), Mockito.isNull());
         Assertions.assertEquals("1.png", result.getRecords().get(0).getCoverImage());
+        Assertions.assertEquals(1, result.getRecords().get(0).getStatus()); // 验证 status 字段
     }
 
     @Test
@@ -413,14 +417,16 @@ class ProductServiceImplTest {
 
         Page<ProductListVO> pageResult = new Page<>(1, 10);
         pageResult.setRecords(List.of());
-        Mockito.when(productMapper.getMyProductList(Mockito.any(Page.class), Mockito.eq(10001L), Mockito.isNull()))
+        Mockito.when(productMapper.getMyProductList(Mockito.any(Page.class), Mockito.eq(10001L), Mockito.isNull(),
+                Mockito.isNull(), Mockito.isNull(), Mockito.isNull()))
                 .thenReturn(pageResult);
 
         UserContext.setCurrentUserId(10001L);
         ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
-        service.getMyProductList(1, 10, null);
+        service.getMyProductList(1, 10, null, null, null, null);
 
-        Mockito.verify(productMapper).getMyProductList(Mockito.any(Page.class), Mockito.eq(10001L), Mockito.isNull());
+        Mockito.verify(productMapper).getMyProductList(Mockito.any(Page.class), Mockito.eq(10001L), Mockito.isNull(),
+                Mockito.isNull(), Mockito.isNull(), Mockito.isNull());
     }
 
     @Test

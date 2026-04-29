@@ -1,7 +1,8 @@
 package com.qingyuan.secondhand.common.interceptor;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.context.UserContext;
-import com.qingyuan.secondhand.common.exception.BusinessException;
+import com.qingyuan.secondhand.common.result.Result;
 import com.qingyuan.secondhand.common.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,12 +13,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.io.IOException;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtInterceptor implements HandlerInterceptor {
 
     private final JwtUtil jwtUtil;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -35,7 +39,8 @@ public class JwtInterceptor implements HandlerInterceptor {
         // 检查 Token 是否存在
         if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
             log.error("❌ [JWT拦截器] Token 格式错误或不存在");
-            throw new BusinessException("未登录");
+            writeUnauthorized(response, "未登录");
+            return false;
         }
 
         // 提取 Token
@@ -56,14 +61,16 @@ public class JwtInterceptor implements HandlerInterceptor {
             // 验证是否为小程序端 Token
             if (!"mini".equals(type)) {
                 log.error("❌ [JWT拦截器] Token 类型错误: {}, 期望: mini", type);
-                throw new BusinessException("Token 类型错误");
+                writeUnauthorized(response, "Token 类型错误");
+                return false;
             }
 
             // 获取用户 ID
             String subject = claims.getSubject();
             if (subject == null) {
                 log.error("❌ [JWT拦截器] Token 中缺少 subject（用户ID）");
-                throw new BusinessException("Token 无效");
+                writeUnauthorized(response, "Token 无效");
+                return false;
             }
 
             Long userId = Long.parseLong(subject);
@@ -76,12 +83,22 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         } catch (NumberFormatException e) {
             log.error("❌ [JWT拦截器] 用户ID格式错误: {}", e.getMessage());
-            throw new BusinessException("Token 无效");
-        } catch (BusinessException e) {
-            throw e;
+            writeUnauthorized(response, "Token 无效");
+            return false;
         } catch (Exception e) {
             log.error("❌ [JWT拦截器] Token 解析失败: {}", e.getMessage(), e);
-            throw new BusinessException("登录已过期");
+            writeUnauthorized(response, "登录已过期");
+            return false;
+        }
+    }
+
+    private void writeUnauthorized(HttpServletResponse response, String message) {
+        response.setStatus(401);
+        response.setContentType("application/json;charset=UTF-8");
+        try {
+            Result<?> result = Result.error(401, message);
+            response.getWriter().write(objectMapper.writeValueAsString(result));
+        } catch (IOException ignored) {
         }
     }
 
