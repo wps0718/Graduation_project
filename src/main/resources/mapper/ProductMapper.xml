@@ -90,6 +90,7 @@
             p.id,
             p.title,
             p.price,
+            p.status,
             p.condition_level AS conditionLevel,
             p.view_count AS viewCount,
             p.favorite_count AS favoriteCount,
@@ -98,15 +99,34 @@
             ca.name AS campusName,
             u.id AS sellerId,
             u.nick_name AS sellerNickName,
-            u.avatar_url AS sellerAvatarUrl
+            u.avatar_url AS sellerAvatarUrl,
+            IFNULL(chat_stat.chat_count, 0) AS chatCount
         FROM product p
         LEFT JOIN campus ca ON p.campus_id = ca.id
         LEFT JOIN user u ON p.user_id = u.id
+        LEFT JOIN (
+            SELECT product_id, COUNT(DISTINCT id) AS chat_count
+            FROM chat_session
+            GROUP BY product_id
+        ) chat_stat ON p.id = chat_stat.product_id
         WHERE p.user_id = #{userId} AND p.is_deleted = 0
         <if test="status != null">
             AND p.status = #{status}
         </if>
-        ORDER BY p.create_time DESC
+        <if test="keyword != null and keyword != ''">
+            AND p.title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <choose>
+            <when test="sortBy == 'price' and order == 'asc'">
+                ORDER BY p.price ASC, p.create_time DESC
+            </when>
+            <when test="sortBy == 'price' and order == 'desc'">
+                ORDER BY p.price DESC, p.create_time DESC
+            </when>
+            <otherwise>
+                ORDER BY p.create_time DESC
+            </otherwise>
+        </choose>
     </select>
 
     <select id="getAdminProductPage" resultType="com.qingyuan.secondhand.vo.AdminProductPageVO">

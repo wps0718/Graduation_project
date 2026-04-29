@@ -58,6 +58,12 @@ public class MiniProductController {
         return Result.success();
     }
 
+    @PostMapping("/mark-sold")
+    public Result<Void> markSold(@RequestBody @Valid ProductIdDTO dto) {
+        productService.markSold(dto.getProductId());
+        return Result.success();
+    }
+
     @PostMapping("/on-shelf")
     public Result<Void> onShelf(@RequestBody @Valid ProductIdDTO dto) {
         productService.onShelf(dto.getProductId());
@@ -90,8 +96,11 @@ public class MiniProductController {
     @GetMapping("/my-list")
     public Result<IPage<ProductListVO>> getMyProductList(@RequestParam Integer page,
                                                          @RequestParam Integer pageSize,
-                                                         @RequestParam(required = false) Integer status) {
-        return Result.success(productService.getMyProductList(page, pageSize, status));
+                                                         @RequestParam(required = false) Integer status,
+                                                         @RequestParam(required = false) String keyword,
+                                                         @RequestParam(required = false) String sortBy,
+                                                         @RequestParam(required = false) String order) {
+        return Result.success(productService.getMyProductList(page, pageSize, status, keyword, sortBy, order));
     }
 
     @PostMapping("/comment/add")

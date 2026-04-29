@@ -68,7 +68,7 @@ class MiniProductControllerTest {
     void testGetMyProductList() throws Exception {
         Page<ProductListVO> page = new Page<>(1, 10);
         page.setTotal(0);
-        when(productService.getMyProductList(1, 10, 1)).thenReturn(page);
+        when(productService.getMyProductList(1, 10, 1, null, null, null)).thenReturn(page);
 
         mockMvc.perform(get("/mini/product/my-list")
                         .param("page", "1")

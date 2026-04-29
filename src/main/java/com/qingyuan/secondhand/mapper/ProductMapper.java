@@ -26,7 +26,10 @@ public interface ProductMapper extends BaseMapper<Product> {
 
     Page<ProductListVO> getMyProductList(Page<ProductListVO> page,
                                          @Param("userId") Long userId,
-                                         @Param("status") Integer status);
+                                         @Param("status") Integer status,
+                                         @Param("keyword") String keyword,
+                                         @Param("sortBy") String sortBy,
+                                         @Param("order") String order);
 
     Page<AdminProductPageVO> getAdminProductPage(Page<AdminProductPageVO> page,
                                                  @Param("status") Integer status,

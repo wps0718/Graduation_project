@@ -165,9 +165,11 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
-    public IPage<ProductListVO> getMyProductList(Integer page, Integer pageSize, Integer status) {
+    public IPage<ProductListVO> getMyProductList(Integer page, Integer pageSize, Integer status,
+                                                  String keyword, String sortBy, String order) {
         Long userId = UserContext.getCurrentUserId();
-        log.info("📍 [ProductService] 获取我的商品列表，用户ID: {}, 页码: {}, 状态: {}", userId, page, status);
+        log.info("📍 [ProductService] 获取我的商品列表，用户ID: {}, 页码: {}, 状态: {}, 关键词: {}, 排序: {}_{}",
+                userId, page, status, keyword, sortBy, order);
 
         if (userId == null) {
             log.error("❌ [ProductService] 用户ID为空！");
@@ -175,7 +177,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         }
 
         Page<ProductListVO> pageObj = new Page<>(page, pageSize);
-        Page<ProductListVO> result = productMapper.getMyProductList(pageObj, userId, status);
+        Page<ProductListVO> result = productMapper.getMyProductList(pageObj, userId, status, keyword, sortBy, order);
         if (result != null && result.getRecords() != null) {
             for (ProductListVO item : result.getRecords()) {
                 item.setCoverImage(parseCoverImage(item.getCoverImage()));
@@ -217,6 +219,33 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (updated <= 0) {
             throw new BusinessException("下架失败");
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void markSold(Long productId) {
+        Long userId = UserContext.getCurrentUserId();
+        log.info("📍 [ProductService] 标记商品售出，商品ID: {}, 用户ID: {}", productId, userId);
+
+        Product product = this.getById(productId);
+        if (product == null) {
+            throw new BusinessException("商品不存在");
+        }
+
+        if (!product.getUserId().equals(userId)) {
+            throw new BusinessException("无权操作此商品");
+        }
+
+        if (product.getStatus() != 1) {
+            throw new BusinessException("只有在售商品才能标记售出");
+        }
+
+        product.setStatus(3);
+        this.updateById(product);
+
+        stringRedisTemplate.delete("product:detail:" + productId);
+
+        log.info("✅ [ProductService] 商品已标记为售出，商品ID: {}", productId);
     }
 
     @Override
