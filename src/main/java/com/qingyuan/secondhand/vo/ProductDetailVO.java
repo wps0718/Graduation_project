@@ -23,6 +23,9 @@ public class ProductDetailVO {
     @JsonIgnore
     private String imagesJson;
 
+    private Long categoryId;
+    private Long campusId;
+    private Long meetingPointId;
     private String categoryName;
     private String campusName;
     private String meetingPointName;

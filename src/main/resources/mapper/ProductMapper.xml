@@ -19,6 +19,9 @@
             p.meeting_point_text AS meetingPointText,
             <!-- 新增：驳回原因 -->
             p.reject_reason AS rejectReason,
+            p.category_id AS categoryId,
+            p.campus_id AS campusId,
+            p.meeting_point_id AS meetingPointId,
             c.name AS categoryName,
             ca.name AS campusName,
             mp.name AS meetingPointName,

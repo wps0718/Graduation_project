@@ -1,6 +1,7 @@
 package com.qingyuan.secondhand.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.qingyuan.secondhand.common.constant.RedisConstant;
 import com.qingyuan.secondhand.common.enums.NotificationCategory;
 import com.qingyuan.secondhand.common.enums.OrderStatus;
 import com.qingyuan.secondhand.common.enums.ProductStatus;
@@ -12,6 +13,7 @@ import com.qingyuan.secondhand.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +29,7 @@ public class OrderAutoConfirmTask {
     private final TradeOrderMapper tradeOrderMapper;
     private final ProductMapper productMapper;
     private final NotificationService notificationService;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Scheduled(cron = "0 0 2 * * ?")
     public void execute() {
@@ -59,6 +62,8 @@ public class OrderAutoConfirmTask {
                         productUpdate.setStatus(ProductStatus.SOLD.getCode());
                         productUpdate.setUpdateTime(LocalDateTime.now());
                         productMapper.updateById(productUpdate);
+
+                        stringRedisTemplate.delete(RedisConstant.USER_STATS + product.getUserId());
                     }
 
                     notificationService.send(
