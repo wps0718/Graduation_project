@@ -384,7 +384,8 @@ const sheetTarget = ref(null)
 const sheetActions = ref([])
 function showActionSheet(item) {
   sheetTarget.value = item
-  const acts = ['编辑']
+  const acts = []
+  if (item.status !== 3) acts.push('编辑')
   if (item.status === 1) acts.push('下架')
   if (item.status === 2) acts.push('上架')
   if (item.status !== 3) acts.push('删除')

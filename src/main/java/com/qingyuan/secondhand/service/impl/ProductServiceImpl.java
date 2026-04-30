@@ -1,5 +1,6 @@
 package com.qingyuan.secondhand.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -68,6 +69,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateProduct(ProductUpdateDTO dto) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -92,6 +94,19 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (updated <= 0) {
             throw new BusinessException("更新商品失败");
         }
+
+        // 发送站内通知：商品已提交重新审核
+        notificationService.send(
+                existing.getUserId(),
+                3,
+                "商品已提交重新审核",
+                "您的商品《" + existing.getTitle() + "》已提交修改，等待审核",
+                dto.getProductId(),
+                1,
+                2
+        );
+
+        stringRedisTemplate.delete(RedisConstant.USER_STATS + existing.getUserId());
     }
 
     @Override
@@ -219,6 +234,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (updated <= 0) {
             throw new BusinessException("下架失败");
         }
+
+        stringRedisTemplate.delete(RedisConstant.USER_STATS + product.getUserId());
     }
 
     @Override
@@ -244,6 +261,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         this.updateById(product);
 
         stringRedisTemplate.delete("product:detail:" + productId);
+        stringRedisTemplate.delete(RedisConstant.USER_STATS + product.getUserId());
 
         log.info("✅ [ProductService] 商品已标记为售出，商品ID: {}", productId);
     }
@@ -304,6 +322,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (updated <= 0) {
             throw new BusinessException("删除失败");
         }
+
+        stringRedisTemplate.delete(RedisConstant.USER_STATS + product.getUserId());
     }
 
     @Override
@@ -421,6 +441,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                 1,
                 2
         );
+
+        stringRedisTemplate.delete(RedisConstant.USER_STATS + product.getUserId());
     }
 
     @Override
@@ -467,6 +489,16 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (productIds == null || productIds.isEmpty()) {
             throw new BusinessException("商品ID不能为空");
         }
+
+        // 先查询所有受影响的 userId，用于后续清除缓存
+        List<Product> productList = productMapper.selectList(new LambdaQueryWrapper<Product>()
+                .in(Product::getId, productIds)
+                .eq(Product::getStatus, 0)
+                .eq(Product::getIsDeleted, 0));
+        if (productList.isEmpty()) {
+            throw new BusinessException("批量审核失败");
+        }
+
         LocalDateTime now = LocalDateTime.now();
         Long reviewerId = UserContext.getCurrentUserId();
         LambdaUpdateWrapper<Product> wrapper = new LambdaUpdateWrapper<>();
@@ -481,6 +513,12 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (updated <= 0) {
             throw new BusinessException("批量审核失败");
         }
+
+        // 清除所有受影响用户的 stats 缓存
+        productList.stream()
+                .map(Product::getUserId)
+                .distinct()
+                .forEach(uid -> stringRedisTemplate.delete(RedisConstant.USER_STATS + uid));
     }
 
     @Override
@@ -511,6 +549,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                 1,
                 2
         );
+
+        stringRedisTemplate.delete(RedisConstant.USER_STATS + product.getUserId());
     }
 
     private void fillProduct(Product product, ProductPublishDTO dto) {
