@@ -208,6 +208,12 @@
 			"style": {
 				"navigationBarTitleText": "客服与帮助"
 			}
+		},
+		{
+			"path": "pages/common/web-view/web-view",
+			"style": {
+				"navigationBarTitleText": "详情"
+			}
 		}
 	],
 	"globalStyle": {
