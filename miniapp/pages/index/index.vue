@@ -36,7 +36,7 @@
           :key="item.id"
           @click="handleBannerClick(item)"
         >
-          <image :src="item.image" mode="aspectFill" class="banner-image" />
+          <image :src="resolveImageUrl(item.image)" mode="aspectFill" class="banner-image" />
         </swiper-item>
       </swiper>
     </view>
@@ -118,7 +118,7 @@ import { onLoad, onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-
 import { useAppStore } from '@/store/app'
 import { get } from '@/utils/request'
 import { getToken } from '@/utils/auth'
-import { normalizeProductCardData } from '@/utils/image'
+import { normalizeProductCardData, resolveImageUrl } from '@/utils/image'
 import ProductCard from '@/components/product-card/product-card.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
 
@@ -361,10 +361,15 @@ function handleBannerClick(item) {
   if (item.linkType === 1) {
     uni.navigateTo({ url: `/pages/product/detail/detail?id=${item.linkUrl}` })
   } else if (item.linkType === 2) {
-    uni.navigateTo({ url: item.linkUrl })
+    // 活动页：如果是外部链接则用 web-view，否则内部跳转
+    if (/^https?:\/\//i.test(item.linkUrl)) {
+      uni.navigateTo({ url: `/pages/common/web-view/web-view?url=${encodeURIComponent(item.linkUrl)}` })
+    } else {
+      uni.navigateTo({ url: item.linkUrl })
+    }
   } else if (item.linkType === 3) {
-    // 外部链接：使用web-view打开
-    uni.navigateTo({ url: `/pages/web-view/web-view?url=${encodeURIComponent(item.linkUrl)}` })
+    // 外部链接：使用 web-view 打开
+    uni.navigateTo({ url: `/pages/common/web-view/web-view?url=${encodeURIComponent(item.linkUrl)}` })
   }
 }
 

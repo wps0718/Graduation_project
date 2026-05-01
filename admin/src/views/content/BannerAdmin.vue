@@ -40,10 +40,10 @@
           <template #default="{ row }">
             <template v-if="row.image">
               <el-image
-                :src="row.image"
+                :src="getImageUrl(row.image)"
                 style="width: 100px; height: 60px; border-radius: 4px"
                 fit="cover"
-                :preview-src-list="[row.image]"
+                :preview-src-list="[getImageUrl(row.image)]"
                 preview-teleported
                 lazy
               />
@@ -140,7 +140,7 @@
           >
             <div v-if="formData.image" class="image-preview-wrapper" @click.stop>
               <el-image
-                :src="formData.image"
+                :src="getImageUrl(formData.image)"
                 style="width: 200px; height: 120px; border-radius: 4px"
                 fit="cover"
               />
@@ -234,6 +234,13 @@ import {
   uploadBannerImage
 } from '@/api/banner'
 
+// ==================== 工具方法 ====================
+const getImageUrl = (path) => {
+  if (!path) return ''
+  if (path.startsWith('http')) return path
+  return `http://localhost:8080${path.startsWith('/') ? '' : '/'}${path}`
+}
+
 // ==================== 校区选项 ====================
 const campusOptions = ref([])
 
@@ -273,10 +280,10 @@ const fetchList = async () => {
       page: currentPage.value,
       pageSize: pageSize.value
     }
-    if (searchCampusId.value) {
+    if (searchCampusId.value !== null && searchCampusId.value !== undefined && searchCampusId.value !== 0) {
       params.campusId = searchCampusId.value
     }
-    if (searchStatus.value !== null && searchStatus.value !== undefined) {
+    if (searchStatus.value !== null && searchStatus.value !== undefined && searchStatus.value !== '') {
       params.status = searchStatus.value
     }
     const res = await getBannerPage(params)

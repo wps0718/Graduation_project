@@ -38,6 +38,14 @@ export const useUserStore = defineStore('user', {
       }
       if (payload && payload.userInfo) {
         this.setUserInfo(payload.userInfo)
+      } else if (payload && payload.userId) {
+        // 登录接口直接返回用户信息（LoginVO），无嵌套 userInfo
+        this.setUserInfo({
+          id: payload.userId,
+          nickName: payload.nickName || '',
+          avatarUrl: payload.avatarUrl || '',
+          authStatus: payload.authStatus || 0
+        })
       }
     },
     async fetchUserInfo() {
