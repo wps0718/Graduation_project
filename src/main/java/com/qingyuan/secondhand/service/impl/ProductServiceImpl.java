@@ -13,13 +13,23 @@ import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.dto.ProductPublishDTO;
 import com.qingyuan.secondhand.dto.ProductUpdateDTO;
+import com.qingyuan.secondhand.entity.CampusAuth;
+import com.qingyuan.secondhand.entity.College;
 import com.qingyuan.secondhand.entity.Product;
+import com.qingyuan.secondhand.entity.TradeOrder;
+import com.qingyuan.secondhand.entity.User;
+import com.qingyuan.secondhand.mapper.CampusAuthMapper;
+import com.qingyuan.secondhand.mapper.CollegeMapper;
 import com.qingyuan.secondhand.mapper.ProductMapper;
+import com.qingyuan.secondhand.mapper.TradeOrderMapper;
+import com.qingyuan.secondhand.mapper.UserMapper;
 import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.service.ProductService;
 import com.qingyuan.secondhand.vo.AdminProductPageVO;
 import com.qingyuan.secondhand.vo.ProductDetailVO;
 import com.qingyuan.secondhand.vo.ProductListVO;
+import com.qingyuan.secondhand.vo.PublisherInfoVO;
+import com.qingyuan.secondhand.vo.RelatedOrderVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -34,6 +44,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -46,6 +58,10 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     private final StringRedisTemplate stringRedisTemplate;
     private final ProductAsyncService productAsyncService;
     private final NotificationService notificationService;
+    private final TradeOrderMapper tradeOrderMapper;
+    private final UserMapper userMapper;
+    private final CampusAuthMapper campusAuthMapper;
+    private final CollegeMapper collegeMapper;
 
     @Override
     public void publishProduct(ProductPublishDTO dto) {
@@ -424,10 +440,22 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         Long reviewerId = UserContext.getCurrentUserId();
         Product update = new Product();
         update.setId(productId);
-        update.setStatus(1);
         update.setReviewTime(now);
         update.setReviewerId(reviewerId);
         update.setRejectReason(null);
+
+        // 检查该商品是否有进行中的订单（防止状态不一致）
+        LambdaQueryWrapper<TradeOrder> orderWrapper = new LambdaQueryWrapper<>();
+        orderWrapper.eq(TradeOrder::getProductId, productId)
+                .in(TradeOrder::getStatus, 1, 2);
+        long activeOrders = tradeOrderMapper.selectCount(orderWrapper);
+        if (activeOrders > 0) {
+            log.warn("商品[{}]审核通过时存在进行中订单({}条)，状态设为已售出", productId, activeOrders);
+            update.setStatus(3);
+        } else {
+            update.setStatus(1);
+        }
+
         int updated = productMapper.updateById(update);
         if (updated <= 0) {
             throw new BusinessException("审核失败");
@@ -501,17 +529,47 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 
         LocalDateTime now = LocalDateTime.now();
         Long reviewerId = UserContext.getCurrentUserId();
-        LambdaUpdateWrapper<Product> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.in(Product::getId, productIds)
-                .eq(Product::getStatus, 0)
-                .eq(Product::getIsDeleted, 0)
-                .set(Product::getStatus, 1)
-                .set(Product::getReviewTime, now)
-                .set(Product::getReviewerId, reviewerId)
-                .set(Product::getRejectReason, null);
-        int updated = productMapper.update(null, wrapper);
-        if (updated <= 0) {
-            throw new BusinessException("批量审核失败");
+
+        // 检查哪些商品有进行中的订单
+        LambdaQueryWrapper<TradeOrder> orderQuery = new LambdaQueryWrapper<>();
+        orderQuery.in(TradeOrder::getProductId, productIds)
+                .in(TradeOrder::getStatus, 1, 2);
+        List<TradeOrder> activeOrders = tradeOrderMapper.selectList(orderQuery);
+        Set<Long> productIdsWithActiveOrders = activeOrders.stream()
+                .map(TradeOrder::getProductId)
+                .collect(Collectors.toSet());
+
+        if (!productIdsWithActiveOrders.isEmpty()) {
+            // 有进行中订单的商品 → 设为已售出(3)
+            LambdaUpdateWrapper<Product> soldWrapper = new LambdaUpdateWrapper<>();
+            soldWrapper.in(Product::getId, productIdsWithActiveOrders)
+                    .eq(Product::getStatus, 0)
+                    .eq(Product::getIsDeleted, 0)
+                    .set(Product::getStatus, 3)
+                    .set(Product::getReviewTime, now)
+                    .set(Product::getReviewerId, reviewerId)
+                    .set(Product::getRejectReason, null);
+            productMapper.update(null, soldWrapper);
+            for (Long pid : productIdsWithActiveOrders) {
+                log.warn("商品[{}]批量审核通过时存在进行中订单，状态设为已售出", pid);
+            }
+        }
+
+        // 无进行中订单的商品 → 设为在售(1)
+        List<Long> normalIds = productList.stream()
+                .map(Product::getId)
+                .filter(id -> !productIdsWithActiveOrders.contains(id))
+                .toList();
+        if (!normalIds.isEmpty()) {
+            LambdaUpdateWrapper<Product> normalWrapper = new LambdaUpdateWrapper<>();
+            normalWrapper.in(Product::getId, normalIds)
+                    .eq(Product::getStatus, 0)
+                    .eq(Product::getIsDeleted, 0)
+                    .set(Product::getStatus, 1)
+                    .set(Product::getReviewTime, now)
+                    .set(Product::getReviewerId, reviewerId)
+                    .set(Product::getRejectReason, null);
+            productMapper.update(null, normalWrapper);
         }
 
         // 清除所有受影响用户的 stats 缓存
@@ -533,6 +591,16 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         if (!Integer.valueOf(1).equals(product.getStatus())) {
             throw new BusinessException("商品状态不允许下架");
         }
+
+        // 检查是否有进行中的订单（防止强制下架后订单无法履约）
+        LambdaQueryWrapper<TradeOrder> orderWrapper = new LambdaQueryWrapper<>();
+        orderWrapper.eq(TradeOrder::getProductId, productId)
+                .in(TradeOrder::getStatus, 1, 2);
+        long activeOrders = tradeOrderMapper.selectCount(orderWrapper);
+        if (activeOrders > 0) {
+            throw new BusinessException("该商品存在进行中的订单，无法下架");
+        }
+
         Product update = new Product();
         update.setId(productId);
         update.setStatus(2);
@@ -551,6 +619,127 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         );
 
         stringRedisTemplate.delete(RedisConstant.USER_STATS + product.getUserId());
+    }
+
+    @Override
+    public IPage<RelatedOrderVO> getRelatedOrders(Long productId, Integer page, Integer pageSize) {
+        if (productId == null) {
+            throw new BusinessException("商品ID不能为空");
+        }
+        Page<RelatedOrderVO> pageObj = new Page<>(page, pageSize);
+        Page<RelatedOrderVO> result = tradeOrderMapper.getRelatedOrdersByProductId(pageObj, productId);
+        if (result != null && result.getRecords() != null) {
+            for (RelatedOrderVO vo : result.getRecords()) {
+                vo.setStatusText(getOrderStatusText(vo.getStatus()));
+                if (Integer.valueOf(5).equals(vo.getStatus())) {
+                    vo.setCancelByText(getCancelByText(vo.getCancelBy()));
+                }
+            }
+        }
+        return result == null ? new Page<>(page, pageSize) : result;
+    }
+
+    @Override
+    public PublisherInfoVO getPublisherInfo(Long productId) {
+        if (productId == null) {
+            throw new BusinessException("商品ID不能为空");
+        }
+        Product product = productMapper.selectById(productId);
+        if (product == null || Integer.valueOf(1).equals(product.getIsDeleted())) {
+            throw new BusinessException("商品不存在");
+        }
+
+        Long userId = product.getUserId();
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        PublisherInfoVO vo = new PublisherInfoVO();
+        vo.setUserId(user.getId());
+        vo.setAvatarUrl(user.getAvatarUrl());
+        vo.setNickName(user.getNickName());
+        vo.setPhone(maskPhone(user.getPhone()));
+        vo.setAccountStatus(user.getStatus());
+        vo.setAccountStatusText(Integer.valueOf(1).equals(user.getStatus()) ? "正常" : "禁用");
+        vo.setAuthStatus(user.getAuthStatus());
+        vo.setAuthStatusText(getAuthStatusText(user.getAuthStatus()));
+        vo.setScore(user.getScore());
+        vo.setBio(user.getBio());
+        vo.setIpRegion(user.getIpRegion());
+        vo.setCreateTime(user.getCreateTime());
+
+        vo.setProductCount(productMapper.selectCount(new LambdaQueryWrapper<Product>()
+                .eq(Product::getUserId, userId)
+                .eq(Product::getIsDeleted, 0)).intValue());
+
+        vo.setDealOrderCount(tradeOrderMapper.selectCount(new LambdaQueryWrapper<TradeOrder>()
+                .eq(TradeOrder::getSellerId, userId)
+                .in(TradeOrder::getStatus, 3, 4)).intValue());
+
+        CampusAuth auth = campusAuthMapper.selectByUserId(userId);
+        if (auth != null) {
+            vo.setRealName(maskRealName(auth.getRealName()));
+            vo.setStudentNo(maskStudentNo(auth.getStudentNo()));
+            College college = collegeMapper.selectById(auth.getCollegeId());
+            if (college != null) {
+                vo.setCollegeName(college.getName());
+            }
+        }
+
+        return vo;
+    }
+
+    private String getOrderStatusText(Integer status) {
+        if (status == null) return "";
+        switch (status) {
+            case 1: return "待面交";
+            case 2: return "预留";
+            case 3: return "已完成";
+            case 4: return "已评价";
+            case 5: return "已取消";
+            default: return "未知";
+        }
+    }
+
+    private String getCancelByText(Integer cancelBy) {
+        if (cancelBy == null) return "系统取消";
+        switch (cancelBy) {
+            case 0: return "系统取消";
+            case 1: return "买家取消";
+            case 2: return "卖家取消";
+            default: return "未知";
+        }
+    }
+
+    private String getAuthStatusText(Integer authStatus) {
+        if (authStatus == null) return "未认证";
+        switch (authStatus) {
+            case 0: return "未认证";
+            case 1: return "审核中";
+            case 2: return "已认证";
+            case 3: return "已驳回";
+            default: return "未知";
+        }
+    }
+
+    private String maskPhone(String phone) {
+        if (phone == null || phone.length() < 7) return phone;
+        return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 4);
+    }
+
+    private String maskRealName(String realName) {
+        if (realName == null || realName.isEmpty()) return null;
+        int len = realName.length();
+        if (len == 1) return realName + "*";
+        if (len == 2) return realName.charAt(0) + "*";
+        // 复姓+单名（如"欧阳明" → "欧**"），或复姓+双名（如"欧阳小明"→ "欧***"）
+        return realName.charAt(0) + "*".repeat(len - 1);
+    }
+
+    private String maskStudentNo(String studentNo) {
+        if (studentNo == null || studentNo.length() < 6) return studentNo;
+        return studentNo.substring(0, 4) + "****" + studentNo.substring(studentNo.length() - 2);
     }
 
     private void fillProduct(Product product, ProductPublishDTO dto) {

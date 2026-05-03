@@ -38,14 +38,14 @@ class StatsServiceImplTest {
 
         Assertions.assertEquals(3, result.getTodayNewUsers());
         Assertions.assertEquals(5, result.getTodayNewProducts());
-        Assertions.assertEquals(2, result.getTodayOrders());
+        Assertions.assertEquals(2, result.getTodayNewOrders());
         Assertions.assertEquals(new BigDecimal("123.45"), result.getTodayGmv());
         Assertions.assertEquals(100, result.getTotalUsers());
         Assertions.assertEquals(80, result.getTotalProducts());
         Assertions.assertEquals(60, result.getTotalOrders());
-        Assertions.assertEquals(new BigDecimal("4567.89"), result.getTotalGmv());
-        Assertions.assertEquals(7, result.getPendingProducts());
-        Assertions.assertEquals(4, result.getPendingAuths());
+        Assertions.assertEquals(new BigDecimal("4567.89"), result.getTotalAmount());
+        Assertions.assertEquals(7, result.getPendingProductCount());
+        Assertions.assertEquals(4, result.getPendingAuthCount());
         Assertions.assertEquals(1, result.getPendingReports());
     }
 

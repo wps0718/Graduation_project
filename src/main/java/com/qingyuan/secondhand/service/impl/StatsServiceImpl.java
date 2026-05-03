@@ -22,14 +22,14 @@ public class StatsServiceImpl implements StatsService {
         StatsOverviewVO vo = new StatsOverviewVO();
         vo.setTodayNewUsers(statsMapper.countTodayNewUsers());
         vo.setTodayNewProducts(statsMapper.countTodayNewProducts());
-        vo.setTodayOrders(statsMapper.countTodayOrders());
+        vo.setTodayNewOrders(statsMapper.countTodayOrders());
         vo.setTodayGmv(statsMapper.sumTodayGmv());
         vo.setTotalUsers(statsMapper.countTotalUsers());
         vo.setTotalProducts(statsMapper.countTotalProducts());
         vo.setTotalOrders(statsMapper.countTotalOrders());
-        vo.setTotalGmv(statsMapper.sumTotalGmv());
-        vo.setPendingProducts(statsMapper.countPendingProducts());
-        vo.setPendingAuths(statsMapper.countPendingAuths());
+        vo.setTotalAmount(statsMapper.sumTotalGmv());
+        vo.setPendingProductCount(statsMapper.countPendingProducts());
+        vo.setPendingAuthCount(statsMapper.countPendingAuths());
         vo.setPendingReports(statsMapper.countPendingReports());
         return vo;
     }

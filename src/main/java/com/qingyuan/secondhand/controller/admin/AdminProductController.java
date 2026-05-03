@@ -6,6 +6,8 @@ import com.qingyuan.secondhand.dto.ProductRejectDTO;
 import com.qingyuan.secondhand.service.ProductService;
 import com.qingyuan.secondhand.vo.AdminProductPageVO;
 import com.qingyuan.secondhand.vo.ProductDetailVO;
+import com.qingyuan.secondhand.vo.PublisherInfoVO;
+import com.qingyuan.secondhand.vo.RelatedOrderVO;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -123,5 +125,17 @@ public class AdminProductController {
     public Result<Void> forceOff(@RequestParam Long productId) {
         productService.forceOffShelf(productId);
         return Result.success();
+    }
+
+    @GetMapping("/related-orders")
+    public Result<IPage<RelatedOrderVO>> relatedOrders(@RequestParam Long productId,
+                                                        @RequestParam(defaultValue = "1") Integer page,
+                                                        @RequestParam(defaultValue = "10") Integer pageSize) {
+        return Result.success(productService.getRelatedOrders(productId, page, pageSize));
+    }
+
+    @GetMapping("/publisher-info")
+    public Result<PublisherInfoVO> publisherInfo(@RequestParam Long productId) {
+        return Result.success(productService.getPublisherInfo(productId));
     }
 }

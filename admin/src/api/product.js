@@ -77,6 +77,28 @@ export const batchForceOffShelf = (ids, reason) => {
 }
 
 /**
+ * 获取商品关联订单
+ */
+export const getRelatedOrders = (productId, page, pageSize) => {
+  return request({
+    url: '/admin/product/related-orders',
+    method: 'get',
+    params: { productId, page, pageSize }
+  })
+}
+
+/**
+ * 获取商品发布者信息
+ */
+export const getPublisherInfo = (productId) => {
+  return request({
+    url: '/admin/product/publisher-info',
+    method: 'get',
+    params: { productId }
+  })
+}
+
+/**
  * 导出商品列表
  */
 export const exportProduct = (params) => {
