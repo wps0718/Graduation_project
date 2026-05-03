@@ -1,6 +1,7 @@
 package com.qingyuan.secondhand.service.impl;
 
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,12 +10,22 @@ import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.dto.ProductPublishDTO;
 import com.qingyuan.secondhand.dto.ProductUpdateDTO;
+import com.qingyuan.secondhand.entity.CampusAuth;
+import com.qingyuan.secondhand.entity.College;
 import com.qingyuan.secondhand.entity.Product;
+import com.qingyuan.secondhand.entity.TradeOrder;
+import com.qingyuan.secondhand.entity.User;
+import com.qingyuan.secondhand.mapper.CampusAuthMapper;
+import com.qingyuan.secondhand.mapper.CollegeMapper;
 import com.qingyuan.secondhand.mapper.ProductMapper;
+import com.qingyuan.secondhand.mapper.TradeOrderMapper;
+import com.qingyuan.secondhand.mapper.UserMapper;
 import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.AdminProductPageVO;
 import com.qingyuan.secondhand.vo.ProductDetailVO;
 import com.qingyuan.secondhand.vo.ProductListVO;
+import com.qingyuan.secondhand.vo.PublisherInfoVO;
+import com.qingyuan.secondhand.vo.RelatedOrderVO;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import jakarta.validation.Validation;
@@ -55,7 +66,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.insert(Mockito.any(Product.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
 
         ProductPublishDTO dto = buildPublishDTO();
         LocalDateTime before = LocalDateTime.now();
@@ -103,7 +114,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.insert(Mockito.any(Product.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
 
         ProductPublishDTO dto = buildPublishDTO();
         dto.setImages(List.of("url1", "url2"));
@@ -130,7 +141,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         ProductUpdateDTO dto = buildUpdateDTO(1L);
         service.updateProduct(dto);
 
@@ -156,7 +167,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.selectById(2L)).thenReturn(existing);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         ProductUpdateDTO dto = buildUpdateDTO(2L);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.updateProduct(dto));
@@ -175,7 +186,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.selectById(3L)).thenReturn(null);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         ProductUpdateDTO dto = buildUpdateDTO(3L);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.updateProduct(dto));
@@ -197,7 +208,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         service.updatePrice(1L, new BigDecimal("99.99"));
 
         ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
@@ -221,7 +232,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.selectById(1L)).thenReturn(existing);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.updatePrice(1L, new BigDecimal("10.00")));
         Assertions.assertEquals("无权修改该商品", ex.getMsg());
@@ -234,7 +245,7 @@ class ProductServiceImplTest {
         StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
         ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
 
         UserContext.setCurrentUserId(10001L);
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.updatePrice(1L, new BigDecimal("0")));
@@ -269,7 +280,7 @@ class ProductServiceImplTest {
                 .thenReturn(List.of("a.png", "b.png"));
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         ProductDetailVO result = service.getProductDetail(1L);
 
         Assertions.assertFalse(result.getIsOwner());
@@ -294,7 +305,7 @@ class ProductServiceImplTest {
         Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
                 .thenReturn(List.of("a.png"));
 
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         ProductDetailVO result = service.getProductDetail(1L);
 
         Assertions.assertFalse(result.getIsOwner());
@@ -323,7 +334,7 @@ class ProductServiceImplTest {
                 .thenReturn(true).thenReturn(false);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         service.getProductDetail(1L);
         service.getProductDetail(1L);
 
@@ -349,7 +360,7 @@ class ProductServiceImplTest {
         Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
                 .thenReturn(List.of("1.png", "2.png"));
 
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         IPage<ProductListVO> result = service.getProductList(1, 10, 1L, 2L, "手机",
                 new BigDecimal("100"), new BigDecimal("500"), "price_asc");
 
@@ -371,7 +382,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.getProductList(Mockito.any(Page.class), Mockito.isNull(), Mockito.isNull(), Mockito.eq("笔记本"),
                 Mockito.isNull(), Mockito.isNull(), Mockito.eq("latest"))).thenReturn(pageResult);
 
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         service.getProductList(1, 10, null, null, "笔记本", null, null, "latest");
 
         Mockito.verify(productAsyncService).asyncRecordSearchKeyword("笔记本");
@@ -398,7 +409,7 @@ class ProductServiceImplTest {
                 .thenReturn(List.of("1.png"));
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         IPage<ProductListVO> result = service.getMyProductList(1, 10, 1, null, null, null);
 
         Mockito.verify(productMapper).getMyProductList(Mockito.any(Page.class), Mockito.eq(10001L), Mockito.eq(1),
@@ -422,7 +433,7 @@ class ProductServiceImplTest {
                 .thenReturn(pageResult);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         service.getMyProductList(1, 10, null, null, null, null);
 
         Mockito.verify(productMapper).getMyProductList(Mockito.any(Page.class), Mockito.eq(10001L), Mockito.isNull(),
@@ -447,7 +458,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         service.offShelf(1L);
 
         ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
@@ -471,7 +482,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.selectById(1L)).thenReturn(existing);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.offShelf(1L));
         Assertions.assertEquals("无权操作该商品", ex.getMsg());
     }
@@ -493,7 +504,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.countActiveOrderByProduct(1L)).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.offShelf(1L));
         Assertions.assertEquals("有进行中的订单，无法下架", ex.getMsg());
     }
@@ -514,7 +525,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.selectById(1L)).thenReturn(existing);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.offShelf(1L));
         Assertions.assertEquals("商品状态不允许下架", ex.getMsg());
     }
@@ -536,7 +547,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         service.onShelf(1L);
 
         ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
@@ -563,7 +574,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         service.deleteProduct(1L);
 
         ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
@@ -578,6 +589,7 @@ class ProductServiceImplTest {
         StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
         ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
+        TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
 
         Product existing = new Product();
         existing.setId(1L);
@@ -586,9 +598,10 @@ class ProductServiceImplTest {
         existing.setIsDeleted(0);
         Mockito.when(productMapper.selectById(1L)).thenReturn(existing);
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
+        Mockito.when(tradeOrderMapper.selectCount(Mockito.any())).thenReturn(0L);
 
         UserContext.setCurrentUserId(900L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, tradeOrderMapper, null, null, null);
         service.approveProduct(1L);
 
         ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
@@ -615,7 +628,7 @@ class ProductServiceImplTest {
         existing.setIsDeleted(0);
         Mockito.when(productMapper.selectById(1L)).thenReturn(existing);
 
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.approveProduct(1L));
         Assertions.assertEquals("商品状态不允许审核", ex.getMsg());
     }
@@ -637,7 +650,7 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(900L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         service.rejectProduct(1L, "违规");
 
         ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
@@ -657,7 +670,7 @@ class ProductServiceImplTest {
         ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
 
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.rejectProduct(1L, ""));
         Assertions.assertEquals("驳回原因不能为空", ex.getMsg());
     }
@@ -669,15 +682,23 @@ class ProductServiceImplTest {
         StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
         ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
+        TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
 
         initProductTableInfo();
+        Product mockProduct = new Product();
+        mockProduct.setId(1L);
+        mockProduct.setUserId(100L);
+        mockProduct.setStatus(0);
+        mockProduct.setIsDeleted(0);
+        Mockito.when(productMapper.selectList(Mockito.any(LambdaQueryWrapper.class))).thenReturn(List.of(mockProduct));
         Mockito.when(productMapper.update(Mockito.isNull(), Mockito.any(LambdaUpdateWrapper.class))).thenReturn(2);
+        Mockito.when(tradeOrderMapper.selectList(Mockito.any())).thenReturn(List.of());
 
         UserContext.setCurrentUserId(900L);
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, tradeOrderMapper, null, null, null);
         service.batchApproveProducts(List.of(1L, 2L));
 
-        Mockito.verify(productMapper).update(Mockito.isNull(), Mockito.any(LambdaUpdateWrapper.class));
+        Mockito.verify(productMapper, Mockito.times(1)).update(Mockito.isNull(), Mockito.any(LambdaUpdateWrapper.class));
     }
 
     @Test
@@ -688,7 +709,7 @@ class ProductServiceImplTest {
         ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
 
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.batchApproveProducts(List.of()));
         Assertions.assertEquals("商品ID不能为空", ex.getMsg());
     }
@@ -700,6 +721,7 @@ class ProductServiceImplTest {
         StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
         ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
+        TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
 
         Product existing = new Product();
         existing.setId(1L);
@@ -708,8 +730,9 @@ class ProductServiceImplTest {
         existing.setIsDeleted(0);
         Mockito.when(productMapper.selectById(1L)).thenReturn(existing);
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
+        Mockito.when(tradeOrderMapper.selectCount(Mockito.any())).thenReturn(0L);
 
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, tradeOrderMapper, null, null, null);
         service.forceOffShelf(1L);
 
         ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
@@ -749,7 +772,7 @@ class ProductServiceImplTest {
         Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
                 .thenReturn(List.of("a.png"));
 
-        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         
         // Service 方法调用：需要完整的 10 个参数
         // (page, pageSize, status, categoryId, keyword, minPrice, maxPrice, beginTime, endTime, sortBy)
@@ -767,6 +790,263 @@ class ProductServiceImplTest {
         );
 
         Assertions.assertEquals("a.png", result.getRecords().get(0).getCoverImage());
+    }
+
+    // ==================== 关联订单测试 ====================
+
+    @Test
+    void testGetRelatedOrders_Success() {
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+        TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
+        CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
+        CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
+
+        RelatedOrderVO order = new RelatedOrderVO();
+        order.setOrderId(1L);
+        order.setOrderNo("TD20260419224310001");
+        order.setBuyerId(10001L);
+        order.setBuyerNickName("kaka");
+        order.setPrice(new BigDecimal("69.00"));
+        order.setStatus(1);
+        order.setCreateTime(LocalDateTime.of(2026, 4, 19, 22, 43, 10));
+        Page<RelatedOrderVO> pageResult = new Page<>(1, 10);
+        pageResult.setRecords(List.of(order));
+        pageResult.setTotal(1);
+        Mockito.when(tradeOrderMapper.getRelatedOrdersByProductId(Mockito.any(Page.class), Mockito.eq(1L)))
+                .thenReturn(pageResult);
+
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate,
+                productAsyncService, notificationService, tradeOrderMapper, userMapper, campusAuthMapper, collegeMapper);
+        IPage<RelatedOrderVO> result = service.getRelatedOrders(1L, 1, 10);
+
+        Assertions.assertEquals(1, result.getTotal());
+        Assertions.assertEquals("TD20260419224310001", result.getRecords().get(0).getOrderNo());
+        Assertions.assertEquals("待面交", result.getRecords().get(0).getStatusText());
+        Assertions.assertNull(result.getRecords().get(0).getCancelByText());
+    }
+
+    @Test
+    void testGetRelatedOrders_Cancelled() {
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+        TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
+        CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
+        CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
+
+        RelatedOrderVO order = new RelatedOrderVO();
+        order.setOrderId(2L);
+        order.setOrderNo("TD20260420000000002");
+        order.setStatus(5);
+        order.setCancelBy(1);
+        Page<RelatedOrderVO> pageResult = new Page<>(1, 10);
+        pageResult.setRecords(List.of(order));
+        Mockito.when(tradeOrderMapper.getRelatedOrdersByProductId(Mockito.any(Page.class), Mockito.eq(1L)))
+                .thenReturn(pageResult);
+
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate,
+                productAsyncService, notificationService, tradeOrderMapper, userMapper, campusAuthMapper, collegeMapper);
+        IPage<RelatedOrderVO> result = service.getRelatedOrders(1L, 1, 10);
+
+        Assertions.assertEquals("已取消", result.getRecords().get(0).getStatusText());
+        Assertions.assertEquals("买家取消", result.getRecords().get(0).getCancelByText());
+    }
+
+    @Test
+    void testGetRelatedOrders_Empty() {
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+        TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
+        CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
+        CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
+
+        Page<RelatedOrderVO> pageResult = new Page<>(1, 10);
+        pageResult.setRecords(List.of());
+        Mockito.when(tradeOrderMapper.getRelatedOrdersByProductId(Mockito.any(Page.class), Mockito.eq(99L)))
+                .thenReturn(pageResult);
+
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate,
+                productAsyncService, notificationService, tradeOrderMapper, userMapper, campusAuthMapper, collegeMapper);
+        IPage<RelatedOrderVO> result = service.getRelatedOrders(99L, 1, 10);
+
+        Assertions.assertEquals(0, result.getRecords().size());
+    }
+
+    @Test
+    void testGetRelatedOrders_NullProductId() {
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+        TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
+        CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
+        CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
+
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate,
+                productAsyncService, notificationService, tradeOrderMapper, userMapper, campusAuthMapper, collegeMapper);
+        BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.getRelatedOrders(null, 1, 10));
+        Assertions.assertEquals("商品ID不能为空", ex.getMsg());
+    }
+
+    // ==================== 发布者信息测试 ====================
+
+    @Test
+    void testGetPublisherInfo_Success() {
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+        TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
+        CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
+        CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
+
+        Product product = new Product();
+        product.setId(1L);
+        product.setUserId(10001L);
+        product.setIsDeleted(0);
+        Mockito.when(productMapper.selectById(1L)).thenReturn(product);
+
+        User user = new User();
+        user.setId(10001L);
+        user.setNickName("kaka");
+        user.setAvatarUrl("http://example.com/avatar.png");
+        user.setPhone("13812348888");
+        user.setStatus(1);
+        user.setAuthStatus(2);
+        user.setScore(new BigDecimal("5.0"));
+        user.setBio("这个人很懒，什么都没写");
+        user.setIpRegion("广东广州");
+        user.setCreateTime(LocalDateTime.of(2026, 4, 1, 10, 0, 0));
+        Mockito.when(userMapper.selectById(10001L)).thenReturn(user);
+
+        Mockito.when(productMapper.selectCount(Mockito.any(LambdaQueryWrapper.class))).thenReturn(5L);
+        Mockito.when(tradeOrderMapper.selectCount(Mockito.any(LambdaQueryWrapper.class))).thenReturn(3L);
+
+        CampusAuth auth = new CampusAuth();
+        auth.setId(1L);
+        auth.setUserId(10001L);
+        auth.setCollegeId(1L);
+        auth.setRealName("张小明");
+        auth.setStudentNo("2023100101");
+        Mockito.when(campusAuthMapper.selectByUserId(10001L)).thenReturn(auth);
+
+        College college = new College();
+        college.setId(1L);
+        college.setName("轻工学院");
+        Mockito.when(collegeMapper.selectById(1L)).thenReturn(college);
+
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate,
+                productAsyncService, notificationService, tradeOrderMapper, userMapper, campusAuthMapper, collegeMapper);
+        PublisherInfoVO result = service.getPublisherInfo(1L);
+
+        Assertions.assertEquals(10001L, result.getUserId());
+        Assertions.assertEquals("kaka", result.getNickName());
+        Assertions.assertEquals("138****8888", result.getPhone());
+        Assertions.assertEquals("正常", result.getAccountStatusText());
+        Assertions.assertEquals("已认证", result.getAuthStatusText());
+        Assertions.assertEquals(5, result.getProductCount());
+        Assertions.assertEquals(3, result.getDealOrderCount());
+        Assertions.assertEquals("张**", result.getRealName());
+        Assertions.assertEquals("轻工学院", result.getCollegeName());
+        Assertions.assertEquals("2023****01", result.getStudentNo());
+    }
+
+    @Test
+    void testGetPublisherInfo_NoAuth() {
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+        TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
+        CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
+        CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
+
+        Product product = new Product();
+        product.setId(1L);
+        product.setUserId(10001L);
+        product.setIsDeleted(0);
+        Mockito.when(productMapper.selectById(1L)).thenReturn(product);
+
+        User user = new User();
+        user.setId(10001L);
+        user.setNickName("test");
+        user.setPhone("13900001111");
+        user.setStatus(1);
+        user.setAuthStatus(0);
+        Mockito.when(userMapper.selectById(10001L)).thenReturn(user);
+
+        Mockito.when(productMapper.selectCount(Mockito.any(LambdaQueryWrapper.class))).thenReturn(2L);
+        Mockito.when(tradeOrderMapper.selectCount(Mockito.any(LambdaQueryWrapper.class))).thenReturn(0L);
+
+        Mockito.when(campusAuthMapper.selectByUserId(10001L)).thenReturn(null);
+
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate,
+                productAsyncService, notificationService, tradeOrderMapper, userMapper, campusAuthMapper, collegeMapper);
+        PublisherInfoVO result = service.getPublisherInfo(1L);
+
+        Assertions.assertEquals("未认证", result.getAuthStatusText());
+        Assertions.assertEquals("139****1111", result.getPhone());
+        Assertions.assertEquals(2, result.getProductCount());
+        Assertions.assertEquals(0, result.getDealOrderCount());
+        Assertions.assertNull(result.getRealName());
+        Assertions.assertNull(result.getCollegeName());
+        Assertions.assertNull(result.getStudentNo());
+    }
+
+    @Test
+    void testGetPublisherInfo_ProductNotFound() {
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+        TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
+        CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
+        CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
+
+        Mockito.when(productMapper.selectById(999L)).thenReturn(null);
+
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate,
+                productAsyncService, notificationService, tradeOrderMapper, userMapper, campusAuthMapper, collegeMapper);
+        BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.getPublisherInfo(999L));
+        Assertions.assertEquals("商品不存在", ex.getMsg());
+    }
+
+    @Test
+    void testGetPublisherInfo_NullProductId() {
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+        TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
+        UserMapper userMapper = Mockito.mock(UserMapper.class);
+        CampusAuthMapper campusAuthMapper = Mockito.mock(CampusAuthMapper.class);
+        CollegeMapper collegeMapper = Mockito.mock(CollegeMapper.class);
+
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate,
+                productAsyncService, notificationService, tradeOrderMapper, userMapper, campusAuthMapper, collegeMapper);
+        BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.getPublisherInfo(null));
+        Assertions.assertEquals("商品ID不能为空", ex.getMsg());
     }
 
     private ProductPublishDTO buildPublishDTO() {

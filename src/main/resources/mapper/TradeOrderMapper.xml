@@ -143,4 +143,24 @@
         LEFT JOIN user us ON o.seller_id = us.id
         WHERE o.id = #{id}
     </select>
+    <select id="getRelatedOrdersByProductId"
+            resultType="com.qingyuan.secondhand.vo.RelatedOrderVO">
+        SELECT
+            o.id AS orderId,
+            o.order_no AS orderNo,
+            o.buyer_id AS buyerId,
+            u.nick_name AS buyerNickName,
+            u.avatar_url AS buyerAvatar,
+            o.price,
+            o.status,
+            o.cancel_by AS cancelBy,
+            o.complete_time AS completeTime,
+            o.create_time AS createTime
+        FROM trade_order o
+        LEFT JOIN user u ON o.buyer_id = u.id
+        WHERE o.product_id = #{productId}
+          AND o.is_deleted_buyer = 0
+          AND o.is_deleted_seller = 0
+        ORDER BY o.create_time DESC
+    </select>
 </mapper>

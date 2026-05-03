@@ -8,13 +8,13 @@ import java.math.BigDecimal;
 public class StatsOverviewVO {
     private Integer todayNewUsers;
     private Integer todayNewProducts;
-    private Integer todayOrders;
+    private Integer todayNewOrders;
     private BigDecimal todayGmv;
     private Integer totalUsers;
     private Integer totalProducts;
     private Integer totalOrders;
-    private BigDecimal totalGmv;
-    private Integer pendingProducts;
-    private Integer pendingAuths;
+    private BigDecimal totalAmount;
+    private Integer pendingProductCount;
+    private Integer pendingAuthCount;
     private Integer pendingReports;
 }

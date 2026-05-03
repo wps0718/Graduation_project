@@ -5,9 +5,12 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.qingyuan.secondhand.dto.ProductPublishDTO;
 import com.qingyuan.secondhand.dto.ProductUpdateDTO;
 import com.qingyuan.secondhand.entity.Product;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.qingyuan.secondhand.vo.AdminProductPageVO;
 import com.qingyuan.secondhand.vo.ProductDetailVO;
 import com.qingyuan.secondhand.vo.ProductListVO;
+import com.qingyuan.secondhand.vo.PublisherInfoVO;
+import com.qingyuan.secondhand.vo.RelatedOrderVO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -70,4 +73,8 @@ public interface ProductService extends IService<Product> {
     void batchApproveProducts(List<Long> productIds);
 
     void forceOffShelf(Long productId);
+
+    IPage<RelatedOrderVO> getRelatedOrders(Long productId, Integer page, Integer pageSize);
+
+    PublisherInfoVO getPublisherInfo(Long productId);
 }

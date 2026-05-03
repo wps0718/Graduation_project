@@ -236,6 +236,119 @@
           </el-descriptions-item>
         </el-descriptions>
       </template>
+
+      <!-- Tabs: 关联订单 + 发布者信息 -->
+      <el-tabs v-model="activeTab" type="border-card" style="margin-top: 16px;" @tab-change="onTabChange">
+        <!-- 关联订单 -->
+        <el-tab-pane label="关联订单" name="orders">
+          <el-table :data="relatedOrders" v-loading="relatedOrdersLoading" stripe>
+            <el-table-column prop="orderNo" label="订单ID" width="200" />
+            <el-table-column prop="buyerNickName" label="买家" width="120" />
+            <el-table-column label="交易价格" width="100">
+              <template #default="{ row }">
+                <span style="color: #f56c6c">¥{{ Number(row.price).toFixed(2) }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="订单状态" width="100">
+              <template #default="{ row }">
+                <el-tag :type="getOrderStatusType(row.status)">{{ row.statusText }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="成交时间" width="170">
+              <template #default="{ row }">
+                {{ row.completeTime || row.createTime }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="80">
+              <template #default="{ row }">
+                <el-button type="primary" link size="small" @click="openOrderDetail(row.id)">查看</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-empty v-if="!relatedOrdersLoading && relatedOrders.length === 0" description="暂无关联订单" />
+          <el-pagination
+            v-if="relatedOrdersTotal > 10"
+            v-model:current-page="relatedOrdersPage"
+            :page-size="10"
+            :total="relatedOrdersTotal"
+            layout="total, prev, pager, next"
+            @current-change="onRelatedOrdersPageChange"
+            style="margin-top: 16px; justify-content: flex-end"
+          />
+        </el-tab-pane>
+
+        <!-- 发布者信息 -->
+        <el-tab-pane label="发布者信息" name="publisher">
+          <div v-loading="publisherInfoLoading">
+            <template v-if="publisherInfo">
+              <!-- 顶部头像+昵称区域 -->
+              <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                <el-avatar :size="64" :src="publisherInfo.avatarUrl" />
+                <div style="margin-left: 16px;">
+                  <div style="font-size: 18px; font-weight: bold;">{{ publisherInfo.nickName }}</div>
+                  <div style="margin-top: 4px;">
+                    <el-tag size="small" :type="publisherInfo.authStatus === 2 ? 'success' : 'info'">
+                      {{ publisherInfo.authStatusText }}
+                    </el-tag>
+                    <el-tag size="small" :type="publisherInfo.accountStatus === 1 ? 'success' : 'danger'" style="margin-left: 8px;">
+                      {{ publisherInfo.accountStatusText }}
+                    </el-tag>
+                  </div>
+                </div>
+              </div>
+              <!-- 详细信息 -->
+              <el-descriptions :column="2" border>
+                <el-descriptions-item label="手机号">{{ publisherInfo.phone }}</el-descriptions-item>
+                <el-descriptions-item label="综合评分">{{ publisherInfo.score }} 分</el-descriptions-item>
+                <el-descriptions-item label="个人简介">{{ publisherInfo.bio || '暂无' }}</el-descriptions-item>
+                <el-descriptions-item label="IP属地">{{ publisherInfo.ipRegion || '暂无' }}</el-descriptions-item>
+                <el-descriptions-item label="注册时间">{{ publisherInfo.createTime }}</el-descriptions-item>
+                <el-descriptions-item label="发布商品数">{{ publisherInfo.productCount }}</el-descriptions-item>
+                <el-descriptions-item label="成交订单数">{{ publisherInfo.dealOrderCount }}</el-descriptions-item>
+              </el-descriptions>
+              <!-- 校园认证信息（如果存在） -->
+              <template v-if="publisherInfo.realName">
+                <div style="margin: 16px 0 8px; font-weight: bold; color: #303133;">校园认证信息</div>
+                <el-descriptions :column="2" border>
+                  <el-descriptions-item label="真实姓名">{{ publisherInfo.realName }}</el-descriptions-item>
+                  <el-descriptions-item label="学院">{{ publisherInfo.collegeName || '-' }}</el-descriptions-item>
+                  <el-descriptions-item label="学号">{{ publisherInfo.studentNo || '-' }}</el-descriptions-item>
+                </el-descriptions>
+              </template>
+            </template>
+            <el-empty v-if="!publisherInfoLoading && !publisherInfo" description="暂无发布者信息" />
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+    </el-dialog>
+
+    <!-- 订单详情弹窗（关联订单查看） -->
+    <el-dialog v-model="orderDetailVisible" title="订单详情" width="720px">
+      <div v-if="orderDetail" class="detail-content">
+        <el-descriptions border :column="2">
+          <el-descriptions-item label="订单号" :span="2">
+            <span class="mono-text">{{ orderDetail.orderNo }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="订单状态">
+            <el-tag :type="getOrderStatusType(orderDetail.status)" size="small">
+              {{ orderDetail.status === 1 ? '待面交' : orderDetail.status === 2 ? '预留' : orderDetail.status === 3 ? '已完成' : orderDetail.status === 4 ? '已评价' : orderDetail.status === 5 ? '已取消' : '未知' }}
+            </el-tag>
+          </el-descriptions-item>
+          <el-descriptions-item label="成交价格">
+            <span class="price-red">¥{{ Number(orderDetail.price).toFixed(2) }}</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="面交校区">{{ orderDetail.campusName || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="面交地点">{{ orderDetail.meetingPoint || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="创建时间">{{ formatTime(orderDetail.createTime) }}</el-descriptions-item>
+          <el-descriptions-item label="完成时间">{{ orderDetail.completeTime ? formatTime(orderDetail.completeTime) : '-' }}</el-descriptions-item>
+        </el-descriptions>
+        <template v-if="orderDetail.status === 5">
+          <el-divider />
+          <el-descriptions border :column="1">
+            <el-descriptions-item label="取消原因">{{ orderDetail.cancelReason || '-' }}</el-descriptions-item>
+          </el-descriptions>
+        </template>
+      </div>
     </el-dialog>
 
     <!-- 驳回弹窗 -->
@@ -265,8 +378,11 @@ import {
   getProductDetail,
   approveProduct,
   rejectProduct,
-  batchApproveProduct
+  batchApproveProduct,
+  getRelatedOrders,
+  getPublisherInfo
 } from '@/api/product'
+import { getOrderDetail } from '@/api/order'
 
 // ========== 查询参数 ==========
 const query = ref({
@@ -287,6 +403,20 @@ const rejectVisible = ref(false)
 
 // ========== 详情数据 ==========
 const detail = ref(null)
+
+// ========== Tabs 状态 ==========
+const activeTab = ref('orders')
+const tabsLoaded = ref({ orders: false, publisher: false })
+const relatedOrdersLoading = ref(false)
+const relatedOrders = ref([])
+const relatedOrdersTotal = ref(0)
+const relatedOrdersPage = ref(1)
+const publisherInfoLoading = ref(false)
+const publisherInfo = ref(null)
+
+// ========== 订单详情弹窗（关联订单查看） ==========
+const orderDetailVisible = ref(false)
+const orderDetail = ref(null)
 
 // ========== 驳回表单 ==========
 const rejectForm = ref({
@@ -410,9 +540,89 @@ const openDetail = async (row) => {
     const res = await getProductDetail(row.id)
     detail.value = res.data || null
     detailVisible.value = true
+    // 重置 tab 状态
+    activeTab.value = 'orders'
+    tabsLoaded.value = { orders: false, publisher: false }
+    relatedOrders.value = []
+    relatedOrdersTotal.value = 0
+    relatedOrdersPage.value = 1
+    publisherInfo.value = null
+    // 加载关联订单和发布者信息
+    loadRelatedOrders(row.id)
+    loadPublisherInfo(row.id)
   } catch (error) {
     console.error('加载商品详情失败:', error)
   }
+}
+
+// ========== Tab 切换时懒加载 ==========
+const onTabChange = (tabName) => {
+  if (tabsLoaded.value[tabName] || !detail.value) return
+  if (tabName === 'orders') {
+    loadRelatedOrders(detail.value.id)
+  } else if (tabName === 'publisher') {
+    loadPublisherInfo(detail.value.id)
+  }
+}
+
+// ========== 加载关联订单 ==========
+const loadRelatedOrders = async (productId, page) => {
+  if (!productId) return
+  relatedOrdersLoading.value = true
+  const p = page || relatedOrdersPage.value
+  try {
+    const res = await getRelatedOrders(productId, p, 10)
+    const pageData = res.data || {}
+    relatedOrders.value = pageData.records || []
+    relatedOrdersTotal.value = Number(pageData.total || 0)
+    tabsLoaded.value.orders = true
+  } catch (error) {
+    console.error('加载关联订单失败:', error)
+  } finally {
+    relatedOrdersLoading.value = false
+  }
+}
+
+// ========== 加载发布者信息 ==========
+const loadPublisherInfo = async (productId) => {
+  if (!productId) return
+  publisherInfoLoading.value = true
+  try {
+    const res = await getPublisherInfo(productId)
+    publisherInfo.value = res.data || null
+    tabsLoaded.value.publisher = true
+  } catch (error) {
+    console.error('加载发布者信息失败:', error)
+  } finally {
+    publisherInfoLoading.value = false
+  }
+}
+
+// ========== 打开订单详情弹窗（关联订单查看） ==========
+const openOrderDetail = async (orderId) => {
+  try {
+    const res = await getOrderDetail(orderId)
+    orderDetail.value = res.data || null
+    orderDetailVisible.value = true
+  } catch (error) {
+    console.error('加载订单详情失败:', error)
+  }
+}
+
+// ========== 订单时间格式化 ==========
+const formatOrderTime = (row) => {
+  if (row.status === 3 || row.status === 4) {
+    return formatTime(row.completeTime)
+  } else if (row.status === 5) {
+    return formatTime(row.createTime)
+  }
+  return formatTime(row.createTime)
+}
+
+// ========== 订单状态 tag 类型 ==========
+const getOrderStatusType = (status) => {
+  const map = { 1: 'warning', 2: 'primary', 3: 'success', 4: 'success', 5: 'info' }
+  return map[status] || 'info'
 }
 
 // ========== 单个通过 ==========
@@ -477,6 +687,12 @@ const confirmReject = async () => {
   } catch (error) {
     console.error('驳回失败:', error)
   }
+}
+
+// ========== 关联订单分页切换 ==========
+const onRelatedOrdersPageChange = (page) => {
+  relatedOrdersPage.value = page
+  loadRelatedOrders(detail.value.id, page)
 }
 
 // ========== 页面加载 ==========
@@ -620,5 +836,21 @@ onMounted(() => {
   line-height: 1.6;
   max-height: 200px;
   overflow-y: auto;
+}
+
+.order-no {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #606266;
+}
+
+.mono-text {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #606266;
+}
+
+.detail-content {
+  padding: 10px 0;
 }
 </style>

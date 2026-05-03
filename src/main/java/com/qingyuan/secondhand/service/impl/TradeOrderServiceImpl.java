@@ -26,6 +26,7 @@ import com.qingyuan.secondhand.vo.OrderCreateVO;
 import com.qingyuan.secondhand.vo.OrderDetailVO;
 import com.qingyuan.secondhand.vo.OrderListVO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOrder> implements TradeOrderService {
 
     private final TradeOrderMapper tradeOrderMapper;
@@ -244,9 +246,15 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         if (tradeOrderMapper.updateById(order) <= 0) {
             throw new BusinessException("取消订单失败");
         }
-        product.setStatus(1);
-        if (productMapper.updateById(product) <= 0) {
-            throw new BusinessException("商品状态更新失败");
+        // 恢复商品状态为在售，但如果已被管理员变更（如强制下架），则跳过
+        if (Integer.valueOf(1).equals(product.getStatus())) {
+            product.setStatus(1);
+            if (productMapper.updateById(product) <= 0) {
+                throw new BusinessException("商品状态更新失败");
+            }
+        } else {
+            log.warn("订单[{}]取消时商品[{}]状态已变更为{}，跳过商品状态同步",
+                     orderId, product.getId(), product.getStatus());
         }
         Long targetUserId = isBuyer ? order.getSellerId() : order.getBuyerId();
         String productName = product.getTitle() == null ? "商品" : product.getTitle();

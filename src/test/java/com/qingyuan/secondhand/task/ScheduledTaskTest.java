@@ -20,6 +20,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.data.redis.core.StringRedisTemplate;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -36,12 +38,11 @@ class ScheduledTaskTest {
 
         TradeOrder order = buildOrder(1L, 11L, 21L, 31L, OrderStatus.PENDING_MEET.getCode());
         order.setExpireTime(LocalDateTime.now().minusHours(1));
-        Product product = buildProduct(11L, 31L, ProductStatus.SOLD.getCode(), 0);
+        Product product = buildProduct(11L, 31L, ProductStatus.ON_SALE.getCode(), 0);
 
         Mockito.when(tradeOrderMapper.selectList(Mockito.any())).thenReturn(List.of(order));
         Mockito.when(productMapper.selectById(11L)).thenReturn(product);
         Mockito.when(tradeOrderMapper.updateById(Mockito.any(TradeOrder.class))).thenReturn(1);
-        Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
 
         task.execute();
 
@@ -52,10 +53,8 @@ class ScheduledTaskTest {
         Assertions.assertEquals(0L, updatedOrder.getCancelBy());
         Assertions.assertEquals("订单超时未面交，系统自动取消", updatedOrder.getCancelReason());
 
-        ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
-        Mockito.verify(productMapper).updateById(productCaptor.capture());
-        Product updatedProduct = productCaptor.getValue();
-        Assertions.assertEquals(ProductStatus.ON_SALE.getCode(), updatedProduct.getStatus());
+        // 商品状态正常为在售时，超时取消不再覆盖写入（修复：尊重管理员操作）
+        Mockito.verify(productMapper, Mockito.never()).updateById(Mockito.any(Product.class));
 
         Mockito.verify(notificationService, Mockito.times(2))
                 .send(Mockito.anyLong(), Mockito.eq(1), Mockito.anyString(), Mockito.anyString(), Mockito.eq(1L), Mockito.eq(2), Mockito.eq(1));
@@ -66,7 +65,8 @@ class ScheduledTaskTest {
         TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
-        OrderAutoConfirmTask task = new OrderAutoConfirmTask(tradeOrderMapper, productMapper, notificationService);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        OrderAutoConfirmTask task = new OrderAutoConfirmTask(tradeOrderMapper, productMapper, notificationService, stringRedisTemplate);
 
         TradeOrder order = buildOrder(2L, 12L, 22L, 32L, OrderStatus.PENDING_MEET.getCode());
         order.setConfirmDeadline(LocalDateTime.now().minusDays(1));
@@ -166,7 +166,8 @@ class ScheduledTaskTest {
     void testProductAutoOffTask() {
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
-        ProductAutoOffTask task = new ProductAutoOffTask(productMapper, notificationService);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ProductAutoOffTask task = new ProductAutoOffTask(productMapper, notificationService, stringRedisTemplate);
 
         Product product = buildProduct(14L, 34L, ProductStatus.ON_SALE.getCode(), 0);
         product.setAutoOffTime(LocalDateTime.now().minusDays(1));

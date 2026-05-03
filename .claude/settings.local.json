@@ -5,7 +5,15 @@
       "Bash(git checkout *)",
       "Bash(xargs cat *)",
       "Bash(mvn compile *)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(git stash *)",
+      "Bash(mysql *)",
+      "Bash(curl -s -X POST \"http://localhost:8080/admin/auth/login\" -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"admin123\"}')",
+      "Bash(curl -s \"http://localhost:8080/admin/product/related-orders?productId=1&page=1&pageSize=10\" -H \"Authorization: Bearer $\\(curl -s -X POST \"http://localhost:8080/admin/auth/login\" -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"admin123\"}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(curl -s -X POST \"http://localhost:8080/admin/employee/login\" -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"123456\"}')",
+      "Bash(npx vite *)"
     ]
   }
 }

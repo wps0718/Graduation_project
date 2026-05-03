@@ -92,8 +92,14 @@ class NotificationIntegrationTest {
                                       ObjectMapper objectMapper,
                                       StringRedisTemplate stringRedisTemplate,
                                       ProductAsyncService productAsyncService,
-                                      NotificationService notificationService) {
-            return new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService);
+                                      NotificationService notificationService,
+                                      TradeOrderMapper tradeOrderMapper,
+                                      UserMapper userMapper,
+                                      CampusAuthMapper campusAuthMapper,
+                                      CollegeMapper collegeMapper) {
+            return new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate,
+                    productAsyncService, notificationService,
+                    tradeOrderMapper, userMapper, campusAuthMapper, collegeMapper);
         }
 
         @Bean

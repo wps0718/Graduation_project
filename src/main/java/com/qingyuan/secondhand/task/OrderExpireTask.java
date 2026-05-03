@@ -55,12 +55,13 @@ public class OrderExpireTask {
 
                     Product product = productMapper.selectById(order.getProductId());
                     if (product != null && Integer.valueOf(0).equals(product.getIsDeleted())) {
-                        if (!ProductStatus.ON_SALE.getCode().equals(product.getStatus())) {
-                            Product productUpdate = new Product();
-                            productUpdate.setId(product.getId());
-                            productUpdate.setStatus(ProductStatus.ON_SALE.getCode());
-                            productUpdate.setUpdateTime(LocalDateTime.now());
-                            productMapper.updateById(productUpdate);
+                        if (ProductStatus.ON_SALE.getCode().equals(product.getStatus())) {
+                            // 商品状态正常为在售，无需变更
+                            log.info("订单[{}]超时取消，商品[{}]状态正常在售", order.getId(), product.getId());
+                        } else {
+                            // 商品状态已被变更（如管理员强制下架），记录警告但跳过
+                            log.warn("订单[{}]超时取消时商品[{}]状态已变更为{}，跳过状态同步",
+                                     order.getId(), product.getId(), product.getStatus());
                         }
                     }
 
