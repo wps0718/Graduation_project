@@ -63,15 +63,16 @@ public class AdminProductController {
         StringBuilder sb = new StringBuilder();
         sb.append("\ufeff");
         sb.append("ID,商品标题,售价,原价,分类,浏览量,发布者,状态,发布时间\n");
-        for (AdminProductPageVO r : rows) {
-            sb.append(safeCsv(r.getId()));
+        for (int i = 0; i < rows.size(); i++) {
+            AdminProductPageVO r = rows.get(i);
+            sb.append(safeCsv(i + 1));
             sb.append(',').append(safeCsv(r.getTitle()));
             sb.append(',').append(safeCsv(r.getPrice()));
             sb.append(',').append(safeCsv(r.getOriginalPrice()));
             sb.append(',').append(safeCsv(r.getCategoryName()));
             sb.append(',').append(safeCsv(r.getViewCount()));
             sb.append(',').append(safeCsv(r.getPublisherNickName()));
-            sb.append(',').append(safeCsv(r.getStatus()));
+            sb.append(',').append(safeCsv(statusText(r.getStatus())));
             sb.append(',').append(safeCsv(r.getCreateTime()));
             sb.append('\n');
         }
@@ -83,6 +84,18 @@ public class AdminProductController {
         headers.setContentType(MediaType.parseMediaType("text/csv; charset=UTF-8"));
         headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
         return ResponseEntity.ok().headers(headers).body(bytes);
+    }
+
+    private String statusText(Integer status) {
+        if (status == null) return "";
+        return switch (status) {
+            case 0 -> "待审核";
+            case 1 -> "在售";
+            case 2 -> "已下架";
+            case 3 -> "已售出";
+            case 4 -> "审核驳回";
+            default -> "未知";
+        };
     }
 
     private String safeCsv(Object v) {

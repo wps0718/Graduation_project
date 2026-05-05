@@ -196,7 +196,7 @@
                 ORDER BY p.create_time DESC
             </when>
             <otherwise>
-                ORDER BY p.id DESC
+                ORDER BY p.create_time DESC
             </otherwise>
         </choose>
     </select>
@@ -260,7 +260,7 @@
                 ORDER BY p.create_time DESC
             </when>
             <otherwise>
-                ORDER BY p.id DESC
+                ORDER BY p.create_time DESC
             </otherwise>
         </choose>
         LIMIT 5000

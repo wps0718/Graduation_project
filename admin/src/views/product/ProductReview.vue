@@ -55,7 +55,7 @@
         <el-table-column type="selection" width="55" align="center" />
         
         <!-- 商品ID -->
-        <el-table-column prop="id" label="ID" width="90" align="center" />
+        <el-table-column type="index" label="ID" width="90" align="center" :index="1" />
         
         <!-- 封面图 -->
         <el-table-column label="封面图" width="90" align="center">
@@ -424,9 +424,9 @@ const rejectForm = ref({
   rejectReason: ''
 })
 
-// ========== 排序后的列表（按ID升序） ==========
+// ========== 排序后的列表（按发布时间倒序） ==========
 const sortedList = computed(() => {
-  return [...list.value].sort((a, b) => a.id - b.id)
+  return [...list.value].sort((a, b) => new Date(b.createTime) - new Date(a.createTime))
 })
 
 // ========== 批量通过按钮可用性判断 ==========

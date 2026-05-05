@@ -792,6 +792,119 @@ class ProductServiceImplTest {
         Assertions.assertEquals("a.png", result.getRecords().get(0).getCoverImage());
     }
 
+    @Test
+    void testGetAdminProductPage_DefaultSort_ShouldReturnInCreateTimeDescOrder() throws Exception {
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+
+        // 准备三条商品数据，create_time 各不相同
+        AdminProductPageVO vo1 = new AdminProductPageVO();
+        vo1.setId(1L);
+        vo1.setTitle("4月1日商品");
+        vo1.setCreateTime(LocalDateTime.of(2026, 4, 1, 10, 0, 0));
+        vo1.setCoverImage("[\"a.png\"]");
+
+        AdminProductPageVO vo2 = new AdminProductPageVO();
+        vo2.setId(2L);
+        vo2.setTitle("5月1日商品");
+        vo2.setCreateTime(LocalDateTime.of(2026, 5, 1, 10, 0, 0));
+        vo2.setCoverImage("[\"b.png\"]");
+
+        AdminProductPageVO vo3 = new AdminProductPageVO();
+        vo3.setId(3L);
+        vo3.setTitle("4月15日商品");
+        vo3.setCreateTime(LocalDateTime.of(2026, 4, 15, 10, 0, 0));
+        vo3.setCoverImage("[\"c.png\"]");
+
+        // 模拟 Mapper 返回按 create_time 倒序排列的结果（SQL 层排序）
+        Page<AdminProductPageVO> pageResult = new Page<>(1, 10);
+        pageResult.setRecords(List.of(vo2, vo3, vo1)); // 5月 > 4月15日 > 4月1日
+        pageResult.setTotal(3);
+
+        Mockito.when(productMapper.getAdminProductPage(
+                Mockito.any(Page.class), Mockito.isNull(), Mockito.isNull(),
+                Mockito.eq(""), Mockito.isNull(), Mockito.isNull(),
+                Mockito.isNull(), Mockito.isNull(), Mockito.isNull()
+        )).thenReturn(pageResult);
+
+        Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
+                .thenReturn(List.of("a.png"));
+
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
+        IPage<AdminProductPageVO> result = service.getAdminProductPage(1, 10, null, null, "", null, null, null, null, null);
+
+        // 验证返回结果按 create_time 倒序：最新排第一，最旧排最后
+        Assertions.assertEquals(3, result.getRecords().size());
+        Assertions.assertEquals("5月1日商品", result.getRecords().get(0).getTitle());
+        Assertions.assertEquals("4月15日商品", result.getRecords().get(1).getTitle());
+        Assertions.assertEquals("4月1日商品", result.getRecords().get(2).getTitle());
+        // 验证时间递减
+        Assertions.assertTrue(result.getRecords().get(0).getCreateTime().isAfter(result.getRecords().get(1).getCreateTime()));
+        Assertions.assertTrue(result.getRecords().get(1).getCreateTime().isAfter(result.getRecords().get(2).getCreateTime()));
+    }
+
+    @Test
+    void testGetAdminProductPage_DefaultSortNull_ShouldPassNullSortByToMapper() {
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+
+        Page<AdminProductPageVO> pageResult = new Page<>(1, 10);
+        pageResult.setRecords(List.of());
+        pageResult.setTotal(0);
+
+        // sortBy 为 null 时，Mapper 的 XML 会走 <otherwise> 分支（create_time DESC）
+        Mockito.when(productMapper.getAdminProductPage(
+                Mockito.any(Page.class), Mockito.isNull(), Mockito.isNull(),
+                Mockito.eq(""), Mockito.isNull(), Mockito.isNull(),
+                Mockito.isNull(), Mockito.isNull(), Mockito.isNull()
+        )).thenReturn(pageResult);
+
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
+        service.getAdminProductPage(1, 10, null, null, "", null, null, null, null, null);
+
+        // 验证 sortBy 参数为 null（触发 XML 中的 <otherwise> 默认排序）
+        Mockito.verify(productMapper).getAdminProductPage(
+                Mockito.any(Page.class), Mockito.isNull(), Mockito.isNull(),
+                Mockito.eq(""), Mockito.isNull(), Mockito.isNull(),
+                Mockito.isNull(), Mockito.isNull(), Mockito.isNull()
+        );
+    }
+
+    @Test
+    void testGetAdminProductPage_WithCreateTimeSort_ShouldPassSortByToMapper() {
+        ProductMapper productMapper = Mockito.mock(ProductMapper.class);
+        ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
+        StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ProductAsyncService productAsyncService = Mockito.mock(ProductAsyncService.class);
+        NotificationService notificationService = Mockito.mock(NotificationService.class);
+
+        Page<AdminProductPageVO> pageResult = new Page<>(1, 10);
+        pageResult.setRecords(List.of());
+        pageResult.setTotal(0);
+
+        Mockito.when(productMapper.getAdminProductPage(
+                Mockito.any(Page.class), Mockito.isNull(), Mockito.isNull(),
+                Mockito.eq(""), Mockito.isNull(), Mockito.isNull(),
+                Mockito.isNull(), Mockito.isNull(), Mockito.eq("createTime-desc")
+        )).thenReturn(pageResult);
+
+        ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
+        service.getAdminProductPage(1, 10, null, null, "", null, null, null, null, "createTime-desc");
+
+        // 验证 sortBy 参数正确传递到 Mapper
+        Mockito.verify(productMapper).getAdminProductPage(
+                Mockito.any(Page.class), Mockito.isNull(), Mockito.isNull(),
+                Mockito.eq(""), Mockito.isNull(), Mockito.isNull(),
+                Mockito.isNull(), Mockito.isNull(), Mockito.eq("createTime-desc")
+        );
+    }
+
     // ==================== 关联订单测试 ====================
 
     @Test

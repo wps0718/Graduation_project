@@ -13,7 +13,21 @@
       "Bash(python3 -m json.tool)",
       "Bash(curl -s http://localhost:3000/)",
       "Bash(curl -s -X POST \"http://localhost:8080/admin/employee/login\" -H \"Content-Type: application/json\" -d '{\"username\":\"admin\",\"password\":\"123456\"}')",
-      "Bash(npx vite *)"
+      "Bash(npx vite *)",
+      "Bash(where python *)",
+      "Bash(winget *)",
+      "Bash(whereis apt *)",
+      "Bash(whereis yum *)",
+      "Bash(whereis brew *)",
+      "Bash(where choco *)",
+      "Bash(dir \"C:\\\\Program Files\")",
+      "Bash(findstr /i python)",
+      "Bash(dir \"C:\\\\Python*\")",
+      "Bash(dir \"C:\\\\Users\\\\17337\\\\AppData\\\\Local\")",
+      "Bash(powershell *)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill *)",
+      "Bash(npm run *)"
     ]
   }
 }

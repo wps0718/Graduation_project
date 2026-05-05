@@ -1,135 +1,86 @@
 <template>
   <div class="product-list-page">
+    <!-- 筛选栏 -->
+    <div class="filter-container">
+      <el-form :model="queryParams" inline class="filter-form">
+        <!-- 第一行：筛选条件 -->
+        <el-row :gutter="20" style="width: 100%; margin-bottom: 20px;">
+          <el-col :xs="24" :sm="12" :md="6">
+            <el-form-item label="状态">
+              <el-select v-model="queryParams.status" clearable placeholder="全部" style="width: 140px" @change="onFilterChange">
+                <el-option label="全部" value="" />
+                <el-option label="待审核" :value="0" />
+                <el-option label="在售" :value="1" />
+                <el-option label="已下架" :value="2" />
+                <el-option label="已售出" :value="3" />
+                <el-option label="审核驳回" :value="4" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="6">
+            <el-form-item label="分类">
+              <el-select v-model="queryParams.categoryId" clearable placeholder="全部" style="width: 140px" @change="onFilterChange">
+                <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="6">
+            <el-form-item label="价格">
+              <div class="price-range">
+                <el-input-number v-model="queryParams.minPrice" :min="0" :precision="2" controls-position="right" placeholder="最低价" style="width: 110px" @change="onFilterChange" />
+                <span>-</span>
+                <el-input-number v-model="queryParams.maxPrice" :min="0" :precision="2" controls-position="right" placeholder="最高价" style="width: 110px" @change="onFilterChange" />
+              </div>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="12" :md="6">
+            <el-form-item label="发布时间">
+              <el-date-picker v-model="queryParams.dateRange" type="daterange" unlink-panels value-format="YYYY-MM-DD" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 240px" @change="onFilterChange" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <!-- 第二行：排序 + 搜索 + 操作按钮 -->
+        <el-row :gutter="16" style="width: 100%; align-items: center;">
+          <el-col :span="18" class="left-actions">
+            <el-form-item label="排序">
+              <el-select v-model="queryParams.sortBy" style="width: 160px" @change="onFilterChange">
+                <el-option label="发布时间倒序" value="default" />
+                <el-option label="发布时间最新" value="createTime-desc" />
+                <el-option label="浏览量最高" value="viewCount-desc" />
+                <el-option label="价格高→低" value="price-desc" />
+                <el-option label="价格低→高" value="price-asc" />
+              </el-select>
+            </el-form-item>
+
+            <el-input v-model="queryParams.keyword" placeholder="搜索商品标题/发布者昵称" clearable style="width: 280px" @keyup.enter="onSearch">
+              <template #prefix>
+                <el-icon><Search /></el-icon>
+              </template>
+            </el-input>
+
+            <el-button type="primary" @click="onQuery">查询</el-button>
+            <el-button @click="onReset">重置</el-button>
+          </el-col>
+
+          <el-col :span="6" class="right-actions">
+            <el-button type="danger" :disabled="!canBatchForceOff" @click="onBatchForceOff">
+              {{ selectedRows.length > 0 ? `批量强制下架（${selectedRows.length}）` : '批量强制下架' }}
+            </el-button>
+            <el-button type="primary" plain @click="onExport">导出</el-button>
+          </el-col>
+        </el-row>
+      </el-form>
+    </div>
+
     <el-card>
         <template #header>
-          <div class="header-row">
-            <span>商品列表</span>
-            <div class="toolbar">
-              <el-form
-                :model="queryParams"
-                inline
-                label-position="right"
-                label-width="56px"
-                class="filter-form"
-              >
-                <el-form-item label="状态">
-                  <el-select
-                    v-model="queryParams.status"
-                    clearable
-                    placeholder="全部"
-                    style="width: 140px"
-                    @change="onFilterChange"
-                    @clear="onFilterChange"
-                  >
-                    <el-option label="全部" value="" />
-                    <el-option label="待审核" :value="0" />
-                    <el-option label="在售" :value="1" />
-                    <el-option label="已下架" :value="2" />
-                    <el-option label="已售出" :value="3" />
-                    <el-option label="审核驳回" :value="4" />
-                  </el-select>
-                </el-form-item>
-
-                <el-form-item label="分类">
-                  <el-select
-                    v-model="queryParams.categoryId"
-                    clearable
-                    placeholder="全部"
-                    style="width: 160px"
-                    @change="onFilterChange"
-                    @clear="onFilterChange"
-                  >
-                    <el-option v-for="item in categoryList" :key="item.id" :label="item.name" :value="item.id" />
-                  </el-select>
-                </el-form-item>
-
-                <el-form-item label="价格">
-                  <div class="price-range-inline">
-                    <el-input-number
-                      v-model="queryParams.minPrice"
-                      :min="0"
-                      :precision="2"
-                      controls-position="right"
-                      style="width: 120px"
-                      placeholder="最低价"
-                      @change="onFilterChange"
-                      @input="onFilterChange"
-                    />
-                    <span class="range-sep">-</span>
-                    <el-input-number
-                      v-model="queryParams.maxPrice"
-                      :min="0"
-                      :precision="2"
-                      controls-position="right"
-                      style="width: 120px"
-                      placeholder="最高价"
-                      @change="onFilterChange"
-                      @input="onFilterChange"
-                    />
-                  </div>
-                </el-form-item>
-
-                <el-form-item label="发布时间">
-                  <el-date-picker
-                    v-model="queryParams.dateRange"
-                    type="daterange"
-                    unlink-panels
-                    format="YYYY-MM-DD"
-                    value-format="YYYY-MM-DD"
-                    start-placeholder="开始日期"
-                    end-placeholder="结束日期"
-                    style="width: 260px"
-                    @change="onFilterChange"
-                    @clear="onFilterChange"
-                  />
-                </el-form-item>
-
-                <el-form-item label="排序">
-                  <el-select v-model="queryParams.sortBy" style="width: 160px" @change="onFilterChange">
-                    <el-option label="按ID倒序" value="default" />
-                    <el-option label="发布时间最新" value="createTime-desc" />
-                    <el-option label="浏览量最高" value="viewCount-desc" />
-                    <el-option label="价格高→低" value="price-desc" />
-                    <el-option label="价格低→高" value="price-asc" />
-                  </el-select>
-                </el-form-item>
-
-                <el-form-item>
-                  <div class="search-box">
-                    <svg class="search-icon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-                      <path
-                        d="M966.4 924.8l-230.4-227.2c60.8-67.2 96-156.8 96-256 0-217.6-176-390.4-390.4-390.4-217.6 0-390.4 176-390.4 390.4 0 217.6 176 390.4 390.4 390.4 99.2 0 188.8-35.2 256-96l230.4 227.2c9.6 9.6 28.8 9.6 38.4 0C979.2 950.4 979.2 934.4 966.4 924.8zM102.4 441.6c0-185.6 150.4-339.2 339.2-339.2s339.2 150.4 339.2 339.2c0 89.6-35.2 172.8-92.8 233.6-3.2 0-3.2 3.2-6.4 3.2-3.2 3.2-3.2 3.2-3.2 6.4-60.8 57.6-144 92.8-233.6 92.8C256 780.8 102.4 627.2 102.4 441.6z"
-                      />
-                    </svg>
-                    <el-input
-                      v-model="queryParams.keyword"
-                      placeholder="搜索商品标题/发布者昵称"
-                      clearable
-                      class="search-input"
-                      @keyup.enter="onSearch"
-                    />
-                  </div>
-                </el-form-item>
-
-                <el-form-item>
-                  <el-button type="primary" @click="onQuery">查询</el-button>
-                  <el-button @click="onReset">重置</el-button>
-                </el-form-item>
-
-                <el-form-item>
-                  <el-button type="danger" :disabled="!canBatchForceOff" @click="onBatchForceOff">
-                    {{ selectedRows.length > 0 ? `批量强制下架（${selectedRows.length}）` : '批量强制下架' }}
-                  </el-button>
-                  <el-button type="primary" plain @click="onExport">导出</el-button>
-                </el-form-item>
-              </el-form>
-            </div>
-          </div>
+          <span class="page-title">商品列表</span>
         </template>
 
         <el-table :data="list" border stripe @selection-change="onSelectionChange">
           <el-table-column type="selection" width="55" align="center" />
-          <el-table-column prop="id" label="ID" width="90" align="center" sortable />
+          <el-table-column type="index" label="ID" width="90" align="center" :index="1" />
 
           <el-table-column label="封面图" width="90" align="center">
             <template #default="{ row }">
@@ -412,7 +363,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Picture, User } from '@element-plus/icons-vue'
+import { Picture, User, Search } from '@element-plus/icons-vue'
 import { getProductDetail, getProductPage, batchForceOffShelf, exportProduct, forceOffShelf } from '@/api/product'
 import { getCategoryList } from '@/api/category'
 import { getOrderDetail, getOrderPage } from '@/api/order'
@@ -727,98 +678,64 @@ onMounted(async () => {
   padding: 20px;
 }
 
-.el-card {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+.filter-container {
+  background: #fff;
+  padding: 24px 28px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+  overflow: hidden;
 }
 
-.header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.filter-form :deep(.el-form-item) {
+  margin-bottom: 0;
+  margin-right: 20px;
+}
+
+.filter-form :deep(.el-form-item__label) {
+  color: #606266;
+  font-size: 14px;
+  padding-right: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.el-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+}
+
+.page-title {
   font-size: 16px;
   font-weight: bold;
   color: #303133;
 }
 
-.toolbar {
+.price-range {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 8px;
 }
 
-.filter-form {
+.price-range span {
+  color: #c0c4cc;
+  font-size: 14px;
+}
+
+.left-actions {
   display: flex;
+  align-items: center;
+  gap: 12px;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
 }
 
-.filter-form :deep(.el-form-item) {
-  margin-bottom: 0;
-}
-
-.filter-form :deep(.el-form-item__label) {
-  line-height: 32px;
-  height: 32px;
-  padding-right: 6px;
-  font-weight: 500;
-  color: #606266;
-}
-
-.filter-form :deep(.el-form-item__content) {
-  line-height: 32px;
-}
-
-.filter-form :deep(.el-select),
-.filter-form :deep(.el-date-editor),
-.filter-form :deep(.el-input),
-.filter-form :deep(.el-input-number) {
-  vertical-align: middle;
-}
-
-.filter-form :deep(.el-input__wrapper),
-.filter-form :deep(.el-select__wrapper),
-.filter-form :deep(.el-date-editor) {
-  height: 32px;
-}
-
-.filter-form :deep(.el-input-number .el-input__wrapper) {
-  height: 32px;
-}
-
-.price-range-inline {
+.right-actions {
   display: flex;
+  justify-content: flex-end;
   align-items: center;
-}
-
-.range-sep {
-  margin: 0 8px;
-  color: #909399;
-}
-
-.search-box {
-  position: relative;
-  width: 240px;
-  display: flex;
-  align-items: center;
-}
-
-.search-icon {
-  position: absolute;
-  left: 10px;
-  width: 16px;
-  height: 16px;
-  fill: #909399;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.search-input :deep(.el-input__wrapper) {
-  padding-left: 32px;
-}
-
-.el-table {
-  margin-top: 16px;
+  gap: 12px;
 }
 
 .el-table :deep(.el-table__row:hover > td) {
