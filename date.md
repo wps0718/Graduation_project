@@ -44,12 +44,15 @@
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
-| GET | `/admin/product/page` | 商品分页列表 | `page`, `pageSize`, `status`(可选) | `Result<IPage<AdminProductPageVO>>` |
+| GET | `/admin/product/page` | 商品分页列表 | `page`, `pageSize`, `status`(可选), `categoryId`(可选), `keyword`(可选), `minPrice`(可选), `maxPrice`(可选), `beginTime`(可选), `endTime`(可选), `sortBy`(可选) | `Result<IPage<AdminProductPageVO>>` |
 | GET | `/admin/product/detail/{productId}` | 商品详情 | `productId`(path) | `Result<ProductDetailVO>` |
 | POST | `/admin/product/approve` | 审核通过 | `productId`(query) | `Result<Void>` |
 | POST | `/admin/product/reject` | 审核驳回 | `ProductRejectDTO`(productId, rejectReason) | `Result<Void>` |
 | POST | `/admin/product/batch-approve` | 批量审核通过 | `List<Long>`(body) | `Result<Void>` |
 | POST | `/admin/product/force-off` | 强制下架 | `productId`(query) | `Result<Void>` |
+| GET | `/admin/product/export` | 导出商品列表(CSV) | `status`(可选), `categoryId`(可选), `keyword`(可选), `minPrice`(可选), `maxPrice`(可选), `beginTime`(可选), `endTime`(可选), `sortBy`(可选) | `ResponseEntity<byte[]>` |
+| GET | `/admin/product/related-orders` | 商品关联订单 | `productId`(query), `page`, `pageSize` | `Result<IPage<RelatedOrderVO>>` |
+| GET | `/admin/product/publisher-info` | 发布者信息 | `productId`(query) | `Result<PublisherInfoVO>` |
 
 ### 2.4 订单管理 `/admin/order`
 
@@ -173,11 +176,12 @@
 | POST | `/mini/product/update` | 修改商品 | `ProductUpdateDTO` | `Result<Void>` |
 | POST | `/mini/product/update-price` | 修改价格 | `ProductUpdatePriceDTO`(productId, price) | `Result<Void>` |
 | POST | `/mini/product/off-shelf` | 下架商品 | `ProductIdDTO`(productId) | `Result<Void>` |
+| POST | `/mini/product/mark-sold` | 标记已售出 | `ProductIdDTO`(productId) | `Result<Void>` |
 | POST | `/mini/product/on-shelf` | 重新上架 | `ProductIdDTO`(productId) | `Result<Void>` |
 | POST | `/mini/product/delete` | 删除商品 | `ProductIdDTO`(productId) | `Result<Void>` |
 | GET | `/mini/product/detail/{productId}` | 商品详情 | `productId`(path) | `Result<ProductDetailVO>` |
 | GET | `/mini/product/list` | 商品列表（含搜索/筛选） | `page`, `pageSize`, `campusId`(可选), `categoryId`(可选), `keyword`(可选), `minPrice`(可选), `maxPrice`(可选), `sortBy`(默认"latest") | `Result<IPage<ProductListVO>>` |
-| GET | `/mini/product/my-list` | 我的商品列表 | `page`, `pageSize`, `status`(可选) | `Result<IPage<ProductListVO>>` |
+| GET | `/mini/product/my-list` | 我的商品列表 | `page`, `pageSize`, `status`(可选), `keyword`(可选), `sortBy`(可选), `order`(可选) | `Result<IPage<ProductListVO>>` |
 
 ### 3.4 商品评论 `/mini/product/comment`
 
@@ -305,12 +309,12 @@
 | `user.auth_status` | 0/1/2/3 | 未认证/审核中/已认证/已驳回 |
 | `product.status` | 0/1/2/3/4 | 待审核/在售/已下架/已售出/审核驳回 |
 | `product.condition_level` | 1/2/3/4/5 | 全新/几乎全新/9成新/8成新/7成新及以下 |
-| `trade_order.status` | 1/2/3/4/5 | 待面交/预留/已完成/已评价/已取消 |
+| `trade_order.status` | 1/3/4/5 | 待面交/已完成/已评价/已取消 |
 | `campus_auth.status` | 0/1/2 | 待审核/通过/驳回 |
-| `notification.type` | 1-10 | 交易成功/新消息/审核通过/审核驳回/系统公告/被收藏/订单取消/认证通过/认证驳回/评价提醒 |
+| `notification.type` | 1-11 | 交易成功/新消息/审核通过/审核驳回/系统公告/被收藏/订单取消/认证通过/认证驳回/评价提醒/新增关注 |
 | `notification.category` | 1/2 | 交易/系统 |
 | `report.target_type` | 1/2 | 商品/用户 |
-| `report.reason_type` | 1/2/3/4/5 | 虚假商品/违禁物品/价格异常/骚扰信息/其他 |
+| `report.reason_type` | 1/2/3/4/5 | 虚假商品/违禁物品/诈骗信息/不当内容/其他 |
 | `report.status` | 0/1/2 | 待处理/已处理/已忽略 |
 | `employee.role` | 1/2 | 超级管理员/普通管理员 |
 | `banner.link_type` | 1/2/3 | 商品详情/活动页/外部链接 |
@@ -323,6 +327,6 @@
 | 模块 | 接口数 |
 |------|--------|
 | 公共 (common) | 1 |
-| 管理端 (admin) | 51 |
-| 小程序端 (mini) | 67 |
-| **合计** | **119** |
+| 管理端 (admin) | 55 |
+| 小程序端 (mini) | 72 |
+| **合计** | **128** |

@@ -133,6 +133,7 @@
             FROM user
             GROUP BY campus_id
         ) AS u ON c.id = u.campus_id
+        WHERE c.status = 1
         ORDER BY c.id ASC
     </select>
 

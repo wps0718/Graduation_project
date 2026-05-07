@@ -210,6 +210,14 @@
 			}
 		},
 		{
+			"path": "pages/category-detail/category-detail",
+			"style": {
+				"navigationBarTitleText": "分类详情",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
 			"path": "pages/common/web-view/web-view",
 			"style": {
 				"navigationBarTitleText": "详情"

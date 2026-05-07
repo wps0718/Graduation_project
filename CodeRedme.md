@@ -1,6 +1,6 @@
 # 轻院二手交易平台 - 项目文档
 
-**版本：V1.7 | 最后更新：2026-04-26 | 项目状态：开发中**
+**版本：V1.8 | 最后更新：2026-05-07 | 项目状态：开发中**
 
 ---
 
@@ -60,14 +60,14 @@
 | 端 | 完成度 | 说明 |
 |------|--------|------|
 | 后端服务 | ✅ 95% | 核心业务模块、API 接口、定时任务、WebSocket IM 均已实现 |
-| 管理后台 | ✅ 95% | 核心审核与管理页面已完成，配置类模块全部完成 |
-| 小程序端 | ✅ 90% | 核心业务流程全部完成，部分辅助页面基础实现 |
+| 管理后台 | ✅ 97% | 核心审核与管理页面及全部配置类 CRUD 已完成 |
+| 小程序端 | ✅ 93% | 核心业务流程全部完成，协议/帮助等辅助页面基础实现 |
 
 ### 管理后台页面状态
 
 | 模块 | 状态 | 说明 |
 |------|:----:|------|
-| 登录页 | ✅ 已完成 | `login/LoginView.vue` |
+| 登录页 | ✅ 已完成 | `login/index.vue`（另存有 `LoginView.vue`） |
 | 数据概览 | ✅ 已完成 | `dashboard/DashboardView.vue`（ECharts 图表、统计卡片） |
 | 认证审核 | ✅ 已完成 | `AuthReview.vue`（含历史时间线、多版本对比） |
 | 商品审核 | ✅ 已完成 | `product/ProductList.vue` + `ProductReview.vue` |
@@ -78,7 +78,7 @@
 | 校区管理 | ✅ 已完成 | `campus/CampusList.vue`，含左右分栏布局、校区+面交地点双层管理 |
 | 学院管理 | ✅ 已完成 | `college/CollegeList.vue`，含完整增删改、状态切换、搜索功能 |
 | Banner 管理 | ✅ 已完成 | `content/BannerAdmin.vue`，含图片上传、时间范围、链接类型联动 |
-| 公告管理 | ✅ 已完成 | `content/NoticeAdmin.vue`，含完整增删改、富文本内容编辑 |
+| 公告管理 | ✅ 已完成 | `content/NoticeAdmin.vue`，含完整增删改、富文本内容编辑（`notice/NoticeList.vue` 为旧版占位） |
 | 员工管理 | ✅ 已完成 | `employee/EmployeeList.vue`，含角色权限、密码重置、手机号脱敏 |
 
 ### 小程序端页面状态
@@ -99,10 +99,12 @@
 | 举报功能 | ✅ 已完成 | `report/report.vue` |
 | 搜索功能 | ✅ 已完成 | `search/` 页面（关键词搜索、热门搜索、历史记录） |
 | 设置与资料 | ✅ 已完成 | `settings/` 下页面（设置、编辑资料、关于） |
-| 用户协议 | ⚠️ 基础完成 | `agreement/`，内容已填充，交互待优化 |
-| 隐私政策 | ⚠️ 基础完成 | `privacy/`，内容已填充，交互待优化 |
-| 帮助页面 | ⚠️ 基础完成 | `help/help.vue`，基础内容已完成 |
-| 足迹功能 | ⚠️ 基础完成 | `user-sub/footprint/footprint.vue`，基础功能已完成 |
+| 用户协议 | ⚠️ 基础完成 | `login-sub/agreement/`，内容已填充，交互待优化 |
+| 隐私政策 | ⚠️ 基础完成 | `login-sub/privacy/`，内容已填充，交互待优化 |
+| 帮助页面 | ⚠️ 基础完成 | `login-sub/help/`，基础内容已完成 |
+| 足迹功能 | ⚠️ 基础完成 | `user-sub/footprint/`，基础功能已完成 |
+| 分类详情 | ✅ 已完成 | `category-detail/category-detail.vue`，分类商品列表 |
+| WebView | ✅ 已完成 | `common/web-view/web-view.vue`，通用内嵌网页 |
 
 ---
 
@@ -149,15 +151,14 @@ Graduation_project/
 │   │       ├── login/                 # ✅ 登录页
 │   │       ├── dashboard/             # ✅ 数据概览（ECharts 图表）
 │   │       ├── AuthReview.vue         # ✅ 认证审核（含历史时间线）
-│   │       ├── product/               # ✅ 商品审核
-│   │       ├── user/                  # ✅ 用户管理
-│   │       ├── order/                 # ✅ 订单管理
-│   │       ├── report/                # ✅ 举报处理
+│   │       ├── product/               # ✅ 商品审核（ProductReview + ProductList）
+│   │       ├── user/                  # ✅ 用户管理（UserManage + UserList）
+│   │       ├── order/                 # ✅ 订单管理（OrderManage + OrderList）
+│   │       ├── report/                # ✅ 举报处理（ReportManage + ReportList）
 │   │       ├── category/              # ✅ 分类管理（含增删改）
 │   │       ├── campus/                # ✅ 校区管理（含增删改）
 │   │       ├── college/               # ✅ 学院管理（含增删改）
-│   │       ├── banner/                # ✅ Banner 管理（含增删改）
-│   │       ├── notice/                # ✅ 公告管理（含增删改）
+│   │       ├── content/               # ✅ Banner 管理 + 公告管理（BannerAdmin + NoticeAdmin）
 │   │       └── employee/              # ✅ 员工管理（含增删改）
 │   └── package.json
 │
@@ -171,28 +172,36 @@ Graduation_project/
 │   │   └── price/                     # 价格展示
 │   ├── pages/                         # 页面
 │   │   ├── index/                     # ✅ 首页
-│   │   ├── login/                     # ✅ 登录（login + sms-login）
-│   │   ├── auth/                      # ✅ 校园认证（auth + history/list,detail,compare）
-│   │   ├── search/                    # ✅ 搜索
+│   │   ├── auth-sub/                  # 校园认证
+│   │   │   ├── auth/                  # ✅ 认证提交页
+│   │   │   └── history/               # ✅ 认证历史（list + detail + compare）
+│   │   ├── category-detail/           # ✅ 分类详情页（分类商品列表）
+│   │   ├── common/web-view/           # ✅ 通用 WebView 页
+│   │   ├── login-sub/                 # 登录与通用功能
+│   │   │   ├── login/                 # ✅ 登录（login + sms-login）
+│   │   │   ├── search/                # ✅ 搜索
+│   │   │   ├── report/                # ✅ 举报
+│   │   │   ├── agreement/             # ⚠️ 用户协议（基础完成）
+│   │   │   ├── privacy/               # ⚠️ 隐私政策（基础完成）
+│   │   │   └── help/                  # ✅ 帮助页
 │   │   ├── product/                   # ✅ 商品（detail + publish + my-list + edit）
-│   │   ├── seller/                    # ✅ 卖家主页（profile，含关注按钮）
 │   │   ├── chat/                      # ✅ 聊天（list + detail + settings）
 │   │   ├── order/                     # ✅ 订单（list + detail）
-│   │   ├── review/                    # ✅ 评价
-│   │   ├── favorite/                  # ✅ 收藏
-│   │   ├── footprint/                 # ⚠️ 足迹（开发中，页面框架存在）
-│   │   ├── notification/              # ✅ 消息（notification + received-replies
-│   │   │                              #           + received-favorites + follower）
 │   │   ├── user/                      # ✅ 个人中心
-│   │   ├── settings/                  # ✅ 设置（settings + edit-profile + about）
-│   │   ├── report/                    # ✅ 举报
-│   │   ├── agreement/                 # ⚠️ 用户协议（基础完成）
-│   │   ├── privacy/                   # ⚠️ 隐私政策（基础完成）
+│   │   ├── user-sub/                  # 用户子页面
+│   │   │   ├── favorite/              # ✅ 收藏
+│   │   │   ├── review/                # ✅ 评价
+│   │   │   ├── footprint/             # ⚠️ 足迹（基础完成）
+│   │   │   ├── seller/                # ✅ 卖家主页（profile，含关注按钮）
+│   │   │   └── settings/              # ✅ 设置（settings + edit-profile + about）
+│   │   └── notification-sub/          # 消息通知
+│   │       └── notification/          # ✅ 消息（notification + received-replies
+│   │                                  #           + received-favorites + follower）
 │   │   └── help/                      # ⚠️ 帮助（基础完成）
 │   ├── styles/                        # 样式（theme.css）
-│   ├── utils/                         # 工具（request.js + auth.js + constant.js + mock.js）
-│   ├── store/                         # 状态管理（index.js + user.js + app.js）
-│   ├── static/                        # 静态资源
+│   ├── utils/                         # 工具（request.js + auth.js + constant.js + image.js + mock.js + product-detail-helpers.js）
+│   ├── store/                         # 状态管理（index.js + user.js + app.js，含校区切换）
+│   ├── static/                        # 静态资源（pic/ + styles/ + svg/ + tabbar/）
 │   ├── App.vue
 │   ├── main.js
 │   ├── manifest.json
@@ -209,7 +218,7 @@ Graduation_project/
 │   │   │   │   ├── interceptor/      # 拦截器（JwtInterceptor + AdminJwtInterceptor）
 │   │   │   │   ├── result/           # 统一响应封装
 │   │   │   │   └── util/             # 工具类
-│   │   │   ├── config/               # 配置类（WebMvcConfig、RedisConfig 等）
+│   │   │   ├── config/               # 配置类（WebMvcConfig、RedisConfig、SecurityCryptoConfig 等）
 │   │   │   ├── controller/           # 控制器（共 22 个）
 │   │   │   │   ├── admin/            # 管理端接口
 │   │   │   │   ├── common/           # 公共接口（文件上传等）
@@ -222,14 +231,19 @@ Graduation_project/
 │   │   │   ├── task/                 # 定时任务（7 个，全部已实现）
 │   │   │   ├── vo/                   # 返回视图对象
 │   │   │   ├── websocket/            # WebSocket 相关
-│   │   │   │   ├── WebSocketServer.java          # 核心 WebSocket 服务
-│   │   │   │   ├── WebSocketSessionManager.java  # 会话管理
-│   │   │   │   ├── ChatHandshakeInterceptor.java # 握手鉴权
+│   │   │   │   ├── WebSocketServer.java              # 核心 WebSocket 服务（TextWebSocketHandler）
+│   │   │   │   ├── WebSocketSessionManager.java      # 会话管理
+│   │   │   │   ├── ChatHandshakeInterceptor.java     # 握手鉴权
+│   │   │   │   ├── protocol/                         # 消息协议
+│   │   │   │   │   ├── WebSocketMessage.java         # 通用消息封装
+│   │   │   │   │   ├── MessageType.java              # 消息类型枚举（CHAT/READ/PING/SYSTEM等）
+│   │   │   │   │   ├── ChatPayload.java              # 聊天消息载荷
+│   │   │   │   │   └── ReadPayload.java              # 已读回执载荷
 │   │   │   │   └── handler/          # 消息处理器
-│   │   │   │       ├── ChatMessageHandler.java   # 聊天消息
-│   │   │   │       ├── ReadMessageHandler.java   # 已读回执
-│   │   │   │       ├── PingMessageHandler.java   # 心跳保活
-│   │   │   │       └── SystemMessageHandler.java # 系统消息
+│   │   │   │       ├── MessageDispatcher.java        # 消息分发器（入口）
+│   │   │   │       ├── ChatMessageHandler.java       # 聊天消息
+│   │   │   │       ├── ReadMessageHandler.java       # 已读回执
+│   │   │   │       └── PingMessageHandler.java       # 心跳保活
 │   │   │   └── SecondhandApplication.java
 │   │   └── resources/
 │   │       ├── mapper/               # MyBatis XML（复杂查询）
@@ -487,7 +501,7 @@ Graduation_project/
 | buyer_id | bigint | 买家 ID |
 | seller_id | bigint | 卖家 ID |
 | price | decimal | 成交价格 |
-| status | tinyint | 状态：1 待面交 / 2 预留 / 3 已完成 / 4 已评价 / 5 已取消 |
+| status | tinyint | 状态：1 待面交 / 3 已完成 / 4 已评价 / 5 已取消（不存在 status=2） |
 | cancel_by | tinyint | 取消方：0 系统 / 1 买家 / 2 卖家 |
 | expire_time | datetime | 超时时间（创建后 72 小时，超时自动取消） |
 | confirm_deadline | datetime | 自动确认收货时间（创建后 7 天） |
@@ -605,6 +619,52 @@ Graduation_project/
 | is_deleted | tinyint | 逻辑删除（@TableLogic） |
 | create_time | datetime | 留言时间（自动填充） |
 
+#### 11. 面交地点表（meeting_point）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | int | 主键自增 |
+| campus_id | int | 所属校区 ID |
+| name | varchar | 地点名称 |
+| create_time | datetime | 创建时间（自动填充） |
+
+#### 12. 通知表（notification）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增 |
+| user_id | bigint | 接收用户 ID |
+| type | tinyint | 通知类型（1~11，对应 NotificationType 枚举） |
+| category | tinyint | 分类：1 交易 / 2 系统 |
+| title | varchar | 通知标题 |
+| content | text | 通知内容 |
+| related_id | bigint | 关联业务 ID |
+| is_read | tinyint | 是否已读：0 未读 / 1 已读 |
+| create_time | datetime | 创建时间（自动填充） |
+
+#### 13. 公告表（notice）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | int | 主键自增 |
+| title | varchar | 公告标题 |
+| content | text | 公告内容（富文本） |
+| status | tinyint | 状态：0 禁用 / 1 启用 |
+| is_top | tinyint | 是否置顶：0 否 / 1 是 |
+| sort | int | 排序 |
+| create_time | datetime | 创建时间（自动填充） |
+| update_time | datetime | 更新时间（自动填充） |
+
+#### 14. 搜索关键词表（search_keyword）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增 |
+| keyword | varchar | 关键词 |
+| search_count | int | 搜索次数 |
+| is_hot | tinyint | 是否热门：0 否 / 1 是 |
+| create_time | datetime | 创建时间（自动填充） |
+
 ### 数据库变更说明
 
 | 增量脚本 | 变更内容 |
@@ -648,7 +708,7 @@ product(商品) ──1:N──→ product_comment(留言) ──N:1──→ us
 | 8 | 校园认证通过 | 恭喜您，您的校园认证已通过审核！ |
 | 9 | 校园认证被驳回 | 您的校园认证未通过审核，驳回原因：{reason} |
 | 10 | 评价提醒 | 你购买的「{productName}」交易已完成 3 天，还未评价哦 |
-| 11 | 新增粉丝 | {nickName} 关注了你，快去看看吧！ |
+| 11 | 新增关注 | {nickName}关注了你 |
 
 #### 2. NotificationCategory（通知分类）
 
@@ -725,6 +785,7 @@ product(商品) ──1:N──→ product_comment(留言) ──N:1──→ us
 | GET | `/mini/product/my-list` | 我发布的商品 | ✅ |
 | POST | `/mini/product/update-price` | 修改价格（议价场景） | ✅ |
 | POST | `/mini/product/off-shelf` | 下架商品 | ✅ |
+| POST | `/mini/product/mark-sold` | 标记已售出 | ✅ |
 | POST | `/mini/product/on-shelf` | 上架商品 | ✅ |
 | POST | `/mini/product/delete` | 删除商品 | ✅ |
 
@@ -795,13 +856,13 @@ ws://host:port/ws/chat?token={jwt_token}
 
 **WebSocket 消息类型**
 
-| 消息类型 | 处理器 | 说明 |
-|---------|--------|------|
+| 消息类型 | 处理器/分发器 | 说明 |
+|---------|--------------|------|
 | PING / PONG | `PingMessageHandler` | 心跳保活 |
-| CHAT | `ChatMessageHandler` | 聊天消息（发送/接收） |
+| CHAT | `ChatMessageHandler` | 聊天消息（发送/接收，异常时回推 SYSTEM 帧） |
 | READ / READ_ACK | `ReadMessageHandler` | 已读回执 |
-| SYSTEM | `SystemMessageHandler` | 系统提示（价格变更等） |
-| FORCE_OFFLINE | — | 踢下线（服务端推送） |
+| SYSTEM | `MessageDispatcher` 内联处理 | 错误提示等系统消息 |
+| FORCE_OFFLINE | `WebSocketServer` | 踢下线（服务端推送） |
 
 #### 校园认证模块（`/mini/auth`）
 
@@ -845,9 +906,9 @@ ws://host:port/ws/chat?token={jwt_token}
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/common/upload/image` | 上传图片（返回访问 URL） |
+| POST | `/common/upload` | 上传图片/文件（参数: file, type=common） |
 
-> **限制**：单文件最大 5MB，总请求最大 50MB，支持 JPG / PNG / GIF 格式。上传后以静态资源方式提供 HTTP 访问，路径前缀由 `upload.url-prefix` 配置。
+> **限制**：单文件最大 5MB，总请求最大 50MB，支持 JPG / PNG / GIF 格式。上传后以静态资源方式提供 HTTP 访问，路径前缀由 `upload.url-prefix` 配置。静态资源由 `WebMvcConfig.addResourceHandlers()` 映射到本地磁盘路径。
 
 #### 其他小程序端模块
 
@@ -864,6 +925,7 @@ ws://host:port/ws/chat?token={jwt_token}
 | 举报 | POST | `/mini/report/submit` | 提交举报 |
 | 举报 | GET | `/mini/report/detail/{id}` | 举报详情 |
 | 搜索 | GET | `/mini/search/hot-keywords` | 热门搜索词 |
+| 学院 | GET | `/mini/college/list` | 学院列表 |
 | 消息 | GET | `/mini/notification/list` | 通知列表（支持 category 筛选） |
 | 消息 | GET | `/mini/notification/favorite-list` | 收到的收藏提醒列表 |
 | 消息 | GET | `/mini/notification/follower-list` | 新增粉丝提醒列表 |
@@ -955,7 +1017,7 @@ ws://host:port/ws/chat?token={jwt_token}
 | 学院管理 | POST | `/admin/college/update` | 更新学院 |
 | 学院管理 | POST | `/admin/college/delete` | 删除学院 |
 
-> **注**：以上管理端配置类接口（分类/校区/Banner/公告/学院/员工）后端 API 均已实现，管理前端目前仅完成了列表展示页，增删改操作页面待开发。
+> **注**：以上管理端配置类接口（分类/校区/Banner/公告/学院/员工）后端 API 均已实现，管理前端已全部完成 CRUD 功能。
 
 ---
 
@@ -991,7 +1053,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/secondhand?useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/secondhand?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&useUnicode=true&connectionCollation=utf8mb4_bin&allowPublicKeyRetrieval=true
     username: root
     password: your_password           # ⚠️ 生产环境使用环境变量
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -1001,7 +1063,6 @@ spring:
       host: localhost
       port: 6379
       database: 0
-      # password: your_redis_password  # ⚠️ 生产环境使用环境变量
 
   servlet:
     multipart:
@@ -1276,9 +1337,14 @@ JWT 拦截器校验 Token → 正常处理业务
 |---------|---------|-----|------|
 | `user:info:{userId}` | String | 10 分钟 | 用户信息缓存 |
 | `user:stats:{userId}` | String | 10 分钟 | 用户统计数据 |
+| `user:token:{userId}` | String | 持久 | 用户 Token 映射 |
+| `admin:token:{userId}` | String | 持久 | 管理员 Token 映射 |
+| `token:{token}` | String | 持久 | Token 反向查找 |
 | `product:view:{productId}:{userId}` | String | 24 小时 | 浏览去重 |
 | `category:list` | String | 1 小时 | 分类列表 |
 | `campus:list` | String | 1 小时 | 校区列表 |
+| `college:list` | String | 1 小时 | 学院列表 |
+| `meeting_point:campus:{campusId}` | String | 30 分钟 | 面交地点列表 |
 | `banner:list:{campusId}` | String | 30 分钟 | Banner 列表 |
 | `search:hot:keywords` | String | 1 小时 | 热搜词 |
 | `sms:code:{phone}` | String | 5 分钟 | 短信验证码 |
@@ -1287,9 +1353,11 @@ JWT 拦截器校验 Token → 正常处理业务
 | `login:fail:{phone}` | String | 15 分钟 | 登录失败次数（≥5 次锁定） |
 | `product:lock:{productId}` | String | 30 秒 | 订单创建分布式锁 |
 | `im:unread:{userId}` | String | 持久 | IM 未读消息总数 |
+| `im:session:unread:{userId}:{sessionKey}` | String | 持久 | 会话级未读计数 |
 | `im:online:{userId}` | String | 持久 | 在线标记 |
 | `im:heartbeat:{userId}` | String | 60 秒 | 心跳 TTL（超时即视为断线） |
 | `follow:stats:{userId}` | String | 30 分钟 | 关注/粉丝统计缓存 |
+| `follow:check:{userId}:{targetId}` | String | 30 分钟 | 关注状态检查缓存 |
 
 ### 缓存更新策略
 
@@ -1316,11 +1384,10 @@ JWT 拦截器校验 Token → 正常处理业务
         ↓
     WebSocketSessionManager（管理在线用户连接）
         ↓
-    MessageHandler 分发处理
-        ├── ChatMessageHandler   聊天消息处理
+    MessageDispatcher（消息分发器入口）
+        ├── ChatMessageHandler   聊天消息处理（异常时回推 SYSTEM 帧）
         ├── ReadMessageHandler   已读回执处理
-        ├── PingMessageHandler   心跳保活
-        └── SystemMessageHandler 系统消息处理
+        └── PingMessageHandler   心跳保活
 ```
 
 ### 核心功能说明
@@ -1649,7 +1716,7 @@ A：
 
 **Q：管理后台配置类页面（分类/校区等）开发状态如何？**
 
-A：已全部完成。分类管理、校区管理（含面交地点）、学院管理、公告管理、员工管理、Banner 管理均已实现完整 CRUD 功能。
+A：已全部完成。分类管理、校区管理（含面交地点及左右分栏布局）、学院管理、公告管理（`content/NoticeAdmin.vue`）、员工管理、Banner 管理（`content/BannerAdmin.vue`）均已实现完整 CRUD 功能。部分模块（如 `notice/NoticeList.vue`）存在旧版占位文件，实际以 `content/` 目录下为准。
 
 ---
 
@@ -1689,6 +1756,21 @@ A：WebSocket 连接在握手阶段由 `ChatHandshakeInterceptor` 处理，JWT T
 1. `BannerVO.java` 补充 `@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")` 注解，修复时间字段序列化格式问题
 
 ---
+
+### V1.8（2026-05-07）
+
+**文档修复与代码对齐**
+1. **WebSocket 架构修正**：移除不存在的 `SystemMessageHandler`，补充 `MessageDispatcher` 分发器及 `protocol/` 消息协议包
+2. **订单状态修正**：移除不存在的 status=2"预留"状态（实际枚举仅含：1 待面交 / 3 已完成 / 4 已评价 / 5 已取消）
+3. **文件上传接口修正**：端点由 `/common/upload/image` 改为 `/common/upload`（接受 file + type 参数）
+4. **Admin 视图路径补充**：登录页由 `login/LoginView.vue` 修正为 `login/index.vue`；Banner/公告管理归入 `content/` 目录
+5. **补充缺失实体表**：新增 `meeting_point`、`notification`、`notice`、`search_keyword` 表结构说明
+6. **补充缺失 API**：新增 `/mini/product/mark-sold`、`/mini/college/list` 端点；修正通知列表方法为 GET
+7. **Redis 缓存 Key 补充**：新增 `college:list`、`meeting_point:campus:`、`im:session:unread:`、`follow:check:` 等遗漏项
+8. **小程序页面结构修正**：实际路径为 `auth-sub/`、`user-sub/`、`login-sub/`、`notification-sub/`；补充 `category-detail`、`web-view` 页面
+9. **数据库 DSN 更新**：补充 `characterEncoding`、`connectionCollation`、`allowPublicKeyRetrieval` 等连接参数
+10. **配置更正**：补充 `SecurityCryptoConfig`（BCryptPasswordEncoder Bean）；移除 Redis 密码配置（实际未启用）
+11. **通知类型更正**：type 11 标题由"新增粉丝"改为"新增关注"，模板更新为 `{nickName}关注了你`
 
 ### V1.6（2026-04-26）
 
@@ -1736,4 +1818,4 @@ A：WebSocket 连接在握手阶段由 `ChatHandshakeInterceptor` 处理，JWT T
 
 ---
 
-*最后更新时间：2026-04-26 ｜ 文档版本：V1.7 ｜ 项目路径：`G:\Code\Graduation_project`*
+*最后更新时间：2026-05-07 ｜ 文档版本：V1.8 ｜ 项目路径：`G:\Code\Graduation_project`*

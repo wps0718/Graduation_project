@@ -1,5 +1,7 @@
 <template>
   <view class="container">
+    <view class="sticky-header">
+      <status-bar />
     <!-- 顶部导航栏 -->
     <view class="header">
       <!-- 第一行：校区 + 定位 -->
@@ -19,6 +21,7 @@
         <image src="/static/svg/search.svg" class="search-icon" />
         <text class="search-placeholder">搜索闲置物品</text>
       </view>
+    </view>
     </view>
 
     <!-- 轮播图 -->
@@ -381,7 +384,7 @@ function handleCategoryClick(item) {
     })
   } else {
     uni.navigateTo({
-      url: `/pages/login-sub/search/search?categoryId=${item.id}`
+      url: `/pages/category-detail/category-detail?categoryId=${item.id}&name=${encodeURIComponent(item.name || '')}`
     })
   }
 }
@@ -430,16 +433,20 @@ function closeNotice() {
   padding-bottom: var(--spacing-lg);
 }
 
-/* 顶部导航栏 */
-.header {
+/* 顶部吸顶容器 */
+.sticky-header {
   position: sticky;
   top: 0;
   z-index: 100;
+  background-color: var(--bg-page);
+}
+
+/* 顶部导航栏 */
+.header {
   display: flex;
-  flex-direction: column; /* 改为纵向布局 */
+  flex-direction: column;
   padding: var(--spacing-md);
-  background-color: var(--bg-page); /* 整个页面背景色 */
-  /* padding-top: calc(var(--status-bar-height) + var(--spacing-sm)); */
+  padding-top: 0;
 }
 
 /* 顶部第一行：校区定位 */
