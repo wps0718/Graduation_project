@@ -23,6 +23,8 @@ public class Report {
     private String handleResult;
     private Long handlerId;
     private LocalDateTime handleTime;
+    private String targetTitle;
+    private String targetCoverImage;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 }

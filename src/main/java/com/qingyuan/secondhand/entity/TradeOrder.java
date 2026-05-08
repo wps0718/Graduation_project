@@ -22,6 +22,7 @@ public class TradeOrder {
     private BigDecimal price;
     private Long campusId;
     private String meetingPoint;
+    private String remark;
     private Integer status;
     private String cancelReason;
     private Long cancelBy;

@@ -14,7 +14,9 @@
             r.reporter_id AS reporterId,
             reporter.nick_name AS reporterNickName,
             reporter.avatar_url AS reporterAvatarUrl,
-            r.target_id AS targetId
+            r.target_id AS targetId,
+            r.target_title AS targetTitle,
+            r.target_cover_image AS targetCoverImage
             <trim prefix="," suffixOverrides=",">
                 <if test="targetType == null or targetType == 1">
                     p.title AS productTitle,
@@ -66,21 +68,29 @@
             p.price AS productPrice,
             p.images AS productImagesJson,
             p.status AS productStatus,
+            c.name AS productCategoryName,
+            p.condition_level AS productConditionLevel,
             p.user_id AS productUserId,
             seller.nick_name AS productUserNickName,
             seller.phone AS productUserPhone,
+            seller.auth_status AS productUserAuthStatus,
+            p.create_time AS productCreateTime,
             target_user.nick_name AS targetUserNickName,
             target_user.avatar_url AS targetUserAvatarUrl,
             target_user.phone AS targetUserPhone,
             target_user.status AS targetUserStatus,
             target_user.auth_status AS targetUserAuthStatus,
+            campus.name AS targetUserCampusName,
+            target_user.score AS targetUserScore,
             r.handler_id AS handlerId,
             handler.username AS handlerName
         FROM report r
         LEFT JOIN user reporter ON r.reporter_id = reporter.id
         LEFT JOIN product p ON r.target_id = p.id AND r.target_type = 1
+        LEFT JOIN category c ON p.category_id = c.id
         LEFT JOIN user seller ON p.user_id = seller.id
         LEFT JOIN user target_user ON r.target_id = target_user.id AND r.target_type = 2
+        LEFT JOIN campus ON target_user.campus_id = campus.id
         LEFT JOIN employee handler ON r.handler_id = handler.id
         WHERE r.id = #{id}
     </select>

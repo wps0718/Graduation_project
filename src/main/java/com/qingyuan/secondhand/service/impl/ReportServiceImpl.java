@@ -87,6 +87,20 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
         report.setReasonType(dto.getReasonType());
         report.setDescription(dto.getDescription());
         report.setStatus(0);
+        // 保存被举报目标快照
+        if (Integer.valueOf(1).equals(dto.getTargetType())) {
+            Product product = productMapper.selectById(dto.getTargetId());
+            if (product != null) {
+                report.setTargetTitle(product.getTitle());
+                report.setTargetCoverImage(parseCoverImage(product.getImages()));
+            }
+        } else {
+            User targetUser = userMapper.selectById(dto.getTargetId());
+            if (targetUser != null) {
+                report.setTargetTitle(targetUser.getNickName());
+                report.setTargetCoverImage(targetUser.getAvatarUrl());
+            }
+        }
         int inserted = reportMapper.insert(report);
         if (inserted <= 0) {
             throw new BusinessException("提交举报失败");
@@ -103,7 +117,24 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
         if (result != null && result.getRecords() != null) {
             for (ReportPageVO record : result.getRecords()) {
                 if (Integer.valueOf(1).equals(record.getTargetType())) {
+                    // 解析商品封面（用于详情等场景）
                     record.setProductCoverImage(parseCoverImage(record.getProductCoverImageJson()));
+                    // 优先使用快照标题，无快照则回退到商品标题
+                    if (!StringUtils.hasText(record.getTargetTitle())) {
+                        record.setTargetTitle(record.getProductTitle());
+                    }
+                    // 优先使用快照封面，无快照则回退到商品封面
+                    if (!StringUtils.hasText(record.getTargetCoverImage())) {
+                        record.setTargetCoverImage(record.getProductCoverImage());
+                    }
+                } else if (Integer.valueOf(2).equals(record.getTargetType())) {
+                    // 用户举报：优先使用快照，无快照则回退到用户信息
+                    if (!StringUtils.hasText(record.getTargetTitle())) {
+                        record.setTargetTitle(record.getTargetUserNickName());
+                    }
+                    if (!StringUtils.hasText(record.getTargetCoverImage())) {
+                        record.setTargetCoverImage(record.getTargetUserAvatarUrl());
+                    }
                 }
             }
         }

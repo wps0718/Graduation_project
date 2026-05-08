@@ -93,9 +93,14 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             order.setProductId(dto.getProductId());
             order.setBuyerId(userId);
             order.setSellerId(product.getUserId());
-            order.setPrice(product.getPrice());
+            order.setPrice(dto.getPrice() != null ? dto.getPrice() : product.getPrice());
             order.setCampusId(product.getCampusId());
-            order.setMeetingPoint(product.getMeetingPointText());
+            order.setMeetingPoint(
+                dto.getMeetingPointText() != null
+                    ? dto.getMeetingPointText()
+                    : product.getMeetingPointText()
+            );
+            order.setRemark(dto.getRemark());
             order.setStatus(1);
             order.setExpireTime(LocalDateTime.now().plusHours(72));
             order.setConfirmDeadline(LocalDateTime.now().plusDays(7));
@@ -204,6 +209,14 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BusinessException("商品状态更新失败");
         }
         String productName = product.getTitle() == null ? "商品" : product.getTitle();
+        notificationService.send(
+                order.getSellerId(),
+                NotificationType.TRADE_SUCCESS,
+                Map.of("productName", productName),
+                order.getId(),
+                2,
+                1
+        );
         notificationService.send(
                 order.getBuyerId(),
                 NotificationType.TRADE_SUCCESS,

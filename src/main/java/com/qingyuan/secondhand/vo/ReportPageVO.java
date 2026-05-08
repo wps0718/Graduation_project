@@ -20,9 +20,11 @@ public class ReportPageVO {
 
     private Long targetId;
 
+    private String targetTitle;
+    private String targetCoverImage;
+
     private String productTitle;
     private String productCoverImage;
-    @JsonIgnore
     private String productCoverImageJson;
     private Long productUserId;
     private String productUserNickName;

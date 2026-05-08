@@ -35,9 +35,9 @@
       </view>
 
       <!-- 商品信息栏 -->
-      <view v-if="product" class="chat-product" @click="goProductDetail">
-        <image class="chat-product__image" :src="product.coverImage" mode="aspectFill" />
-        <view class="chat-product__info">
+      <view v-if="product" class="chat-product">
+        <image class="chat-product__image" :src="product.coverImage" mode="aspectFill" @click="goProductDetail" />
+        <view class="chat-product__info" @click="goProductDetail">
           <text class="chat-product__title">{{ product.title }}</text>
           <view class="chat-product__meta">
             <Price :price="product.price" />
@@ -45,8 +45,18 @@
             <text v-if="product.statusText" class="chat-product__status">{{ product.statusText }}</text>
           </view>
         </view>
-        <view class="chat-product__arrow">
-          <text class="chat-product__arrow-text">查看 ▶</text>
+        <view class="chat-product__actions">
+          <view class="chat-product__arrow" @click="goProductDetail">
+            <text class="chat-product__arrow-text">查看 ▶</text>
+          </view>
+          <view
+            v-if="showBuyButton"
+            class="chat-product__buy-btn"
+            :class="{ 'is-disabled': buyBtnDisabled }"
+            @click="openBuyModal"
+          >
+            <text class="chat-product__buy-text">{{ buyBtnText }}</text>
+          </view>
         </view>
       </view>
 
@@ -97,6 +107,25 @@
         <view v-if="item.type === 'system'" class="chat-system">
           <text class="chat-system__text">{{ item.content }}</text>
         </view>
+
+        <view v-else-if="item.type === 'order-card'" class="chat-order-card">
+          <view class="chat-order-card__inner">
+            <text class="chat-order-card__icon">📋</text>
+            <view class="chat-order-card__body">
+              <text class="chat-order-card__title">订单已创建</text>
+              <view class="chat-order-card__details">
+                <text class="chat-order-card__detail">订单号：{{ item.orderNo }}</text>
+                <text class="chat-order-card__detail">成交价：¥{{ item.orderPrice }}</text>
+                <text v-if="item.orderMeetingPoint" class="chat-order-card__detail">面交地点：{{ item.orderMeetingPoint }}</text>
+              </view>
+              <text class="chat-order-card__hint">72小时内面交有效，请及时联系对方</text>
+            </view>
+          </view>
+          <view v-if="item.isSelf && !orderCreated" class="chat-order-card__action" @click="confirmReceiveInChat(item)">
+            <text class="chat-order-card__action-text">确认收货</text>
+          </view>
+        </view>
+
         <view v-else class="chat-bubble" :class="{ 'is-self': item.isSelf }">
           <view v-if="!item.isSelf" class="chat-bubble__avatar" @click="goPeerProfile">
             <UserAvatar
@@ -187,6 +216,76 @@
         </view>
       </view>
     </view>
+
+    <!-- ====== 确认购买弹窗 ====== -->
+    <view v-if="showBuyModal" class="modal-mask" @click="closeBuyModal">
+      <view class="modal-content" @click.stop>
+        <view class="modal-header">
+          <text class="modal-title">确认购买</text>
+          <text class="modal-close" @click="closeBuyModal">✕</text>
+        </view>
+
+        <view class="modal-body">
+          <view class="modal-product">
+            <image class="modal-product__image" :src="product.coverImage" mode="aspectFill" />
+            <view class="modal-product__info">
+              <text class="modal-product__title">{{ product.title }}</text>
+              <text class="modal-product__price">原价：¥{{ product.price }}</text>
+            </view>
+          </view>
+
+          <view class="modal-field">
+            <text class="modal-field__label">成交价格</text>
+            <view class="modal-field__input-wrap">
+              <text class="modal-field__prefix">¥</text>
+              <input
+                class="modal-field__input"
+                v-model="buyForm.price"
+                type="digit"
+                placeholder="请输入协商后的价格"
+                placeholder-style="color: #ccc"
+              />
+            </view>
+          </view>
+
+          <view class="modal-field">
+            <text class="modal-field__label">面交地点</text>
+            <picker
+              :value="buyForm.meetingPointIdx"
+              :range="meetingPointNames"
+              @change="onMeetingPointChange"
+            >
+              <view class="modal-field__picker">
+                <text :class="{ 'is-placeholder': !buyForm.meetingPointText }">
+                  {{ buyForm.meetingPointText || '请选择面交地点' }}
+                </text>
+                <text class="modal-field__picker-arrow">▼</text>
+              </view>
+            </picker>
+          </view>
+
+          <view class="modal-field">
+            <text class="modal-field__label">备注说明</text>
+            <textarea
+              class="modal-field__textarea"
+              v-model="buyForm.remark"
+              placeholder="如约定的面交时间等"
+              placeholder-style="color: #ccc"
+              :maxlength="200"
+            />
+          </view>
+        </view>
+
+        <view class="modal-footer">
+          <view class="modal-btn modal-btn--cancel" @click="closeBuyModal">
+            <text>取消</text>
+          </view>
+          <view class="modal-btn modal-btn--confirm" :class="{ 'is-loading': submitting }" @click="submitBuy">
+            <text>{{ submitting ? '提交中...' : '确认购买' }}</text>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
 </template>
 
@@ -217,6 +316,41 @@ const inputValue = ref('')
 const orderCreated = ref(false)
 const pollingTimer = ref(null)
 const quickVisible = ref(true)
+
+// 确认购买弹窗
+const showBuyModal = ref(false)
+const submitting = ref(false)
+const meetingPoints = ref([])
+const buyForm = ref({
+  price: '',
+  meetingPointIdx: -1,
+  meetingPointText: '',
+  remark: ''
+})
+
+const meetingPointNames = computed(() => meetingPoints.value.map(m => m.name))
+
+const isBuyer = computed(() => {
+  if (!product.value || !selfId.value) return false
+  return selfId.value !== product.value.sellerId
+})
+
+const showBuyButton = computed(() => {
+  if (!product.value) return false
+  if (!isBuyer.value) return false
+  if (product.value.status !== 1) return false
+  return true
+})
+
+const buyBtnDisabled = computed(() => {
+  return orderCreated.value || product.value.hasActiveOrder
+})
+
+const buyBtnText = computed(() => {
+  if (orderCreated.value) return '已下单'
+  if (product.value && product.value.hasActiveOrder) return '已有订单'
+  return '确认购买'
+})
 
 const quickReplies = QUICK_REPLIES
 
@@ -398,33 +532,113 @@ function goProductDetail() {
   uni.navigateTo({ url: `/pages/product/detail/detail?id=${product.value.id}` })
 }
 
-async function confirmBuy() {
-  if (!product.value) return
-  if (orderCreated.value || product.value.hasActiveOrder) {
-    showToast('已发起交易，请耐心等待')
+function openBuyModal() {
+  if (buyBtnDisabled.value) {
+    showToast(orderCreated.value ? '已发起交易，请耐心等待' : '该商品已有进行中的订单')
     return
   }
-  const confirm = await showConfirm(`确认购买"${product.value.title}"？`)
-  if (!confirm) return
+  showBuyModal.value = true
+}
+
+function closeBuyModal() {
+  if (submitting.value) return
+  showBuyModal.value = false
+}
+
+function onMeetingPointChange(e) {
+  const idx = e.detail.value
+  buyForm.value.meetingPointIdx = idx
+  buyForm.value.meetingPointText = meetingPoints.value[idx] ? meetingPoints.value[idx].name : ''
+}
+
+async function submitBuy() {
+  if (!product.value) return
+  if (submitting.value) return
+
+  const price = buyForm.value.price
+  if (!price || isNaN(Number(price)) || Number(price) <= 0) {
+    showToast('请输入有效的成交价格')
+    return
+  }
+  if (!buyForm.value.meetingPointText) {
+    showToast('请选择面交地点')
+    return
+  }
+
+  submitting.value = true
   try {
-    const data = await post('/mini/order/create', { productId: product.value.id }, { showLoading: true })
+    const orderData = {
+      productId: product.value.id,
+      price: Number(price),
+      meetingPointText: buyForm.value.meetingPointText,
+      remark: buyForm.value.remark || undefined
+    }
+    const data = await post('/mini/order/create', orderData, { showLoading: true })
     orderCreated.value = true
-    const orderText = data && data.orderNo ? `订单已创建：${data.orderNo}` : '订单已创建'
-    appendSystemMessage(orderText)
+    showBuyModal.value = false
+
+    // 发送订单卡片消息（type=3）
+    const orderMsg = JSON.stringify({
+      orderId: data.orderId,
+      orderNo: data.orderNo,
+      price: Number(price),
+      meetingPointText: buyForm.value.meetingPointText,
+      status: 1
+    })
+    try {
+      const msgId = await post('/mini/chat/message/send', {
+        sessionKey: sessionKey.value,
+        type: 3,
+        content: orderMsg
+      }, { showLoading: false })
+      // 本地插入订单卡片消息
+      messages.value.push({
+        id: typeof msgId === 'number' ? msgId : Date.now(),
+        time: Date.now(),
+        from: selfId.value,
+        isSelf: true,
+        type: 'order-card',
+        orderId: data.orderId,
+        orderNo: data.orderNo,
+        orderPrice: Number(price),
+        orderMeetingPoint: buyForm.value.meetingPointText
+      })
+      scrollToBottom()
+    } catch (e) {
+      // 订单创建成功但消息发送失败，仍显示系统提示
+      appendSystemMessage(`订单已创建：${data.orderNo}`)
+    }
+
+    uni.showToast({ title: '订单创建成功', icon: 'success' })
   } catch (error) {
     showToast('下单失败，请稍后重试')
+  } finally {
+    submitting.value = false
   }
 }
 
-function showConfirm(content) {
-  return new Promise((resolve) => {
-    uni.showModal({
-      title: '提示',
-      content,
-      confirmText: '确定',
-      cancelText: '取消',
-      success: (res) => resolve(res && res.confirm)
-    })
+function confirmReceiveInChat(item) {
+  if (!item || !item.orderId) return
+  if (orderCreated.value) {
+    showToast('已确认收货')
+    return
+  }
+  uni.showModal({
+    title: '确认收货',
+    content: '确认已收到商品吗？确认后将进入评价阶段。',
+    confirmText: '确认收货',
+    cancelText: '取消',
+    success: async (res) => {
+      if (!res || !res.confirm) return
+      try {
+        await post('/mini/order/confirm', { orderId: item.orderId }, { showLoading: true })
+        orderCreated.value = true
+        appendSystemMessage('买家已确认收货，订单完成')
+        uni.showToast({ title: '已确认收货', icon: 'success' })
+      } catch (error) {
+        showToast('操作失败，请稍后重试')
+      }
+    }
   })
 }
 
@@ -532,9 +746,35 @@ async function fetchProduct(id) {
         conditionText: getConditionText(data.conditionLevel),
         statusText: data.status === 1 ? '在售' : '已售'
       }
+      // 预填成交价格为商品价格
+      buyForm.value.price = data.price || ''
+      // 获取面交地点列表
+      if (data.campusId) {
+        fetchMeetingPoints(data.campusId)
+      }
     }
   } catch (error) {
     product.value = null
+  }
+}
+
+async function fetchMeetingPoints(campusId) {
+  if (!campusId) return
+  try {
+    const data = await get(`/mini/campus/meeting-points/${campusId}`, {}, { showLoading: false })
+    if (data && Array.isArray(data)) {
+      meetingPoints.value = data
+      // 自动选中商品预设的面交地点
+      if (product.value && product.value.meetingPointId) {
+        const idx = data.findIndex(m => m.id === product.value.meetingPointId)
+        if (idx >= 0) {
+          buyForm.value.meetingPointIdx = idx
+          buyForm.value.meetingPointText = data[idx].name
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Fetch meeting points error:', error)
   }
 }
 
@@ -558,16 +798,22 @@ async function fetchMessages() {
       pageSize: 50
     })
     if (data && data.records) {
-      const list = data.records.map(m => ({
-        id: m.msgId,
-        from: m.senderId,
-        isSelf: !!m.isSelf,
-        type: m.msgType === 2 ? 'product-card' : 'text',
-        content: m.content,
-        time: new Date(m.createTime.replace(/-/g, '/')).getTime(),
-        isRead: m.isRead,
-        ...parseProductCardContent(m.content, m.msgType)
-      }))
+      const list = data.records.map(m => {
+        let type = 'text'
+        if (m.msgType === 2) type = 'product-card'
+        else if (m.msgType === 3) type = 'order-card'
+        return {
+          id: m.msgId,
+          from: m.senderId,
+          isSelf: !!m.isSelf,
+          type,
+          content: m.content,
+          time: new Date(m.createTime.replace(/-/g, '/')).getTime(),
+          isRead: m.isRead,
+          ...parseProductCardContent(m.content, m.msgType),
+          ...parseOrderCardContent(m.content, m.msgType)
+        }
+      })
       messages.value = list.reverse()
       scrollToBottom()
     }
@@ -586,6 +832,21 @@ function parseProductCardContent(content, type) {
       productPrice: data.price,
       productCondition: data.condition,
       isRead: false
+    }
+  } catch (e) {
+    return {}
+  }
+}
+
+function parseOrderCardContent(content, type) {
+  if (type !== 3) return {}
+  try {
+    const data = JSON.parse(content)
+    return {
+      orderId: data.orderId,
+      orderNo: data.orderNo,
+      orderPrice: data.price,
+      orderMeetingPoint: data.meetingPointText
     }
   } catch (e) {
     return {}
@@ -855,10 +1116,33 @@ onShareAppMessage(() => {
   border-radius: 4rpx;
 }
 
+.chat-product__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+
 .chat-product__arrow { padding-left: var(--spacing-sm); }
 .chat-product__arrow-text {
   font-size: var(--font-xs);
   color: var(--text-secondary);
+}
+
+.chat-product__buy-btn {
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  background-color: var(--primary-color);
+}
+.chat-product__buy-btn.is-disabled {
+  background-color: #ccc;
+}
+.chat-product__buy-text {
+  font-size: 22rpx;
+  color: #fff;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 /* ====== 用户卡片 ====== */
@@ -1037,6 +1321,73 @@ onShareAppMessage(() => {
   }
 }
 
+/* ====== 订单卡片消息 ====== */
+.chat-order-card {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16rpx;
+}
+
+.chat-order-card__inner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  background-color: #fffbf0;
+  border: 1rpx solid #ffe58f;
+  border-radius: var(--radius-md);
+  padding: 20rpx 24rpx;
+  max-width: 540rpx;
+}
+
+.chat-order-card__icon {
+  font-size: 36rpx;
+  flex-shrink: 0;
+}
+
+.chat-order-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.chat-order-card__title {
+  font-size: var(--font-md);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chat-order-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.chat-order-card__detail {
+  font-size: var(--font-sm);
+  color: var(--text-regular);
+}
+
+.chat-order-card__hint {
+  font-size: 22rpx;
+  color: #ff9800;
+  margin-top: 4rpx;
+}
+
+.chat-order-card__action {
+  display: flex;
+  justify-content: center;
+  margin-top: 12rpx;
+}
+
+.chat-order-card__action-text {
+  padding: 10rpx 32rpx;
+  border-radius: 999rpx;
+  background-color: var(--primary-color);
+  color: #fff;
+  font-size: var(--font-sm);
+  font-weight: 500;
+}
+
 /* ====== 快捷回复 ====== */
 .chat-footer {
   flex-shrink: 0;
@@ -1131,5 +1482,192 @@ onShareAppMessage(() => {
   font-size: var(--font-sm);
   color: var(--text-white);
   font-weight: 600;
+}
+
+/* ====== 确认购买弹窗 ====== */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 620rpx;
+  max-height: 80vh;
+  background-color: #fff;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md);
+  border-bottom: 1rpx solid var(--border-light);
+}
+
+.modal-title {
+  font-size: var(--font-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  font-size: 32rpx;
+  color: var(--text-secondary);
+  padding: 4rpx 12rpx;
+}
+
+.modal-body {
+  padding: var(--spacing-md);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-product {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background-color: var(--bg-grey);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.modal-product__image {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.modal-product__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.modal-product__title {
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.modal-product__price {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+}
+
+.modal-field {
+  margin-bottom: var(--spacing-md);
+}
+
+.modal-field__label {
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.modal-field__input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1rpx solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--spacing-sm);
+}
+
+.modal-field__prefix {
+  font-size: var(--font-md);
+  color: var(--primary-color);
+  font-weight: 600;
+  margin-right: 4rpx;
+}
+
+.modal-field__input {
+  flex: 1;
+  height: 80rpx;
+  font-size: var(--font-md);
+  color: var(--text-primary);
+}
+
+.modal-field__picker {
+  height: 80rpx;
+  border: 1rpx solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--spacing-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+}
+
+.modal-field__picker .is-placeholder {
+  color: #ccc;
+}
+
+.modal-field__picker-arrow {
+  font-size: 20rpx;
+  color: var(--text-secondary);
+}
+
+.modal-field__textarea {
+  width: 100%;
+  height: 120rpx;
+  border: 1rpx solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+  font-size: var(--font-sm);
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+
+.modal-footer {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-top: 1rpx solid var(--border-light);
+}
+
+.modal-btn {
+  flex: 1;
+  height: 80rpx;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-md);
+  font-weight: 600;
+}
+
+.modal-btn--cancel {
+  background-color: var(--bg-grey);
+  color: var(--text-regular);
+}
+
+.modal-btn--confirm {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.modal-btn--confirm.is-loading {
+  opacity: 0.6;
 }
 </style>

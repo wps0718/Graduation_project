@@ -46,15 +46,21 @@
       <el-table v-if="activeTab === 'product'" :data="list" border>
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column prop="reporterNickName" label="举报人" width="120" />
-        <el-table-column label="被举报商品" width="200">
+        <el-table-column label="被举报商品" width="240">
           <template #default="{ row }">
             <div class="target-cell">
               <el-image
-                :src="getImageUrl(row.targetCoverImage)"
+                :src="getImageUrl(parseFirstImage(row.productCoverImageJson))"
                 fit="cover"
                 class="target-image"
-              />
-              <span class="target-title" :title="row.targetTitle">{{ row.targetTitle }}</span>
+              >
+                <template #error>
+                  <div class="image-fallback" />
+                </template>
+              </el-image>
+              <span class="target-title" :title="row.productTitle || '商品已删除'">
+                {{ row.productTitle || '商品已删除' }}
+              </span>
             </div>
           </template>
         </el-table-column>
@@ -91,7 +97,11 @@
       <el-table v-else :data="list" border>
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column prop="reporterNickName" label="举报人" width="120" />
-        <el-table-column prop="targetTitle" label="被举报用户" width="140" />
+        <el-table-column label="被举报用户" width="140">
+          <template #default="{ row }">
+            {{ row.targetTitle || row.targetUserNickName || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column label="举报原因" width="120">
           <template #default="{ row }">
             <el-tag type="warning">{{ reasonTypeText(row.reasonType) }}</el-tag>
@@ -171,64 +181,68 @@
         <el-divider />
 
         <!-- 区域二：被举报目标信息 -->
-        <template v-if="detail.targetType === 1 && detail.targetProduct">
+        <template v-if="detail.targetType === 1">
           <div class="section-title">被举报商品</div>
           <el-descriptions border :column="2">
             <el-descriptions-item label="商品封面" :span="2">
               <el-image
-                :src="getImageUrl(detail.targetProduct.coverImage)"
+                :src="getImageUrl(detail.productImages?.[0])"
                 fit="cover"
                 style="width: 80px; height: 80px; border-radius: 6px"
-              />
+              >
+                <template #error>
+                  <div class="image-fallback detail-image-fallback" />
+                </template>
+              </el-image>
             </el-descriptions-item>
-            <el-descriptions-item label="商品标题">{{ detail.targetProduct.title }}</el-descriptions-item>
+            <el-descriptions-item label="商品标题">{{ detail.productTitle || '商品已删除' }}</el-descriptions-item>
             <el-descriptions-item label="商品状态">
-              <el-tag :type="productStatusTagType(detail.targetProduct.status)">
-                {{ productStatusText(detail.targetProduct.status) }}
+              <el-tag :type="productStatusTagType(detail.productStatus)">
+                {{ productStatusText(detail.productStatus) }}
               </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="分类">{{ detail.targetProduct.categoryName }}</el-descriptions-item>
+            <el-descriptions-item label="分类">{{ detail.productCategoryName || '-' }}</el-descriptions-item>
             <el-descriptions-item label="成色">
-              {{ conditionLevelText(detail.targetProduct.conditionLevel) }}
+              {{ conditionLevelText(detail.productConditionLevel) }}
             </el-descriptions-item>
             <el-descriptions-item label="价格" class-name="price-cell">
-              <span style="color: #f56c6c; font-weight: 600">¥{{ detail.targetProduct.price }}</span>
+              <span style="color: #f56c6c; font-weight: 600">¥{{ detail.productPrice }}</span>
             </el-descriptions-item>
-            <el-descriptions-item label="发布者">{{ detail.targetProduct.publisherNickName }}</el-descriptions-item>
+            <el-descriptions-item label="发布者">{{ detail.productUserNickName || '-' }}</el-descriptions-item>
             <el-descriptions-item label="发布者认证">
-              <el-tag :type="authStatusTagType(detail.targetProduct.publisherAuthStatus)">
-                {{ authStatusText(detail.targetProduct.publisherAuthStatus) }}
+              <el-tag :type="authStatusTagType(detail.productUserAuthStatus)">
+                {{ authStatusText(detail.productUserAuthStatus) }}
               </el-tag>
             </el-descriptions-item>
             <el-descriptions-item label="发布时间">
-              {{ formatTime(detail.targetProduct.createTime) }}
+              {{ formatTime(detail.productCreateTime) }}
             </el-descriptions-item>
           </el-descriptions>
         </template>
 
-        <template v-else-if="detail.targetType === 2 && detail.targetUser">
+        <template v-else-if="detail.targetType === 2">
           <div class="section-title">被举报用户</div>
           <el-descriptions border :column="2">
             <el-descriptions-item label="头像" :span="2">
-              <el-avatar :size="60" :src="getImageUrl(detail.targetUser.avatarUrl)" />
+              <el-avatar :size="60" :src="getImageUrl(detail.targetUserAvatarUrl)" />
             </el-descriptions-item>
-            <el-descriptions-item label="昵称">{{ detail.targetUser.nickName }}</el-descriptions-item>
+            <el-descriptions-item label="昵称">{{ detail.targetUserNickName || '-' }}</el-descriptions-item>
             <el-descriptions-item label="账号状态">
-              <el-tag :type="userStatusTagType(detail.targetUser.status)">
-                {{ userStatusText(detail.targetUser.status) }}
+              <el-tag :type="userStatusTagType(detail.targetUserStatus)">
+                {{ userStatusText(detail.targetUserStatus) }}
               </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="手机号">{{ detail.targetUser.phone }}</el-descriptions-item>
+            <el-descriptions-item label="手机号">{{ detail.targetUserPhone }}</el-descriptions-item>
             <el-descriptions-item label="认证状态">
-              <el-tag :type="authStatusTagType(detail.targetUser.authStatus)">
-                {{ authStatusText(detail.targetUser.authStatus) }}
+              <el-tag :type="authStatusTagType(detail.targetUserAuthStatus)">
+                {{ authStatusText(detail.targetUserAuthStatus) }}
               </el-tag>
             </el-descriptions-item>
             <el-descriptions-item label="所在校区">
-              {{ detail.targetUser.campusName || '-' }}
+              {{ detail.targetUserCampusName || '-' }}
             </el-descriptions-item>
             <el-descriptions-item label="综合评分" :span="2">
-              ⭐ {{ detail.targetUser.score ?? '5.0' }}
+              ⭐ {{ detail.targetUserScore ?? '5.0' }}
             </el-descriptions-item>
           </el-descriptions>
         </template>
@@ -236,19 +250,38 @@
         <!-- 区域三：操作区（仅待处理时显示） -->
         <div v-if="detail.status === 0" class="action-area">
           <el-divider>处理操作</el-divider>
-          <p class="action-tip">请选择处理结果并填写处理说明：</p>
-          <el-input
-            v-model="handleResult"
-            type="textarea"
-            :rows="3"
-            placeholder="请输入处理结果说明（必填）"
-          />
+          <el-form label-width="100px" class="handle-form">
+            <el-form-item label="处理动作" required>
+              <el-select
+                v-model="handleAction"
+                placeholder="请选择处理动作"
+                style="width: 100%"
+              >
+                <el-option
+                  v-for="opt in availableActions"
+                  :key="opt.value"
+                  :label="opt.label"
+                  :value="opt.value"
+                />
+              </el-select>
+            </el-form-item>
+            <el-form-item label="处理说明">
+              <el-input
+                v-model="handleResult"
+                type="textarea"
+                :rows="3"
+                placeholder="请输入处理结果说明（选填）"
+              />
+            </el-form-item>
+          </el-form>
           <div class="action-buttons">
-            <el-button type="success" :loading="handling" @click="onHandle(1)">
-              标记已处理
-            </el-button>
-            <el-button type="info" :loading="handling" @click="onHandle(2)">
-              标记已忽略
+            <el-button
+              type="primary"
+              :loading="handling"
+              :disabled="!handleAction"
+              @click="onHandle"
+            >
+              确认处理
             </el-button>
           </div>
         </div>
@@ -258,7 +291,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getReportPage, getReportDetail, handleReport } from '@/api/report'
 
@@ -281,6 +314,7 @@ const detail = ref(null)
 
 // 处理说明（在详情弹窗内填写）
 const handleResult = ref('')
+const handleAction = ref('') // 处理动作：off_shelf / warn / ban / ignore
 const handling = ref(false) // 处理中loading状态
 
 /**
@@ -329,32 +363,55 @@ const openDetail = async (row) => {
   const res = await getReportDetail(row.id)
   detail.value = res.data || null
   handleResult.value = '' // 每次打开重置处理说明
+  handleAction.value = '' // 每次打开重置处理动作
   detailVisible.value = true
 }
 
 /**
- * 处理举报
- * @param {number} status - 1-已处理 / 2-已忽略
+ * 处理动作选项
  */
-const onHandle = async (status) => {
-  if (!handleResult.value.trim()) {
-    ElMessage.warning('请输入处理结果说明')
+const actionOptions = [
+  { label: '强制下架商品', value: 'off_shelf' },
+  { label: '警告用户', value: 'warn' },
+  { label: '封禁用户', value: 'ban' },
+  { label: '忽略举报', value: 'ignore' }
+]
+
+/**
+ * 根据举报类型过滤可用的处理动作
+ */
+const availableActions = computed(() => {
+  if (!detail.value) return []
+  if (detail.value.targetType === 1) {
+    // 商品举报：全部可用
+    return actionOptions
+  }
+  // 用户举报：下架商品不可用
+  return actionOptions.filter(opt => opt.value !== 'off_shelf')
+})
+
+/**
+ * 处理举报
+ */
+const onHandle = async () => {
+  if (!handleAction.value) {
+    ElMessage.warning('请选择处理动作')
     return
   }
-  const statusText = status === 1 ? '已处理' : '已忽略'
+  const actionLabel = actionOptions.find(opt => opt.value === handleAction.value)?.label || handleAction.value
   await ElMessageBox.confirm(
-    `确定将该举报标记为「${statusText}」？`,
+    `确定执行「${actionLabel}」？`,
     '提示',
     { type: 'warning' }
   )
   handling.value = true
   try {
     await handleReport({
-      id: detail.value.id,
-      status,
+      reportId: detail.value.id,
+      action: handleAction.value,
       handleResult: handleResult.value.trim()
     })
-    ElMessage.success(`已标记为${statusText}`)
+    ElMessage.success('处理成功')
     detailVisible.value = false
     await loadList()
   } finally {
@@ -369,6 +426,23 @@ const getImageUrl = (path) => {
   if (!path) return ''
   if (path.startsWith('http')) return path
   return `http://localhost:8080${path.startsWith('/') ? '' : '/'}${path}`
+}
+
+/**
+ * 解析商品封面图 JSON 字符串，取第一张
+ */
+const parseFirstImage = (jsonStr) => {
+  if (!jsonStr) return ''
+  try {
+    const arr = JSON.parse(jsonStr)
+    if (Array.isArray(arr) && arr.length > 0) {
+      return arr[0]
+    }
+  } catch {
+    // 解析失败，直接当字符串返回（兼容单URL字符串）
+    return jsonStr
+  }
+  return ''
 }
 
 /**
@@ -497,9 +571,9 @@ onMounted(() => {
   gap: 8px;
 }
 .target-image {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
   flex-shrink: 0;
 }
 .target-title {
@@ -522,9 +596,7 @@ onMounted(() => {
 .action-area {
   margin-top: 8px;
 }
-.action-tip {
-  font-size: 13px;
-  color: #606266;
+.handle-form {
   margin-bottom: 12px;
 }
 .action-buttons {
@@ -538,5 +610,19 @@ onMounted(() => {
 :deep(.price-cell) {
   color: #f56c6c;
   font-weight: 600;
+}
+
+/* 图片加载失败兜底 */
+.image-fallback {
+  width: 100%;
+  height: 100%;
+  background-color: #f5f7fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+.detail-image-fallback {
+  border-radius: 6px;
 }
 </style>

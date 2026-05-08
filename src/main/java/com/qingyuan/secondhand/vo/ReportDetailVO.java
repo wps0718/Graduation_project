@@ -32,15 +32,21 @@ public class ReportDetailVO {
     @JsonIgnore
     private String productImagesJson;
     private Integer productStatus;
+    private String productCategoryName;
+    private Integer productConditionLevel;
     private Long productUserId;
     private String productUserNickName;
     private String productUserPhone;
+    private Integer productUserAuthStatus;
+    private LocalDateTime productCreateTime;
 
     private String targetUserNickName;
     private String targetUserAvatarUrl;
     private String targetUserPhone;
     private Integer targetUserStatus;
     private Integer targetUserAuthStatus;
+    private String targetUserCampusName;
+    private java.math.BigDecimal targetUserScore;
 
     private Long handlerId;
     private String handlerName;
