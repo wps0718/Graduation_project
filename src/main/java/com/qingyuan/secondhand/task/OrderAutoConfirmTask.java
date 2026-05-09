@@ -1,12 +1,17 @@
 package com.qingyuan.secondhand.task;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.qingyuan.secondhand.common.constant.RedisConstant;
 import com.qingyuan.secondhand.common.enums.NotificationCategory;
 import com.qingyuan.secondhand.common.enums.OrderStatus;
 import com.qingyuan.secondhand.common.enums.ProductStatus;
+import com.qingyuan.secondhand.entity.ChatMessage;
 import com.qingyuan.secondhand.entity.Product;
 import com.qingyuan.secondhand.entity.TradeOrder;
+import com.qingyuan.secondhand.mapper.ChatMessageMapper;
 import com.qingyuan.secondhand.mapper.ProductMapper;
 import com.qingyuan.secondhand.mapper.TradeOrderMapper;
 import com.qingyuan.secondhand.service.NotificationService;
@@ -30,6 +35,8 @@ public class OrderAutoConfirmTask {
     private final ProductMapper productMapper;
     private final NotificationService notificationService;
     private final StringRedisTemplate stringRedisTemplate;
+    private final ChatMessageMapper chatMessageMapper;
+    private final ObjectMapper objectMapper;
 
     @Scheduled(cron = "0 0 2 * * ?")
     public void execute() {
@@ -40,7 +47,7 @@ public class OrderAutoConfirmTask {
         try {
             LambdaQueryWrapper<TradeOrder> wrapper = new LambdaQueryWrapper<>();
             wrapper.lt(TradeOrder::getConfirmDeadline, LocalDateTime.now())
-                    .eq(TradeOrder::getStatus, OrderStatus.PENDING_MEET.getCode());
+                    .in(TradeOrder::getStatus, OrderStatus.PENDING_MEET.getCode(), OrderStatus.PENDING_RECEIPT.getCode());
             List<TradeOrder> orders = tradeOrderMapper.selectList(wrapper);
             if (orders == null || orders.isEmpty()) {
                 log.info("[订单自动确认任务] 无需自动确认的订单");
@@ -54,6 +61,27 @@ public class OrderAutoConfirmTask {
                     update.setCompleteTime(LocalDateTime.now());
                     update.setUpdateTime(LocalDateTime.now());
                     tradeOrderMapper.updateById(update);
+
+                    // 同步更新聊天消息中的订单状态
+                    try {
+                        ChatMessage orderMsg = chatMessageMapper.selectOne(
+                                new LambdaQueryWrapper<ChatMessage>()
+                                        .eq(ChatMessage::getOrderId, order.getId())
+                                        .eq(ChatMessage::getMsgType, 3)
+                        );
+                        if (orderMsg != null && orderMsg.getContent() != null) {
+                            JsonNode root = objectMapper.readTree(orderMsg.getContent());
+                            if (root.isObject()) {
+                                ((ObjectNode) root).put("status", OrderStatus.COMPLETED.getCode());
+                                ChatMessage msgUpdate = new ChatMessage();
+                                msgUpdate.setId(orderMsg.getId());
+                                msgUpdate.setContent(objectMapper.writeValueAsString(root));
+                                chatMessageMapper.updateById(msgUpdate);
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.error("[订单自动确认任务] 更新聊天消息状态失败，订单ID：{}", order.getId(), e);
+                    }
 
                     Product product = productMapper.selectById(order.getProductId());
                     if (product != null && Integer.valueOf(0).equals(product.getIsDeleted())) {

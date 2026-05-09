@@ -18,7 +18,8 @@ public enum NotificationType {
     AUTH_PASS(8, "校园认证通过", "恭喜您，您的校园认证已通过审核！"),
     AUTH_REJECT(9, "校园认证被驳回", "您的校园认证未通过审核，驳回原因：{reason}"),
     REVIEW_REMIND(10, "评价提醒", "你购买的「{productName}」交易已完成3天，还未评价哦"),
-    NEW_FOLLOWER(11, "新增关注", "{nickName}关注了你");
+    NEW_FOLLOWER(11, "新增关注", "{nickName}关注了你"),
+    ORDER_SHIPPED(12, "卖家已确认发货", "卖家已确认发货，订单「{productName}」请尽快前往面交");
 
     private final Integer code;
     private final String description;

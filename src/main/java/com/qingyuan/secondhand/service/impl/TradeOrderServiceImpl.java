@@ -5,7 +5,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.qingyuan.secondhand.common.constant.RedisConstant;
 import com.qingyuan.secondhand.common.context.UserContext;
 import com.qingyuan.secondhand.common.enums.NotificationType;
@@ -13,9 +15,11 @@ import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.common.util.OrderNoUtil;
 import com.qingyuan.secondhand.common.util.PhoneUtil;
 import com.qingyuan.secondhand.dto.OrderCreateDTO;
+import com.qingyuan.secondhand.entity.ChatMessage;
 import com.qingyuan.secondhand.entity.Product;
 import com.qingyuan.secondhand.entity.TradeOrder;
 import com.qingyuan.secondhand.entity.User;
+import com.qingyuan.secondhand.mapper.ChatMessageMapper;
 import com.qingyuan.secondhand.mapper.ProductMapper;
 import com.qingyuan.secondhand.mapper.TradeOrderMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
@@ -51,6 +55,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private final NotificationService notificationService;
     private final UserMapper userMapper;
     private final ObjectMapper objectMapper;
+    private final ChatMessageMapper chatMessageMapper;
 
     @Override
     @Transactional
@@ -84,7 +89,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         try {
             Long count = tradeOrderMapper.selectCount(new LambdaQueryWrapper<TradeOrder>()
                     .eq(TradeOrder::getProductId, dto.getProductId())
-                    .eq(TradeOrder::getStatus, 1));
+                    .in(TradeOrder::getStatus, 1, 2));
             if (count != null && count > 0) {
                 throw new BusinessException("该商品已有进行中的订单");
             }
@@ -192,8 +197,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         if (!userId.equals(order.getBuyerId())) {
             throw new BusinessException("只有买家可以确认收货");
         }
-        if (!Integer.valueOf(1).equals(order.getStatus())) {
-            throw new BusinessException("订单状态不正确");
+        if (!Integer.valueOf(2).equals(order.getStatus())) {
+            throw new BusinessException("订单状态不正确，请等待卖家确认发货后再收货");
         }
         Product product = productMapper.selectById(order.getProductId());
         if (product == null) {
@@ -204,6 +209,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         if (tradeOrderMapper.updateById(order) <= 0) {
             throw new BusinessException("确认收货失败");
         }
+        updateOrderCardMessageStatus(orderId, 3);
         product.setStatus(3);
         if (productMapper.updateById(product) <= 0) {
             throw new BusinessException("商品状态更新失败");
@@ -220,6 +226,44 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         notificationService.send(
                 order.getBuyerId(),
                 NotificationType.TRADE_SUCCESS,
+                Map.of("productName", productName),
+                order.getId(),
+                2,
+                1
+        );
+    }
+
+    @Override
+    @Transactional
+    public void confirmShip(Long orderId) {
+        Long userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException("未登录");
+        }
+        if (orderId == null) {
+            throw new BusinessException("订单ID不能为空");
+        }
+        TradeOrder order = tradeOrderMapper.selectById(orderId);
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+        if (!userId.equals(order.getSellerId())) {
+            throw new BusinessException("只有卖家可以确认发货");
+        }
+        if (!Integer.valueOf(1).equals(order.getStatus())) {
+            throw new BusinessException("订单状态不正确，只能对待面交的订单进行发货确认");
+        }
+        order.setStatus(2);
+        order.setUpdateTime(LocalDateTime.now());
+        if (tradeOrderMapper.updateById(order) <= 0) {
+            throw new BusinessException("确认发货失败");
+        }
+        updateOrderCardMessageStatus(orderId, 2);
+        Product product = productMapper.selectById(order.getProductId());
+        String productName = product != null && product.getTitle() != null ? product.getTitle() : "商品";
+        notificationService.send(
+                order.getBuyerId(),
+                NotificationType.ORDER_SHIPPED,
                 Map.of("productName", productName),
                 order.getId(),
                 2,
@@ -246,8 +290,8 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         if (!isBuyer && !isSeller) {
             throw new BusinessException("无权取消该订单");
         }
-        if (!Integer.valueOf(1).equals(order.getStatus())) {
-            throw new BusinessException("只有待面交的订单可以取消");
+        if (!Integer.valueOf(1).equals(order.getStatus()) && !Integer.valueOf(2).equals(order.getStatus())) {
+            throw new BusinessException("只有待面交或待收货的订单可以取消");
         }
         Product product = productMapper.selectById(order.getProductId());
         if (product == null) {
@@ -259,6 +303,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         if (tradeOrderMapper.updateById(order) <= 0) {
             throw new BusinessException("取消订单失败");
         }
+        updateOrderCardMessageStatus(orderId, 5);
         // 恢复商品状态为在售，但如果已被管理员变更（如强制下架），则跳过
         if (Integer.valueOf(1).equals(product.getStatus())) {
             product.setStatus(1);
@@ -363,5 +408,30 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private String parseCoverImage(String imagesJson) {
         List<String> images = parseImages(imagesJson);
         return images == null || images.isEmpty() ? null : images.get(0);
+    }
+
+    /**
+     * 同步更新订单卡片消息 content JSON 中的 status 字段
+     */
+    private void updateOrderCardMessageStatus(Long orderId, Integer newStatus) {
+        try {
+            ChatMessage orderMsg = chatMessageMapper.selectOne(
+                    new LambdaQueryWrapper<ChatMessage>()
+                            .eq(ChatMessage::getOrderId, orderId)
+                            .eq(ChatMessage::getMsgType, 3)
+            );
+            if (orderMsg != null && orderMsg.getContent() != null) {
+                JsonNode root = objectMapper.readTree(orderMsg.getContent());
+                if (root.isObject()) {
+                    ((ObjectNode) root).put("status", newStatus);
+                    ChatMessage update = new ChatMessage();
+                    update.setId(orderMsg.getId());
+                    update.setContent(objectMapper.writeValueAsString(root));
+                    chatMessageMapper.updateById(update);
+                }
+            }
+        } catch (Exception e) {
+            log.error("更新订单卡片消息状态失败，orderId：{}，newStatus：{}", orderId, newStatus, e);
+        }
     }
 }

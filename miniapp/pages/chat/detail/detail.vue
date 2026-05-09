@@ -110,19 +110,30 @@
 
         <view v-else-if="item.type === 'order-card'" class="chat-order-card">
           <view class="chat-order-card__inner">
-            <text class="chat-order-card__icon">📋</text>
+            <text class="chat-order-card__icon">{{ getOrderCardIcon(item) }}</text>
             <view class="chat-order-card__body">
-              <text class="chat-order-card__title">订单已创建</text>
+              <text class="chat-order-card__title">{{ getOrderCardTitle(item) }}</text>
               <view class="chat-order-card__details">
                 <text class="chat-order-card__detail">订单号：{{ item.orderNo }}</text>
                 <text class="chat-order-card__detail">成交价：¥{{ item.orderPrice }}</text>
                 <text v-if="item.orderMeetingPoint" class="chat-order-card__detail">面交地点：{{ item.orderMeetingPoint }}</text>
               </view>
-              <text class="chat-order-card__hint">72小时内面交有效，请及时联系对方</text>
+              <text class="chat-order-card__hint">{{ getOrderCardHint(item) }}</text>
+              <!-- status=1 待面交：卖家确认发货，买家等待 -->
+              <view v-if="item.orderStatus === 1 && item.sellerId === selfId" class="chat-order-card__action" @click="handleConfirmShip(item)">
+                <text class="chat-order-card__action-text">确认发货</text>
+              </view>
+              <view v-else-if="item.orderStatus === 1 && item.buyerId === selfId" class="chat-order-card__waiting">
+                <text class="chat-order-card__waiting-text">⏳ 等待卖家确认发货</text>
+              </view>
+              <!-- status=2 待收货：买家确认收货，卖家等待 -->
+              <view v-else-if="item.orderStatus === 2 && item.buyerId === selfId && !orderCreated" class="chat-order-card__action" @click="confirmReceiveInChat(item)">
+                <text class="chat-order-card__action-text">确认收货</text>
+              </view>
+              <view v-else-if="item.orderStatus === 2 && item.sellerId === selfId" class="chat-order-card__waiting">
+                <text class="chat-order-card__waiting-text">⏳ 等待买家确认收货</text>
+              </view>
             </view>
-          </view>
-          <view v-if="item.isSelf && !orderCreated" class="chat-order-card__action" @click="confirmReceiveInChat(item)">
-            <text class="chat-order-card__action-text">确认收货</text>
           </view>
         </view>
 
@@ -578,12 +589,15 @@ async function submitBuy() {
     showBuyModal.value = false
 
     // 发送订单卡片消息（type=3）
+    const sellerId = product.value ? product.value.userId || product.value.sellerId : 0
     const orderMsg = JSON.stringify({
       orderId: data.orderId,
       orderNo: data.orderNo,
       price: Number(price),
       meetingPointText: buyForm.value.meetingPointText,
-      status: 1
+      status: 1,
+      buyerId: selfId.value,
+      sellerId: sellerId
     })
     try {
       const msgId = await post('/mini/chat/message/send', {
@@ -601,7 +615,10 @@ async function submitBuy() {
         orderId: data.orderId,
         orderNo: data.orderNo,
         orderPrice: Number(price),
-        orderMeetingPoint: buyForm.value.meetingPointText
+        orderMeetingPoint: buyForm.value.meetingPointText,
+        orderStatus: 1,
+        buyerId: selfId.value,
+        sellerId: sellerId
       })
       scrollToBottom()
     } catch (e) {
@@ -633,8 +650,46 @@ function confirmReceiveInChat(item) {
       try {
         await post('/mini/order/confirm', { orderId: item.orderId }, { showLoading: true })
         orderCreated.value = true
-        appendSystemMessage('买家已确认收货，订单完成')
         uni.showToast({ title: '已确认收货', icon: 'success' })
+        fetchMessages()
+      } catch (error) {
+        showToast('操作失败，请稍后重试')
+      }
+    }
+  })
+}
+
+function getOrderCardIcon(item) {
+  const iconMap = { 1: '📋', 2: '📦', 3: '✅', 5: '❌' }
+  return iconMap[item.orderStatus] || '📋'
+}
+
+function getOrderCardTitle(item) {
+  const titleMap = { 1: '订单已创建', 2: '等待面交', 3: '交易完成', 5: '订单已取消' }
+  return titleMap[item.orderStatus] || '订单'
+}
+
+function getOrderCardHint(item) {
+  if (item.orderStatus === 1) return '⏰ 72小时内面交有效，请及时联系对方'
+  if (item.orderStatus === 2) return '✅ 卖家已确认，请尽快面交'
+  if (item.orderStatus === 3) return '🎉 交易已完成'
+  if (item.orderStatus === 5) return '订单已取消'
+  return ''
+}
+
+async function handleConfirmShip(item) {
+  if (!item || !item.orderId) return
+  uni.showModal({
+    title: '确认发货',
+    content: '确认该订单可以面交？确认后买家将看到确认收货按钮。',
+    confirmText: '确认发货',
+    cancelText: '取消',
+    success: async (res) => {
+      if (!res || !res.confirm) return
+      try {
+        await post('/mini/order/confirm-ship', { orderId: item.orderId }, { showLoading: true })
+        uni.showToast({ title: '已确认发货', icon: 'success' })
+        fetchMessages()
       } catch (error) {
         showToast('操作失败，请稍后重试')
       }
@@ -798,11 +853,18 @@ async function fetchMessages() {
       pageSize: 50
     })
     if (data && data.records) {
+      // Preserve locally-updated order card state (e.g. status changed by confirmShip/confirmReceive)
+      const oldOrderState = {}
+      messages.value.forEach(m => {
+        if (m.type === 'order-card' && m.id) {
+          oldOrderState[m.id] = { orderStatus: m.orderStatus, buyerId: m.buyerId, sellerId: m.sellerId }
+        }
+      })
       const list = data.records.map(m => {
         let type = 'text'
         if (m.msgType === 2) type = 'product-card'
         else if (m.msgType === 3) type = 'order-card'
-        return {
+        const parsed = {
           id: m.msgId,
           from: m.senderId,
           isSelf: !!m.isSelf,
@@ -813,6 +875,13 @@ async function fetchMessages() {
           ...parseProductCardContent(m.content, m.msgType),
           ...parseOrderCardContent(m.content, m.msgType)
         }
+        // Preserve locally-updated order status from polling overwrite
+        if (type === 'order-card' && oldOrderState[m.msgId]) {
+          parsed.orderStatus = oldOrderState[m.msgId].orderStatus
+          parsed.buyerId = oldOrderState[m.msgId].buyerId
+          parsed.sellerId = oldOrderState[m.msgId].sellerId
+        }
+        return parsed
       })
       messages.value = list.reverse()
       scrollToBottom()
@@ -846,7 +915,10 @@ function parseOrderCardContent(content, type) {
       orderId: data.orderId,
       orderNo: data.orderNo,
       orderPrice: data.price,
-      orderMeetingPoint: data.meetingPointText
+      orderMeetingPoint: data.meetingPointText,
+      orderStatus: data.status,
+      buyerId: data.buyerId,
+      sellerId: data.sellerId
     }
   } catch (e) {
     return {}
@@ -1376,16 +1448,39 @@ onShareAppMessage(() => {
 .chat-order-card__action {
   display: flex;
   justify-content: center;
-  margin-top: 12rpx;
+  margin-top: 16rpx;
+  width: 100%;
 }
 
 .chat-order-card__action-text {
-  padding: 10rpx 32rpx;
-  border-radius: 999rpx;
-  background-color: var(--primary-color);
+  width: 100%;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
   color: #fff;
-  font-size: var(--font-sm);
-  font-weight: 500;
+  background-color: var(--primary-color);
+  border-radius: 36rpx;
+}
+
+.chat-order-card__waiting {
+  display: flex;
+  justify-content: center;
+  margin-top: 16rpx;
+  width: 100%;
+}
+
+.chat-order-card__waiting-text {
+  width: 100%;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  color: #999;
+  background-color: #f5f5f5;
+  border-radius: 36rpx;
 }
 
 /* ====== 快捷回复 ====== */

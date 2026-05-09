@@ -27,7 +27,19 @@
       "Bash(powershell *)",
       "Bash(netstat -ano)",
       "Bash(taskkill *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(/c/Users/17337/AppData/Local/Programs/Python/python --version)",
+      "Bash(npm --version)",
+      "Bash(/d/Node.js/nodejs/node *)",
+      "Bash(conda --version)",
+      "Bash(pip --version)",
+      "Bash(/d/java17/install/bin/java -version)",
+      "Bash(mkdir -p gen-paper)",
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "Bash(node generate.js)",
+      "Bash(node *)",
+      "Bash(mvn test-compile *)"
     ]
   }
 }

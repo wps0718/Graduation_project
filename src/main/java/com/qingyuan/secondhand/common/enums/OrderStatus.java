@@ -7,6 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum OrderStatus {
     PENDING_MEET(1, "待面交"),
+    PENDING_RECEIPT(2, "待收货"),
     COMPLETED(3, "已完成"),
     RATED(4, "已评价"),
     CANCELLED(5, "已取消");

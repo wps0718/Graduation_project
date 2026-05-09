@@ -14,6 +14,7 @@ import com.qingyuan.secondhand.entity.Review;
 import com.qingyuan.secondhand.entity.TradeOrder;
 import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.mapper.CampusAuthMapper;
+import com.qingyuan.secondhand.mapper.ChatMessageMapper;
 import com.qingyuan.secondhand.mapper.CollegeMapper;
 import com.qingyuan.secondhand.mapper.FavoriteMapper;
 import com.qingyuan.secondhand.mapper.NotificationMapper;
@@ -122,8 +123,9 @@ class NotificationIntegrationTest {
                                             StringRedisTemplate redisTemplate,
                                             NotificationService notificationService,
                                             UserMapper userMapper,
-                                            ObjectMapper objectMapper) {
-            return new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+                                            ObjectMapper objectMapper,
+                                            ChatMessageMapper chatMessageMapper) {
+            return new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
         }
 
         @Bean
@@ -197,6 +199,9 @@ class NotificationIntegrationTest {
 
     @MockBean
     private ReportMapper reportMapper;
+
+    @MockBean
+    private ChatMessageMapper chatMessageMapper;
 
     @MockBean
     private StringRedisTemplate redisTemplate;
@@ -401,7 +406,7 @@ class NotificationIntegrationTest {
         order.setProductId(511L);
         order.setBuyerId(70001L);
         order.setSellerId(70002L);
-        order.setStatus(1);
+        order.setStatus(2);
         Product product = new Product();
         product.setId(511L);
         product.setIsDeleted(0);
@@ -414,13 +419,15 @@ class NotificationIntegrationTest {
         UserContext.setCurrentUserId(70001L);
         tradeOrderService.confirmOrder(51L);
 
-        TemplateArgs args = captureTemplateArgs();
-        Assertions.assertEquals(order.getBuyerId(), args.userId());
-        Assertions.assertEquals(NotificationType.TRADE_SUCCESS, args.type());
-        Assertions.assertEquals(Map.of("productName", "测试商品"), args.params());
-        Assertions.assertEquals(order.getId(), args.relatedId());
-        Assertions.assertEquals(RELATED_TYPE_TRADE_ORDER, args.relatedType());
-        Assertions.assertEquals(1, args.category());
+        // confirmOrder sends notifications to both seller and buyer
+        Mockito.verify(notificationService, Mockito.times(2)).send(
+                Mockito.anyLong(),
+                Mockito.eq(NotificationType.TRADE_SUCCESS),
+                Mockito.eq(Map.of("productName", "测试商品")),
+                Mockito.eq(51L),
+                Mockito.eq(2),
+                Mockito.eq(1)
+        );
     }
 
     @Test

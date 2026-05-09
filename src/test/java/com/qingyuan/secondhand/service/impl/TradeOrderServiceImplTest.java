@@ -16,6 +16,7 @@ import com.qingyuan.secondhand.entity.User;
 import com.qingyuan.secondhand.mapper.ProductMapper;
 import com.qingyuan.secondhand.mapper.TradeOrderMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
+import com.qingyuan.secondhand.mapper.ChatMessageMapper;
 import com.qingyuan.secondhand.service.NotificationService;
 import com.qingyuan.secondhand.vo.OrderCreateVO;
 import com.qingyuan.secondhand.vo.OrderDetailVO;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -41,6 +43,9 @@ import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class TradeOrderServiceImplTest {
+
+    @Mock
+    ChatMessageMapper chatMessageMapper;
 
     @BeforeAll
     static void initTableInfo() {
@@ -80,7 +85,7 @@ class TradeOrderServiceImplTest {
         }).when(tradeOrderMapper).insert(Mockito.any(TradeOrder.class));
 
         UserContext.setCurrentUserId(10000L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         OrderCreateDTO dto = buildCreateDTO();
         LocalDateTime before = LocalDateTime.now();
@@ -137,7 +142,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(productMapper.selectById(1L)).thenReturn(null);
 
         UserContext.setCurrentUserId(10000L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.createOrder(buildCreateDTO()));
         Assertions.assertEquals("商品不存在", ex.getMsg());
@@ -156,7 +161,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(productMapper.selectById(1L)).thenReturn(product);
 
         UserContext.setCurrentUserId(10000L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.createOrder(buildCreateDTO()));
         Assertions.assertEquals("商品未在售", ex.getMsg());
@@ -175,7 +180,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(productMapper.selectById(1L)).thenReturn(product);
 
         UserContext.setCurrentUserId(10000L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.createOrder(buildCreateDTO()));
         Assertions.assertEquals("不能购买自己的商品", ex.getMsg());
@@ -200,7 +205,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(tradeOrderMapper.selectCount(Mockito.any())).thenReturn(1L);
 
         UserContext.setCurrentUserId(10000L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.createOrder(buildCreateDTO()));
         Assertions.assertEquals("该商品已有进行中的订单", ex.getMsg());
@@ -225,7 +230,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(productMapper.selectById(1L)).thenReturn(product);
 
         UserContext.setCurrentUserId(10000L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.createOrder(buildCreateDTO()));
         Assertions.assertEquals("商品正在被其他用户下单，请稍后重试", ex.getMsg());
@@ -250,7 +255,7 @@ class TradeOrderServiceImplTest {
             .thenReturn(page);
 
         UserContext.setCurrentUserId(10000L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         IPage<OrderListVO> result = service.getOrderList("buyer", null, 1, 10);
         Assertions.assertEquals(1, result.getRecords().size());
@@ -275,7 +280,7 @@ class TradeOrderServiceImplTest {
             .thenReturn(page);
 
         UserContext.setCurrentUserId(20001L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         IPage<OrderListVO> result = service.getOrderList("seller", null, 1, 10);
         Assertions.assertEquals(1, result.getRecords().size());
@@ -296,7 +301,7 @@ class TradeOrderServiceImplTest {
             .thenReturn(page);
 
         UserContext.setCurrentUserId(10000L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         IPage<OrderListVO> result = service.getOrderList("buyer", 1, 1, 10);
         Assertions.assertEquals(0, result.getRecords().size());
@@ -317,7 +322,7 @@ class TradeOrderServiceImplTest {
             .thenReturn(List.of("url1", "url2"));
 
         UserContext.setCurrentUserId(10000L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         OrderDetailVO result = service.getOrderDetail(1L);
         Assertions.assertEquals("buyer", result.getCurrentRole());
@@ -339,7 +344,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(tradeOrderMapper.getOrderDetail(1L)).thenReturn(detail);
 
         UserContext.setCurrentUserId(30000L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.getOrderDetail(1L));
         Assertions.assertEquals("无权限查看该订单", ex.getMsg());
@@ -354,7 +359,7 @@ class TradeOrderServiceImplTest {
         NotificationService notificationService = Mockito.mock(NotificationService.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
 
-        TradeOrder order = buildOrder(1L, 10001L, 10002L, 1, 1L);
+        TradeOrder order = buildOrder(1L, 10001L, 10002L, 2, 1L);
         order.setOrderNo("TD202602230001");
         Product product = buildProduct(1L, 10002L, 1);
         product.setTitle("测试商品");
@@ -364,7 +369,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         service.confirmOrder(1L);
 
@@ -400,7 +405,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(tradeOrderMapper.selectById(1L)).thenReturn(order);
 
         UserContext.setCurrentUserId(10002L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.confirmOrder(1L));
         Assertions.assertEquals("只有买家可以确认收货", ex.getMsg());
@@ -419,10 +424,10 @@ class TradeOrderServiceImplTest {
         Mockito.when(tradeOrderMapper.selectById(1L)).thenReturn(order);
 
         UserContext.setCurrentUserId(10001L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.confirmOrder(1L));
-        Assertions.assertEquals("订单状态不正确", ex.getMsg());
+        Assertions.assertEquals("订单状态不正确，请等待卖家确认发货后再收货", ex.getMsg());
     }
 
     @Test
@@ -448,7 +453,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(userMapper.selectById(10002L)).thenReturn(seller);
 
         UserContext.setCurrentUserId(10001L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         service.cancelOrder(1L, "不想要了");
 
@@ -495,7 +500,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(userMapper.selectById(10001L)).thenReturn(buyer);
 
         UserContext.setCurrentUserId(10002L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         service.cancelOrder(1L, "商品已售出");
 
@@ -532,7 +537,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(tradeOrderMapper.selectById(1L)).thenReturn(order);
 
         UserContext.setCurrentUserId(10003L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.cancelOrder(1L, "测试"));
         Assertions.assertEquals("无权取消该订单", ex.getMsg());
@@ -551,10 +556,10 @@ class TradeOrderServiceImplTest {
         Mockito.when(tradeOrderMapper.selectById(1L)).thenReturn(order);
 
         UserContext.setCurrentUserId(10001L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.cancelOrder(1L, "测试"));
-        Assertions.assertEquals("只有待面交的订单可以取消", ex.getMsg());
+        Assertions.assertEquals("只有待面交或待收货的订单可以取消", ex.getMsg());
     }
 
     @Test
@@ -571,7 +576,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(tradeOrderMapper.updateById(Mockito.any(TradeOrder.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         service.deleteOrder(1L);
 
@@ -594,7 +599,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(tradeOrderMapper.updateById(Mockito.any(TradeOrder.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10002L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         service.deleteOrder(1L);
 
@@ -616,7 +621,7 @@ class TradeOrderServiceImplTest {
         Mockito.when(tradeOrderMapper.selectById(1L)).thenReturn(order);
 
         UserContext.setCurrentUserId(10001L);
-        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper);
+        TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.deleteOrder(1L));
         Assertions.assertEquals("只有已评价或已取消的订单可以删除", ex.getMsg());

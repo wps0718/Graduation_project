@@ -8,6 +8,8 @@ import com.qingyuan.secondhand.entity.Product;
 import com.qingyuan.secondhand.entity.Review;
 import com.qingyuan.secondhand.entity.TradeOrder;
 import com.qingyuan.secondhand.entity.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qingyuan.secondhand.mapper.ChatMessageMapper;
 import com.qingyuan.secondhand.mapper.ProductMapper;
 import com.qingyuan.secondhand.mapper.ReviewMapper;
 import com.qingyuan.secondhand.mapper.TradeOrderMapper;
@@ -34,7 +36,9 @@ class ScheduledTaskTest {
         TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
-        OrderExpireTask task = new OrderExpireTask(tradeOrderMapper, productMapper, notificationService);
+        ChatMessageMapper chatMessageMapper = Mockito.mock(ChatMessageMapper.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+        OrderExpireTask task = new OrderExpireTask(tradeOrderMapper, productMapper, notificationService, chatMessageMapper, objectMapper);
 
         TradeOrder order = buildOrder(1L, 11L, 21L, 31L, OrderStatus.PENDING_MEET.getCode());
         order.setExpireTime(LocalDateTime.now().minusHours(1));
@@ -66,7 +70,9 @@ class ScheduledTaskTest {
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
         StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
-        OrderAutoConfirmTask task = new OrderAutoConfirmTask(tradeOrderMapper, productMapper, notificationService, stringRedisTemplate);
+        ChatMessageMapper chatMessageMapper = Mockito.mock(ChatMessageMapper.class);
+        ObjectMapper objectMapper = new ObjectMapper();
+        OrderAutoConfirmTask task = new OrderAutoConfirmTask(tradeOrderMapper, productMapper, notificationService, stringRedisTemplate, chatMessageMapper, objectMapper);
 
         TradeOrder order = buildOrder(2L, 12L, 22L, 32L, OrderStatus.PENDING_MEET.getCode());
         order.setConfirmDeadline(LocalDateTime.now().minusDays(1));

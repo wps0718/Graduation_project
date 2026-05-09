@@ -32,9 +32,21 @@
           @click="onMessageClick(item)"
         >
           <view v-if="!item.isRead" class="notification-item__dot"></view>
-          <view class="notification-item__icon-wrap">
-            <view class="notification-item__icon" :class="iconClass(item)">
-              <text class="notification-item__icon-text">{{ iconText(item) }}</text>
+          <view
+            class="notification-item__icon-wrap"
+            :style="{ backgroundColor: getConfig(item.type).bgColor }"
+          >
+            <view class="notification-item__icon">
+              <text class="notification-item__icon-text">{{ getConfig(item.type).emoji }}</text>
+            </view>
+            <view
+              v-if="getConfig(item.type).statusTag"
+              class="notification-item__status-badge"
+              :class="'badge-' + getConfig(item.type).statusTag"
+            >
+              <text v-if="getConfig(item.type).statusTag === 'success'">✓</text>
+              <text v-else-if="getConfig(item.type).statusTag === 'error'">✕</text>
+              <text v-else>!</text>
             </view>
           </view>
           <view class="notification-item__content">
@@ -60,6 +72,7 @@ import { ref, computed, onMounted } from 'vue'
 import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
 import { useUserStore } from '@/store'
+import { getNotificationConfig } from '@/utils/notification-config'
 import EmptyState from '@/components/empty-state/empty-state.vue'
 
 const userStore = useUserStore()
@@ -84,14 +97,8 @@ const loadingMore = ref(false)
 
 const canClear = computed(() => messageList.value.length > 0)
 
-const typeMap = {
-  1: { icon: '✓', colorClass: 'is-success' },
-  2: { icon: '💬', colorClass: 'is-primary' },
-  3: { icon: '⚠', colorClass: 'is-warning' },
-  4: { icon: '📢', colorClass: 'is-primary' },
-  5: { icon: '❤', colorClass: 'is-danger' },
-  6: { icon: '✕', colorClass: 'is-secondary' },
-  11: { icon: '👤', colorClass: 'is-primary' }
+function getConfig(type) {
+  return getNotificationConfig(type)
 }
 
 function showToast(title) {
@@ -104,14 +111,6 @@ function ensureLogin() {
     return false
   }
   return true
-}
-
-function iconText(item) {
-  return (item && typeMap[item.type] && typeMap[item.type].icon) || '💬'
-}
-
-function iconClass(item) {
-  return (item && typeMap[item.type] && typeMap[item.type].colorClass) || 'is-primary'
 }
 
 function goBack() {
@@ -412,6 +411,7 @@ onReachBottom(() => {
 }
 
 .notification-item__icon-wrap {
+  position: relative;
   width: 80rpx;
   height: 80rpx;
   border-radius: 40rpx;
@@ -419,6 +419,7 @@ onReachBottom(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .notification-item__icon {
@@ -432,24 +433,35 @@ onReachBottom(() => {
   font-size: 30rpx;
 }
 
-.notification-item__icon.is-success {
-  color: var(--success-color);
+.notification-item__status-badge {
+  position: absolute;
+  right: -4rpx;
+  bottom: -4rpx;
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #fff;
 }
 
-.notification-item__icon.is-primary {
-  color: var(--primary-color);
+.notification-item__status-badge text {
+  font-size: 16rpx;
+  color: #fff;
+  font-weight: bold;
 }
 
-.notification-item__icon.is-warning {
-  color: var(--warning-color);
+.badge-success {
+  background-color: #67C23A;
 }
 
-.notification-item__icon.is-danger {
-  color: var(--danger-color);
+.badge-error {
+  background-color: #F56C6C;
 }
 
-.notification-item__icon.is-secondary {
-  color: var(--text-secondary);
+.badge-warning {
+  background-color: #E6A23C;
 }
 
 .notification-item__dot {
