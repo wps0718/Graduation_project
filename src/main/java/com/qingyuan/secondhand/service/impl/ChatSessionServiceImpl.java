@@ -77,6 +77,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ChatSessionVO> getSessionList() {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {

@@ -367,7 +367,7 @@ async function submitPublish() {
     description: form.value.description.trim(),
     campusId: form.value.campusId,
     meetingPointId: customMeeting.value ? null : form.value.meetingPointId,
-    meetingPointName: customMeeting.value ? form.value.meetingPointName : form.value.meetingPointName,
+    meetingPointText: customMeeting.value ? form.value.meetingPointName : null,
     coverImage: imageList.value[0].url,
     images: imageList.value.map((item) => item.url)
   }

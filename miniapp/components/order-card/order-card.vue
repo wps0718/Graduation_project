@@ -71,16 +71,38 @@ const actions = computed(() => {
   const status = props.order.status
   const role = props.role
   if (status === ORDER_STATUS.PENDING) {
-    if (role === 'buyer') {
+    if (role === 'seller') {
+      list.push(
+        { key: 'contact', label: '联系买家' },
+        { key: 'cancel', label: '取消交易' },
+        { key: 'confirmShip', label: '确认发货' }
+      )
+    } else {
+      list.push(
+        { key: 'contact', label: '联系卖家' },
+        { key: 'cancel', label: '取消交易' }
+      )
+    }
+  } else if (status === ORDER_STATUS.PENDING_MEET) {
+    if (role === 'seller' && !props.order.sellerConfirmed) {
+      list.push(
+        { key: 'contact', label: '联系买家' },
+        { key: 'cancel', label: '取消交易' },
+        { key: 'sellerConfirm', label: '已交付' }
+      )
+    } else if (role === 'seller' && props.order.sellerConfirmed) {
+      list.push(
+        { key: 'contact', label: '联系买家' }
+      )
+    } else if (role === 'buyer' && !props.order.buyerConfirmed) {
       list.push(
         { key: 'contact', label: '联系卖家' },
         { key: 'cancel', label: '取消交易' },
-        { key: 'confirm', label: '确认收货' }
+        { key: 'buyerConfirm', label: '完成交易' }
       )
-    } else if (role === 'seller') {
+    } else if (role === 'buyer' && props.order.buyerConfirmed) {
       list.push(
-        { key: 'contact', label: '联系买家' },
-        { key: 'cancel', label: '取消交易' }
+        { key: 'contact', label: '联系卖家' }
       )
     }
   } else if (status === ORDER_STATUS.COMPLETED) {

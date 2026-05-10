@@ -693,8 +693,8 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     private String getOrderStatusText(Integer status) {
         if (status == null) return "";
         switch (status) {
-            case 1: return "待面交";
-            case 2: return "预留";
+            case 1: return "待接单";
+            case 2: return "待面交";
             case 3: return "已完成";
             case 4: return "已评价";
             case 5: return "已取消";

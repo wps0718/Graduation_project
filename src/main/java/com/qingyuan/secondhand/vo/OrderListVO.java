@@ -11,6 +11,8 @@ public class OrderListVO {
     private String orderNo;
     private BigDecimal price;
     private Integer status;
+    private Integer sellerConfirmed;
+    private Integer buyerConfirmed;
     private LocalDateTime expireTime;
     private LocalDateTime createTime;
     private Long productId;

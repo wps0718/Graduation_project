@@ -57,6 +57,12 @@ public class MiniOrderController {
         return Result.success();
     }
 
+    @PostMapping("/seller-confirm-receive")
+    public Result<Void> sellerConfirmReceive(@RequestBody @Valid OrderIdDTO dto) {
+        tradeOrderService.sellerConfirmReceive(dto.getOrderId());
+        return Result.success();
+    }
+
     @PostMapping("/cancel")
     public Result<Void> cancel(@RequestBody @Valid OrderCancelDTO dto) {
         tradeOrderService.cancelOrder(dto.getOrderId(), dto.getCancelReason());

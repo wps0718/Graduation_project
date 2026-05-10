@@ -12,6 +12,8 @@ public class RelatedOrderVO {
     private Long buyerId;
     private String buyerNickName;
     private String buyerAvatar;
+    private Long sellerId;
+    private String sellerName;
     private BigDecimal price;
     private Integer status;
     private String statusText;

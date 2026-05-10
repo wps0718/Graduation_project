@@ -20,6 +20,8 @@ public interface TradeOrderService extends IService<TradeOrder> {
 
     void confirmShip(Long orderId);
 
+    void sellerConfirmReceive(Long orderId);
+
     void cancelOrder(Long orderId, String cancelReason);
 
     void deleteOrder(Long orderId);

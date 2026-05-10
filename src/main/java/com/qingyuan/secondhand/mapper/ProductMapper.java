@@ -8,6 +8,7 @@ import com.qingyuan.secondhand.vo.ProductDetailVO;
 import com.qingyuan.secondhand.vo.ProductListVO;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -58,4 +59,7 @@ public interface ProductMapper extends BaseMapper<Product> {
 
     @Select("select count(1) from trade_order where status = 1 and product_id = #{productId}")
     Integer countActiveOrderByProduct(@Param("productId") Long productId);
+
+    @Update("UPDATE product SET view_count = view_count + 1, update_time = NOW() WHERE id = #{productId} AND is_deleted = 0")
+    int incrementViewCount(@Param("productId") Long productId);
 }

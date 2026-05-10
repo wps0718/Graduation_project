@@ -25,4 +25,12 @@
           AND is_read = 0
     </update>
 
+    <select id="countUnread" resultType="int">
+        SELECT COUNT(*)
+        FROM chat_message
+        WHERE receiver_id = #{receiverId}
+          AND session_key = #{sessionKey}
+          AND is_read = 0
+    </select>
+
 </mapper>

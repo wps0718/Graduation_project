@@ -38,7 +38,8 @@ const STATUS_MAP = {
     [PRODUCT_STATUS.REJECTED]: { text: '已驳回', color: 'red' }
   },
   order: {
-    [ORDER_STATUS.PENDING]: { text: '待面交', color: 'orange' },
+    [ORDER_STATUS.PENDING]: { text: '待接单', color: 'orange' },
+    [ORDER_STATUS.PENDING_MEET]: { text: '待面交', color: 'orange' },
     [ORDER_STATUS.COMPLETED]: { text: '已完成', color: 'green' },
     [ORDER_STATUS.REVIEWED]: { text: '已评价', color: 'blue' },
     [ORDER_STATUS.CANCELLED]: { text: '已取消', color: 'grey' }

@@ -215,7 +215,7 @@
           <el-descriptions-item label="商品成色">{{ getConditionText(detail.conditionLevel) }}</el-descriptions-item>
           
           <el-descriptions-item label="交易校区">{{ detail.campusName }}</el-descriptions-item>
-          <el-descriptions-item label="面交地点">{{ detail.meetingPoint || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="面交地点">{{ detail.meetingPointName || detail.meetingPointText || '-' }}</el-descriptions-item>
           
           <el-descriptions-item label="发布者">
             <span>{{ detail.publisherNickName }}</span>
@@ -243,7 +243,8 @@
         <el-tab-pane label="关联订单" name="orders">
           <el-table :data="relatedOrders" v-loading="relatedOrdersLoading" stripe>
             <el-table-column prop="orderNo" label="订单ID" width="200" />
-            <el-table-column prop="buyerNickName" label="买家" width="120" />
+            <el-table-column prop="buyerNickName" label="买家" width="100" />
+            <el-table-column prop="sellerName" label="卖家" width="100" />
             <el-table-column label="交易价格" width="100">
               <template #default="{ row }">
                 <span style="color: #f56c6c">¥{{ Number(row.price).toFixed(2) }}</span>
@@ -261,7 +262,7 @@
             </el-table-column>
             <el-table-column label="操作" width="80">
               <template #default="{ row }">
-                <el-button type="primary" link size="small" @click="openOrderDetail(row.id)">查看</el-button>
+                <el-button type="primary" link size="small" @click="openOrderDetail(row.orderId)">查看</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -325,13 +326,15 @@
     <!-- 订单详情弹窗（关联订单查看） -->
     <el-dialog v-model="orderDetailVisible" title="订单详情" width="720px">
       <div v-if="orderDetail" class="detail-content">
+        <!-- 区域一：订单基本信息 -->
+        <div class="section-title">订单基本信息</div>
         <el-descriptions border :column="2">
           <el-descriptions-item label="订单号" :span="2">
             <span class="mono-text">{{ orderDetail.orderNo }}</span>
           </el-descriptions-item>
           <el-descriptions-item label="订单状态">
             <el-tag :type="getOrderStatusType(orderDetail.status)" size="small">
-              {{ orderDetail.status === 1 ? '待面交' : orderDetail.status === 2 ? '预留' : orderDetail.status === 3 ? '已完成' : orderDetail.status === 4 ? '已评价' : orderDetail.status === 5 ? '已取消' : '未知' }}
+              {{ getOrderStatusText(orderDetail.status) }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="成交价格">
@@ -340,14 +343,70 @@
           <el-descriptions-item label="面交校区">{{ orderDetail.campusName || '-' }}</el-descriptions-item>
           <el-descriptions-item label="面交地点">{{ orderDetail.meetingPoint || '-' }}</el-descriptions-item>
           <el-descriptions-item label="创建时间">{{ formatTime(orderDetail.createTime) }}</el-descriptions-item>
+          <el-descriptions-item label="过期时间">{{ orderDetail.status === 1 ? formatTime(orderDetail.expireTime) : '-' }}</el-descriptions-item>
           <el-descriptions-item label="完成时间">{{ orderDetail.completeTime ? formatTime(orderDetail.completeTime) : '-' }}</el-descriptions-item>
+          <el-descriptions-item label="自动确认截止">{{ formatTime(orderDetail.confirmDeadline) }}</el-descriptions-item>
         </el-descriptions>
+
+        <!-- 区域二：取消信息（仅status=5时显示） -->
         <template v-if="orderDetail.status === 5">
           <el-divider />
+          <div class="section-title">取消信息</div>
           <el-descriptions border :column="1">
             <el-descriptions-item label="取消原因">{{ orderDetail.cancelReason || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="取消操作人">{{ cancelByText(orderDetail.cancelBy, orderDetail.buyerId, orderDetail.sellerId) }}</el-descriptions-item>
           </el-descriptions>
         </template>
+
+        <!-- 区域三：商品信息 -->
+        <el-divider />
+        <div class="section-title">商品信息</div>
+        <el-descriptions border :column="2">
+          <el-descriptions-item label="商品封面" :span="2">
+            <el-image
+              v-if="orderDetail.productCoverImage"
+              :src="getImageUrl(orderDetail.productCoverImage)"
+              :preview-src-list="[getImageUrl(orderDetail.productCoverImage)]"
+              fit="cover"
+              style="width: 80px; height: 80px; border-radius: 6px"
+            />
+            <span v-else>-</span>
+          </el-descriptions-item>
+          <el-descriptions-item label="商品标题">{{ orderDetail.productTitle || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="商品分类">{{ orderDetail.productCategoryName || '-' }}</el-descriptions-item>
+          <el-descriptions-item label="商品成色">{{ getConditionText(orderDetail.productConditionLevel) }}</el-descriptions-item>
+        </el-descriptions>
+
+        <!-- 区域四：买卖双方信息 -->
+        <el-divider />
+        <div class="buyer-seller-grid">
+          <!-- 买家信息 -->
+          <div>
+            <div class="section-title">买家信息</div>
+            <el-descriptions border :column="1">
+              <el-descriptions-item label="昵称">{{ orderDetail.buyerNickName || '-' }}</el-descriptions-item>
+              <el-descriptions-item label="手机号">{{ maskPhone(orderDetail.buyerPhone) }}</el-descriptions-item>
+              <el-descriptions-item label="认证状态">
+                <el-tag :type="getAuthStatusType(orderDetail.buyerAuthStatus)" size="small">
+                  {{ getAuthStatusText(orderDetail.buyerAuthStatus) }}
+                </el-tag>
+              </el-descriptions-item>
+            </el-descriptions>
+          </div>
+          <!-- 卖家信息 -->
+          <div>
+            <div class="section-title">卖家信息</div>
+            <el-descriptions border :column="1">
+              <el-descriptions-item label="昵称">{{ orderDetail.sellerNickName || '-' }}</el-descriptions-item>
+              <el-descriptions-item label="手机号">{{ maskPhone(orderDetail.sellerPhone) }}</el-descriptions-item>
+              <el-descriptions-item label="认证状态">
+                <el-tag :type="getAuthStatusType(orderDetail.sellerAuthStatus)" size="small">
+                  {{ getAuthStatusText(orderDetail.sellerAuthStatus) }}
+                </el-tag>
+              </el-descriptions-item>
+            </el-descriptions>
+          </div>
+        </div>
       </div>
     </el-dialog>
 
@@ -478,10 +537,21 @@ const getPreviewImages = (images) => {
   return images.map(img => getImageUrl(img))
 }
 
-// ========== 时间格式化 ==========
+// ========== 时间格式化（东八区） ==========
 const formatTime = (value) => {
   if (!value) return ''
-  return String(value).replace('T', ' ').slice(0, 19)
+  const date = new Date(value)
+  if (isNaN(date.getTime())) return String(value).replace('T', ' ').slice(0, 19)
+  return date.toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  })
 }
 
 // ========== 加载列表 ==========
@@ -621,8 +691,28 @@ const formatOrderTime = (row) => {
 
 // ========== 订单状态 tag 类型 ==========
 const getOrderStatusType = (status) => {
-  const map = { 1: 'warning', 2: 'primary', 3: 'success', 4: 'success', 5: 'info' }
-  return map[status] || 'info'
+  const map = { 1: 'warning', 2: 'info', 3: 'success', 4: '', 5: 'danger' }
+  return map[status] ?? 'info'
+}
+
+// ========== 订单状态文字 ==========
+const getOrderStatusText = (status) => {
+  const map = { 1: '待接单', 2: '待面交', 3: '已完成', 4: '已评价', 5: '已取消' }
+  return map[status] || '未知'
+}
+
+// ========== 手机号脱敏 ==========
+const maskPhone = (phone) => {
+  if (!phone || phone.length < 7) return phone || '-'
+  return phone.slice(0, 3) + '****' + phone.slice(-4)
+}
+
+// ========== 取消操作人文字 ==========
+const cancelByText = (cancelBy, buyerId, sellerId) => {
+  if (cancelBy === 0 || cancelBy === null) return '系统自动取消（超时）'
+  if (cancelBy === buyerId) return '买家主动取消'
+  if (cancelBy === sellerId) return '卖家主动取消'
+  return '未知'
 }
 
 // ========== 单个通过 ==========
@@ -852,5 +942,18 @@ onMounted(() => {
 
 .detail-content {
   padding: 10px 0;
+}
+
+.section-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #303133;
+  margin-bottom: 12px;
+}
+
+.buyer-seller-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 </style>

@@ -10,13 +10,15 @@ export const CONDITION_LEVELS = [
 
 export const ORDER_STATUS = {
   PENDING: 1,
+  PENDING_MEET: 2,
   COMPLETED: 3,
   REVIEWED: 4,
   CANCELLED: 5
 }
 
 export const ORDER_STATUS_TEXT = {
-  1: '待面交',
+  1: '待接单',
+  2: '待面交',
   3: '已完成',
   4: '已评价',
   5: '已取消'

@@ -1,5 +1,6 @@
 package com.qingyuan.secondhand.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.constant.RedisConstant;
 import com.qingyuan.secondhand.common.context.UserContext;
 import com.qingyuan.secondhand.common.enums.NotificationType;
@@ -40,6 +41,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private final UserMapper userMapper;
     private final NotificationService notificationService;
     private final StringRedisTemplate stringRedisTemplate;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional
@@ -89,6 +91,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
     @Override
+    @Transactional
     public Map<String, Object> getMessageHistory(String sessionKey, Integer page, Integer pageSize) {
         Long currentUserId = UserContext.getCurrentUserId();
         if (currentUserId == null) {
@@ -129,6 +132,14 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         Map<String, Object> result = new HashMap<>();
         result.put("total", total);
         result.put("records", voList);
+
+        // 自动标记当前用户在该会话中收到的未读消息为已读
+        try {
+            markSessionReadByUserId(currentUserId, sessionKey);
+        } catch (Exception e) {
+            log.warn("getMessageHistory自动标记已读失败: {}", e.getMessage());
+        }
+
         return result;
     }
 
@@ -151,6 +162,12 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         }
         if (!SessionKeyUtil.isParticipant(sessionKey, userId)) {
             throw new BusinessException("无权操作此会话");
+        }
+
+        // 先轻量查询，无未读则跳过 UPDATE
+        int unreadCount = chatMessageMapper.countUnread(userId, sessionKey);
+        if (unreadCount <= 0) {
+            return;
         }
 
         chatMessageMapper.markAsRead(userId, sessionKey);
@@ -236,6 +253,14 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
     private ChatMessage buildMessage(Long senderId, ChatPayload payload, String sessionKey) {
+        Long orderId = null;
+        if (Integer.valueOf(3).equals(payload.getMsgType()) && StringUtils.hasText(payload.getContent())) {
+            try {
+                orderId = objectMapper.readTree(payload.getContent()).path("orderId").asLong();
+                if (orderId == 0) orderId = null;
+            } catch (Exception ignored) {
+            }
+        }
         return ChatMessage.builder()
                 .sessionKey(sessionKey)
                 .senderId(senderId)
@@ -243,6 +268,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .msgType(payload.getMsgType())
                 .content(payload.getContent())
                 .productId(payload.getProductId())
+                .orderId(orderId)
                 .isRead(0)
                 .createTime(LocalDateTime.now())
                 .build();

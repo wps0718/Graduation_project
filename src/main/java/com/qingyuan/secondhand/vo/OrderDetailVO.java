@@ -15,6 +15,8 @@ public class OrderDetailVO {
     private String campusName;
     private String meetingPoint;
     private Integer status;
+    private Integer sellerConfirmed;
+    private Integer buyerConfirmed;
     private String cancelReason;
     private Long cancelBy;
     private LocalDateTime expireTime;
@@ -27,14 +29,19 @@ public class OrderDetailVO {
     private List<String> productImages;
     @JsonIgnore
     private String productImagesJson;
+    private String productCoverImage;
     private Integer productStatus;
+    private String productCategoryName;
+    private Integer productConditionLevel;
     private Long buyerId;
     private String buyerNickName;
     private String buyerAvatar;
     private String buyerPhone;
+    private Integer buyerAuthStatus;
     private Long sellerId;
     private String sellerNickName;
     private String sellerAvatar;
     private String sellerPhone;
+    private Integer sellerAuthStatus;
     private String currentRole;
 }

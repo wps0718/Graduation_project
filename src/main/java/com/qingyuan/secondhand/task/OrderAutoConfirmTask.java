@@ -47,7 +47,7 @@ public class OrderAutoConfirmTask {
         try {
             LambdaQueryWrapper<TradeOrder> wrapper = new LambdaQueryWrapper<>();
             wrapper.lt(TradeOrder::getConfirmDeadline, LocalDateTime.now())
-                    .in(TradeOrder::getStatus, OrderStatus.PENDING_MEET.getCode(), OrderStatus.PENDING_RECEIPT.getCode());
+                    .in(TradeOrder::getStatus, OrderStatus.PENDING_ACCEPT.getCode(), OrderStatus.PENDING_MEET.getCode());
             List<TradeOrder> orders = tradeOrderMapper.selectList(wrapper);
             if (orders == null || orders.isEmpty()) {
                 log.info("[订单自动确认任务] 无需自动确认的订单");

@@ -44,7 +44,7 @@ public class OrderExpireTask {
         try {
             LambdaQueryWrapper<TradeOrder> wrapper = new LambdaQueryWrapper<>();
             wrapper.lt(TradeOrder::getExpireTime, LocalDateTime.now())
-                    .in(TradeOrder::getStatus, OrderStatus.PENDING_MEET.getCode(), OrderStatus.PENDING_RECEIPT.getCode());
+                    .in(TradeOrder::getStatus, OrderStatus.PENDING_ACCEPT.getCode(), OrderStatus.PENDING_MEET.getCode());
             List<TradeOrder> orders = tradeOrderMapper.selectList(wrapper);
             if (orders == null || orders.isEmpty()) {
                 log.info("[订单超时取消任务] 无超时订单");

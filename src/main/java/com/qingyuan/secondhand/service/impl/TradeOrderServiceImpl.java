@@ -195,42 +195,87 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             throw new BusinessException("订单不存在");
         }
         if (!userId.equals(order.getBuyerId())) {
-            throw new BusinessException("只有买家可以确认收货");
+            throw new BusinessException("只有买家可以确认完成交易");
         }
         if (!Integer.valueOf(2).equals(order.getStatus())) {
-            throw new BusinessException("订单状态不正确，请等待卖家确认发货后再收货");
+            throw new BusinessException("订单状态不正确，等待面交后才能确认");
+        }
+        if (Integer.valueOf(1).equals(order.getBuyerConfirmed())) {
+            throw new BusinessException("已确认过，请勿重复操作");
+        }
+        order.setBuyerConfirmed(1);
+        order.setUpdateTime(LocalDateTime.now());
+        if (Integer.valueOf(1).equals(order.getSellerConfirmed())) {
+            order.setStatus(3);
+            order.setCompleteTime(LocalDateTime.now());
+        }
+        if (tradeOrderMapper.updateById(order) <= 0) {
+            throw new BusinessException("确认失败");
         }
         Product product = productMapper.selectById(order.getProductId());
-        if (product == null) {
-            throw new BusinessException("商品不存在");
+        if (Integer.valueOf(3).equals(order.getStatus())) {
+            if (product != null) {
+                product.setStatus(3);
+                productMapper.updateById(product);
+            }
+            updateOrderCardMessageStatus(orderId, 3, order.getSellerConfirmed(), order.getBuyerConfirmed());
+            String productName = product != null && product.getTitle() != null ? product.getTitle() : "商品";
+            notificationService.send(order.getSellerId(), NotificationType.TRADE_SUCCESS,
+                    Map.of("productName", productName), order.getId(), 2, 1);
+            notificationService.send(order.getBuyerId(), NotificationType.TRADE_SUCCESS,
+                    Map.of("productName", productName), order.getId(), 2, 1);
+        } else {
+            updateOrderCardMessageStatus(orderId, 2, order.getSellerConfirmed(), order.getBuyerConfirmed());
         }
-        order.setStatus(3);
-        order.setCompleteTime(LocalDateTime.now());
+    }
+
+    @Override
+    @Transactional
+    public void sellerConfirmReceive(Long orderId) {
+        Long userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException("未登录");
+        }
+        if (orderId == null) {
+            throw new BusinessException("订单ID不能为空");
+        }
+        TradeOrder order = tradeOrderMapper.selectById(orderId);
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+        if (!userId.equals(order.getSellerId())) {
+            throw new BusinessException("只有卖家可以确认交付");
+        }
+        if (!Integer.valueOf(2).equals(order.getStatus())) {
+            throw new BusinessException("订单状态不正确，等待面交后才能确认");
+        }
+        if (Integer.valueOf(1).equals(order.getSellerConfirmed())) {
+            throw new BusinessException("已确认过，请勿重复操作");
+        }
+        order.setSellerConfirmed(1);
+        order.setUpdateTime(LocalDateTime.now());
+        if (Integer.valueOf(1).equals(order.getBuyerConfirmed())) {
+            order.setStatus(3);
+            order.setCompleteTime(LocalDateTime.now());
+        }
         if (tradeOrderMapper.updateById(order) <= 0) {
-            throw new BusinessException("确认收货失败");
+            throw new BusinessException("确认失败");
         }
-        updateOrderCardMessageStatus(orderId, 3);
-        product.setStatus(3);
-        if (productMapper.updateById(product) <= 0) {
-            throw new BusinessException("商品状态更新失败");
+        Product product = productMapper.selectById(order.getProductId());
+        if (Integer.valueOf(3).equals(order.getStatus())) {
+            if (product != null) {
+                product.setStatus(3);
+                productMapper.updateById(product);
+            }
+            updateOrderCardMessageStatus(orderId, 3, order.getSellerConfirmed(), order.getBuyerConfirmed());
+            String productName = product != null && product.getTitle() != null ? product.getTitle() : "商品";
+            notificationService.send(order.getSellerId(), NotificationType.TRADE_SUCCESS,
+                    Map.of("productName", productName), order.getId(), 2, 1);
+            notificationService.send(order.getBuyerId(), NotificationType.TRADE_SUCCESS,
+                    Map.of("productName", productName), order.getId(), 2, 1);
+        } else {
+            updateOrderCardMessageStatus(orderId, 2, order.getSellerConfirmed(), order.getBuyerConfirmed());
         }
-        String productName = product.getTitle() == null ? "商品" : product.getTitle();
-        notificationService.send(
-                order.getSellerId(),
-                NotificationType.TRADE_SUCCESS,
-                Map.of("productName", productName),
-                order.getId(),
-                2,
-                1
-        );
-        notificationService.send(
-                order.getBuyerId(),
-                NotificationType.TRADE_SUCCESS,
-                Map.of("productName", productName),
-                order.getId(),
-                2,
-                1
-        );
     }
 
     @Override
@@ -258,7 +303,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         if (tradeOrderMapper.updateById(order) <= 0) {
             throw new BusinessException("确认发货失败");
         }
-        updateOrderCardMessageStatus(orderId, 2);
+        updateOrderCardMessageStatus(orderId, 2, null, null);
         Product product = productMapper.selectById(order.getProductId());
         String productName = product != null && product.getTitle() != null ? product.getTitle() : "商品";
         notificationService.send(
@@ -303,7 +348,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         if (tradeOrderMapper.updateById(order) <= 0) {
             throw new BusinessException("取消订单失败");
         }
-        updateOrderCardMessageStatus(orderId, 5);
+        updateOrderCardMessageStatus(orderId, 5, null, null);
         // 恢复商品状态为在售，但如果已被管理员变更（如强制下架），则跳过
         if (Integer.valueOf(1).equals(product.getStatus())) {
             product.setStatus(1);
@@ -410,10 +455,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         return images == null || images.isEmpty() ? null : images.get(0);
     }
 
-    /**
-     * 同步更新订单卡片消息 content JSON 中的 status 字段
-     */
-    private void updateOrderCardMessageStatus(Long orderId, Integer newStatus) {
+    private void updateOrderCardMessageStatus(Long orderId, Integer newStatus, Integer sellerConfirmed, Integer buyerConfirmed) {
         try {
             ChatMessage orderMsg = chatMessageMapper.selectOne(
                     new LambdaQueryWrapper<ChatMessage>()
@@ -423,7 +465,10 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             if (orderMsg != null && orderMsg.getContent() != null) {
                 JsonNode root = objectMapper.readTree(orderMsg.getContent());
                 if (root.isObject()) {
-                    ((ObjectNode) root).put("status", newStatus);
+                    ObjectNode obj = (ObjectNode) root;
+                    obj.put("status", newStatus);
+                    if (sellerConfirmed != null) obj.put("sellerConfirmed", sellerConfirmed);
+                    if (buyerConfirmed != null) obj.put("buyerConfirmed", buyerConfirmed);
                     ChatMessage update = new ChatMessage();
                     update.setId(orderMsg.getId());
                     update.setContent(objectMapper.writeValueAsString(root));

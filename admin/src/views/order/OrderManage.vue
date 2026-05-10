@@ -27,8 +27,8 @@
               style="width: 120px"
               @change="onFilterChange"
             >
-              <el-option label="待面交" :value="1" />
-              <el-option label="预留" :value="2" />
+              <el-option label="待接单" :value="1" />
+              <el-option label="待面交" :value="2" />
               <el-option label="已完成" :value="3" />
               <el-option label="已评价" :value="4" />
               <el-option label="已取消" :value="5" />
@@ -375,13 +375,24 @@ const getImageUrl = (path) => {
 }
 
 /**
- * 时间格式化
+ * 时间格式化（东八区）
  * @param {string} value - 时间字符串
  * @returns {string} 格式化后的时间
  */
 const formatTime = (value) => {
   if (!value) return ''
-  return String(value).replace('T', ' ').slice(0, 19)
+  const date = new Date(value)
+  if (isNaN(date.getTime())) return String(value).replace('T', ' ').slice(0, 19)
+  return date.toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  })
 }
 
 /**
@@ -400,7 +411,7 @@ const formatPrice = (value) => {
  * @returns {string} 状态文字
  */
 const statusText = (status) => {
-  const map = { 1: '待面交', 2: '预留', 3: '已完成', 4: '已评价', 5: '已取消' }
+  const map = { 1: '待接单', 2: '待面交', 3: '已完成', 4: '已评价', 5: '已取消' }
   return map[status] || '未知'
 }
 

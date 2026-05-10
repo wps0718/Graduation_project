@@ -171,8 +171,16 @@ function onOrderAction(payload) {
     openCancel(order)
     return
   }
-  if (action === 'confirm') {
-    confirmReceive(order)
+  if (action === 'confirmShip') {
+    doConfirm(order, '确认发货', '确认该订单可以面交？', '/mini/order/confirm-ship')
+    return
+  }
+  if (action === 'sellerConfirm') {
+    doConfirm(order, '确认交付', '确认已完成面交交付？双方都确认后交易完成。', '/mini/order/seller-confirm-receive')
+    return
+  }
+  if (action === 'buyerConfirm') {
+    doConfirm(order, '完成交易', '确认已完成交易？双方都确认后交易完成。', '/mini/order/confirm')
     return
   }
   if (action === 'review') {
@@ -212,17 +220,17 @@ function openCancel(order) {
   })
 }
 
-function confirmReceive(order) {
+function doConfirm(order, title, content, url) {
   uni.showModal({
-    title: '确认收货',
-    content: '确认已收到商品吗？',
-    confirmText: '确认',
+    title,
+    content,
+    confirmText: title,
     cancelText: '取消',
     success: async (res) => {
       if (!res || !res.confirm) return
       try {
-        await post('/mini/order/confirm', { orderId: order.id }, { showLoading: true })
-        showToast('已确认收货')
+        await post(url, { orderId: order.id }, { showLoading: true })
+        showToast(title + '成功')
         refreshList()
       } catch (error) {
         showToast('操作失败，请稍后重试')

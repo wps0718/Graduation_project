@@ -119,19 +119,25 @@
                 <text v-if="item.orderMeetingPoint" class="chat-order-card__detail">面交地点：{{ item.orderMeetingPoint }}</text>
               </view>
               <text class="chat-order-card__hint">{{ getOrderCardHint(item) }}</text>
-              <!-- status=1 待面交：卖家确认发货，买家等待 -->
+              <!-- status=1 待接单：卖家确认发货，买家等待 -->
               <view v-if="item.orderStatus === 1 && item.sellerId === selfId" class="chat-order-card__action" @click="handleConfirmShip(item)">
                 <text class="chat-order-card__action-text">确认发货</text>
               </view>
               <view v-else-if="item.orderStatus === 1 && item.buyerId === selfId" class="chat-order-card__waiting">
                 <text class="chat-order-card__waiting-text">⏳ 等待卖家确认发货</text>
               </view>
-              <!-- status=2 待收货：买家确认收货，卖家等待 -->
-              <view v-else-if="item.orderStatus === 2 && item.buyerId === selfId && !orderCreated" class="chat-order-card__action" @click="confirmReceiveInChat(item)">
-                <text class="chat-order-card__action-text">确认收货</text>
+              <!-- status=2 待面交：双方各自确认 -->
+              <view v-else-if="item.orderStatus === 2 && item.sellerId === selfId && !item.sellerConfirmed" class="chat-order-card__action" @click="handleSellerConfirmReceive(item)">
+                <text class="chat-order-card__action-text">已交付</text>
               </view>
-              <view v-else-if="item.orderStatus === 2 && item.sellerId === selfId" class="chat-order-card__waiting">
-                <text class="chat-order-card__waiting-text">⏳ 等待买家确认收货</text>
+              <view v-else-if="item.orderStatus === 2 && item.sellerId === selfId && item.sellerConfirmed" class="chat-order-card__waiting">
+                <text class="chat-order-card__waiting-text">✓ 已确认交付，等待买家确认</text>
+              </view>
+              <view v-else-if="item.orderStatus === 2 && item.buyerId === selfId && !item.buyerConfirmed" class="chat-order-card__action" @click="handleBuyerConfirmReceive(item)">
+                <text class="chat-order-card__action-text">完成交易</text>
+              </view>
+              <view v-else-if="item.orderStatus === 2 && item.buyerId === selfId && item.buyerConfirmed" class="chat-order-card__waiting">
+                <text class="chat-order-card__waiting-text">✓ 已确认，等待卖家确认交付</text>
               </view>
             </view>
           </view>
@@ -597,7 +603,9 @@ async function submitBuy() {
       meetingPointText: buyForm.value.meetingPointText,
       status: 1,
       buyerId: selfId.value,
-      sellerId: sellerId
+      sellerId: sellerId,
+      sellerConfirmed: 0,
+      buyerConfirmed: 0
     })
     try {
       const msgId = await post('/mini/chat/message/send', {
@@ -618,7 +626,9 @@ async function submitBuy() {
         orderMeetingPoint: buyForm.value.meetingPointText,
         orderStatus: 1,
         buyerId: selfId.value,
-        sellerId: sellerId
+        sellerId: sellerId,
+        sellerConfirmed: false,
+        buyerConfirmed: false
       })
       scrollToBottom()
     } catch (e) {
@@ -634,44 +644,19 @@ async function submitBuy() {
   }
 }
 
-function confirmReceiveInChat(item) {
-  if (!item || !item.orderId) return
-  if (orderCreated.value) {
-    showToast('已确认收货')
-    return
-  }
-  uni.showModal({
-    title: '确认收货',
-    content: '确认已收到商品吗？确认后将进入评价阶段。',
-    confirmText: '确认收货',
-    cancelText: '取消',
-    success: async (res) => {
-      if (!res || !res.confirm) return
-      try {
-        await post('/mini/order/confirm', { orderId: item.orderId }, { showLoading: true })
-        orderCreated.value = true
-        uni.showToast({ title: '已确认收货', icon: 'success' })
-        fetchMessages()
-      } catch (error) {
-        showToast('操作失败，请稍后重试')
-      }
-    }
-  })
-}
-
 function getOrderCardIcon(item) {
   const iconMap = { 1: '📋', 2: '📦', 3: '✅', 5: '❌' }
   return iconMap[item.orderStatus] || '📋'
 }
 
 function getOrderCardTitle(item) {
-  const titleMap = { 1: '订单已创建', 2: '等待面交', 3: '交易完成', 5: '订单已取消' }
+  const titleMap = { 1: '订单已创建', 2: '待面交', 3: '交易完成', 5: '订单已取消' }
   return titleMap[item.orderStatus] || '订单'
 }
 
 function getOrderCardHint(item) {
   if (item.orderStatus === 1) return '⏰ 72小时内面交有效，请及时联系对方'
-  if (item.orderStatus === 2) return '✅ 卖家已确认，请尽快面交'
+  if (item.orderStatus === 2) return '📦 面交后双方各自确认，都确认即完成交易'
   if (item.orderStatus === 3) return '🎉 交易已完成'
   if (item.orderStatus === 5) return '订单已取消'
   return ''
@@ -692,6 +677,46 @@ async function handleConfirmShip(item) {
         fetchMessages()
       } catch (error) {
         showToast('操作失败，请稍后重试')
+      }
+    }
+  })
+}
+
+async function handleSellerConfirmReceive(item) {
+  if (!item || !item.orderId) return
+  uni.showModal({
+    title: '确认交付',
+    content: '确认已完成面交交付？双方都确认后交易完成。',
+    confirmText: '确认交付',
+    cancelText: '取消',
+    success: async (res) => {
+      if (!res || !res.confirm) return
+      try {
+        await post('/mini/order/seller-confirm-receive', { orderId: item.orderId }, { showLoading: true })
+        uni.showToast({ title: '已确认交付', icon: 'success' })
+        fetchMessages()
+      } catch (error) {
+        showToast(error?.message || '操作失败，请稍后重试')
+      }
+    }
+  })
+}
+
+async function handleBuyerConfirmReceive(item) {
+  if (!item || !item.orderId) return
+  uni.showModal({
+    title: '完成交易',
+    content: '确认已完成交易？双方都确认后交易完成。',
+    confirmText: '确认完成',
+    cancelText: '取消',
+    success: async (res) => {
+      if (!res || !res.confirm) return
+      try {
+        await post('/mini/order/confirm', { orderId: item.orderId }, { showLoading: true })
+        uni.showToast({ title: '已确认完成', icon: 'success' })
+        fetchMessages()
+      } catch (error) {
+        showToast(error?.message || '操作失败，请稍后重试')
       }
     }
   })
@@ -857,7 +882,7 @@ async function fetchMessages() {
       const oldOrderState = {}
       messages.value.forEach(m => {
         if (m.type === 'order-card' && m.id) {
-          oldOrderState[m.id] = { orderStatus: m.orderStatus, buyerId: m.buyerId, sellerId: m.sellerId }
+          oldOrderState[m.id] = { orderStatus: m.orderStatus, buyerId: m.buyerId, sellerId: m.sellerId, sellerConfirmed: m.sellerConfirmed, buyerConfirmed: m.buyerConfirmed }
         }
       })
       const list = data.records.map(m => {
@@ -880,6 +905,8 @@ async function fetchMessages() {
           parsed.orderStatus = oldOrderState[m.msgId].orderStatus
           parsed.buyerId = oldOrderState[m.msgId].buyerId
           parsed.sellerId = oldOrderState[m.msgId].sellerId
+          parsed.sellerConfirmed = oldOrderState[m.msgId].sellerConfirmed
+          parsed.buyerConfirmed = oldOrderState[m.msgId].buyerConfirmed
         }
         return parsed
       })
@@ -918,7 +945,9 @@ function parseOrderCardContent(content, type) {
       orderMeetingPoint: data.meetingPointText,
       orderStatus: data.status,
       buyerId: data.buyerId,
-      sellerId: data.sellerId
+      sellerId: data.sellerId,
+      sellerConfirmed: data.sellerConfirmed === 1,
+      buyerConfirmed: data.buyerConfirmed === 1
     }
   } catch (e) {
     return {}
@@ -1006,7 +1035,6 @@ onLoad(async (options = {}) => {
 
   if (sessionKey.value) {
     await fetchMessages()
-    await markRead()
   }
 
   if (productId && messages.value.length === 0) {
@@ -1015,8 +1043,7 @@ onLoad(async (options = {}) => {
 
   pollingTimer.value = setInterval(() => {
     fetchMessages()
-    markRead()
-  }, 5000)
+  }, 10000)
 })
 
 import { onUnload, onHide, onShow } from '@dcloudio/uni-app'

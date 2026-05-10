@@ -33,13 +33,27 @@
           <text class="order-info-item__label">创建时间</text>
           <text class="order-info-item__value">{{ formatTime(order.createTime) }}</text>
         </view>
-        <view v-if="order.status === ORDER_STATUS.PENDING" class="order-info-item">
+        <view v-if="order.status === ORDER_STATUS.PENDING || order.status === ORDER_STATUS.PENDING_MEET" class="order-info-item">
           <text class="order-info-item__label">超时时间</text>
           <text class="order-info-item__value order-info-item__value--warn">{{ expireText }}</text>
         </view>
         <view v-if="order.completeTime" class="order-info-item">
           <text class="order-info-item__label">完成时间</text>
           <text class="order-info-item__value">{{ formatTime(order.completeTime) }}</text>
+        </view>
+      </view>
+    </view>
+
+    <view v-if="order.status === ORDER_STATUS.PENDING_MEET" class="order-section">
+      <text class="order-section__title">确认状态</text>
+      <view class="order-confirm-status">
+        <view class="order-confirm-item">
+          <text class="order-confirm-item__label">卖家确认交付</text>
+          <text class="order-confirm-item__value" :class="{ 'is-done': order.sellerConfirmed }">{{ order.sellerConfirmed ? '✓ 已确认' : '未确认' }}</text>
+        </view>
+        <view class="order-confirm-item">
+          <text class="order-confirm-item__label">买家确认交易</text>
+          <text class="order-confirm-item__value" :class="{ 'is-done': order.buyerConfirmed }">{{ order.buyerConfirmed ? '✓ 已确认' : '未确认' }}</text>
         </view>
       </view>
     </view>
@@ -87,7 +101,7 @@
         class="order-btn order-btn--primary"
         @click="confirmReceive"
       >
-        <text>确认收货</text>
+        <text>{{ confirmBtnText }}</text>
       </view>
       <view
         v-if="showCancelBtn"
@@ -136,7 +150,7 @@ const order = ref(null)
 
 const statusText = computed(() => {
   if (!order.value) return ''
-  const map = { 1: '等待双方面交', 3: '交易已完成，待评价', 4: '已评价', 5: '已取消' }
+  const map = { 1: '等待卖家接单', 2: '待面交', 3: '交易已完成，待评价', 4: '已评价', 5: '已取消' }
   return map[order.value.status] || ''
 })
 
@@ -185,11 +199,25 @@ const expireText = computed(() => {
 })
 
 const showConfirmBtn = computed(() => {
-  return order.value && order.value.status === ORDER_STATUS.PENDING && myRole.value === 'buyer'
+  if (!order.value) return false
+  if (order.value.status === ORDER_STATUS.PENDING && myRole.value === 'seller') return true
+  if (order.value.status === ORDER_STATUS.PENDING_MEET) {
+    if (myRole.value === 'seller' && !order.value.sellerConfirmed) return true
+    if (myRole.value === 'buyer' && !order.value.buyerConfirmed) return true
+  }
+  return false
+})
+
+const confirmBtnText = computed(() => {
+  if (!order.value) return ''
+  if (order.value.status === ORDER_STATUS.PENDING && myRole.value === 'seller') return '确认发货'
+  if (order.value.status === ORDER_STATUS.PENDING_MEET && myRole.value === 'seller') return '已交付'
+  if (order.value.status === ORDER_STATUS.PENDING_MEET && myRole.value === 'buyer') return '完成交易'
+  return '确认'
 })
 
 const showCancelBtn = computed(() => {
-  return order.value && order.value.status === ORDER_STATUS.PENDING
+  return order.value && (order.value.status === ORDER_STATUS.PENDING || order.value.status === ORDER_STATUS.PENDING_MEET)
 })
 
 const showReviewBtn = computed(() => {
@@ -236,16 +264,38 @@ function contactOther() {
 }
 
 function confirmReceive() {
+  const status = order.value.status
+  const role = myRole.value
+  let title = '确认'
+  let content = ''
+  let url = ''
+
+  if (status === ORDER_STATUS.PENDING && role === 'seller') {
+    title = '确认发货'
+    content = '确认该订单可以面交？'
+    url = '/mini/order/confirm-ship'
+  } else if (status === ORDER_STATUS.PENDING_MEET && role === 'seller') {
+    title = '确认交付'
+    content = '确认已完成面交交付？双方都确认后交易完成。'
+    url = '/mini/order/seller-confirm-receive'
+  } else if (status === ORDER_STATUS.PENDING_MEET && role === 'buyer') {
+    title = '完成交易'
+    content = '确认已完成交易？双方都确认后交易完成。'
+    url = '/mini/order/confirm'
+  } else {
+    return
+  }
+
   uni.showModal({
-    title: '确认收货',
-    content: '确认已收到商品吗？确认后将进入评价阶段。',
-    confirmText: '确认收货',
+    title,
+    content,
+    confirmText: title,
     cancelText: '取消',
     success: async (res) => {
       if (!res || !res.confirm) return
       try {
-        await post('/mini/order/confirm', { orderId: order.value.id }, { showLoading: true })
-        showToast('已确认收货')
+        await post(url, { orderId: order.value.id }, { showLoading: true })
+        showToast(title + '成功')
         setTimeout(() => fetchOrder(), 500)
       } catch (error) {
         showToast('操作失败，请稍后重试')
@@ -524,5 +574,32 @@ onLoad(() => {
   background-color: #fff;
   color: var(--text-primary);
   border: 1rpx solid var(--border-light);
+}
+
+.order-confirm-status {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.order-confirm-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.order-confirm-item__label {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+}
+
+.order-confirm-item__value {
+  font-size: var(--font-sm);
+  color: #ff9800;
+  font-weight: 500;
+}
+
+.order-confirm-item__value.is-done {
+  color: #52c41a;
 }
 </style>

@@ -22,15 +22,7 @@ public class ProductAsyncService {
         if (productId == null) {
             return;
         }
-        Product product = productMapper.selectById(productId);
-        if (product == null) {
-            return;
-        }
-        Integer viewCount = product.getViewCount() == null ? 0 : product.getViewCount();
-        Product update = new Product();
-        update.setId(productId);
-        update.setViewCount(viewCount + 1);
-        productMapper.updateById(update);
+        productMapper.incrementViewCount(productId);
     }
 
     @Async

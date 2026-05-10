@@ -17,4 +17,7 @@ public interface ChatMessageMapper extends BaseMapper<ChatMessage> {
 
     int markAsRead(@Param("receiverId") Long receiverId,
                    @Param("sessionKey") String sessionKey);
+
+    int countUnread(@Param("receiverId") Long receiverId,
+                    @Param("sessionKey") String sessionKey);
 }

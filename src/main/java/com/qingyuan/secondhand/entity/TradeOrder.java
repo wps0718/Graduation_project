@@ -24,6 +24,8 @@ public class TradeOrder {
     private String meetingPoint;
     private String remark;
     private Integer status;
+    private Integer sellerConfirmed;
+    private Integer buyerConfirmed;
     private String cancelReason;
     private Long cancelBy;
     private LocalDateTime expireTime;

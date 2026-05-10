@@ -1,6 +1,6 @@
 # 轻院二手交易平台 - 项目文档
 
-**版本：V1.8 | 最后更新：2026-05-07 | 项目状态：开发中**
+**版本：V1.9 | 最后更新：2026-05-10 | 项目状态：开发中**
 
 ---
 
@@ -53,15 +53,15 @@
 
 ## 🚀 项目进度状态
 
-> 更新于 2026-04-26，反映当前实际开发完成情况。
+> 更新于 2026-05-10，反映当前实际开发完成情况。
 
 ### 整体进度
 
 | 端 | 完成度 | 说明 |
 |------|--------|------|
-| 后端服务 | ✅ 95% | 核心业务模块、API 接口、定时任务、WebSocket IM 均已实现 |
-| 管理后台 | ✅ 97% | 核心审核与管理页面及全部配置类 CRUD 已完成 |
-| 小程序端 | ✅ 93% | 核心业务流程全部完成，协议/帮助等辅助页面基础实现 |
+| 后端服务 | ✅ 98% | 核心业务模块、API 接口、定时任务、WebSocket IM 均已实现 |
+| 管理后台 | ✅ 99% | 核心审核与管理页面及全部配置类 CRUD 已完成，订单详情弹窗增强 |
+| 小程序端 | ✅ 96% | 核心业务流程全部完成，订单双向确认流程已实现 |
 
 ### 管理后台页面状态
 
@@ -72,7 +72,7 @@
 | 认证审核 | ✅ 已完成 | `AuthReview.vue`（含历史时间线、多版本对比） |
 | 商品审核 | ✅ 已完成 | `product/ProductList.vue` + `ProductReview.vue` |
 | 用户管理 | ✅ 已完成 | `user/UserList.vue` + `UserManage.vue` |
-| 订单管理 | ✅ 已完成 | `order/OrderList.vue` + `OrderManage.vue` |
+| 订单管理 | ✅ 已完成 | `order/OrderList.vue` + `OrderManage.vue`，含订单详情弹窗（4 区块展示） |
 | 举报处理 | ✅ 已完成 | `report/ReportList.vue` + `ReportManage.vue` |
 | 分类管理 | ✅ 已完成 | `category/CategoryList.vue`，含完整增删改、状态切换、排序功能 |
 | 校区管理 | ✅ 已完成 | `campus/CampusList.vue`，含左右分栏布局、校区+面交地点双层管理 |
@@ -293,7 +293,7 @@ Graduation_project/
 | 商品发布 | 图片上传、商品信息填写、面交地点选择、编辑/下架/重新上架 | P0 | ✅ 已完成 |
 | 卖家主页 | 卖家信息展示、在售商品列表、关注/取关卖家 | P0 | ✅ 已完成 |
 | IM 即时通讯 | 文字消息、商品卡片、快捷回复、聊天列表、确认购买入口 | P0 | ✅ 已完成 |
-| 订单管理 | 创建订单、订单状态流转、确认收货、取消交易 | P0 | ✅ 已完成 |
+| 订单管理 | 创建订单、订单状态流转（双向确认）、取消交易 | P0 | ✅ 已完成 |
 | 评价系统 | 交易后互评、三维度评分、综合评分计算 | P1 | ✅ 已完成 |
 | 收藏 | 收藏/取消收藏、我的收藏列表 | P0 | ✅ 已完成 |
 | 商品评论（留言） | 商品详情页留言、回复留言、删除留言、收到回复通知、未读回复数 | P1 | ✅ 已完成 |
@@ -430,12 +430,19 @@ Graduation_project/
                     │
                     └─→ [买家点击"确认购买"] → 生成订单（Redis 分布式锁防并发）
                             │
-                            │   订单状态：待面交（72 小时计时）
+                            │   订单状态：待接单（72 小时计时）
                             │   同一商品同时只允许一个待面交订单
                             │
-                            ├─→ [72 小时内完成面交]
-                            │       └─→ [买家点击"确认收货"]
-                            │               └─→ 订单状态：已完成
+                            ├─→ [卖家点击"确认发货"]
+                            │       └─→ 订单状态：待面交
+                            │               │
+                            │               ├─→ [卖家点击"已交付"]
+                            │               │       └─→ sellerConfirmed = 1
+                            │               │
+                            │               └─→ [买家点击"完成交易"]
+                            │                       └─→ buyerConfirmed = 1
+                            │
+                            │               ※ 双方均确认后 → 订单状态：已完成
                             │                       └─→ [双方互评]（7 天窗口期）
                             │                               ├─→ 双方均评价 → 订单状态：已评价
                             │                               └─→ 7 天未评价 → 系统自动默认好评
@@ -449,6 +456,8 @@ Graduation_project/
                             └─→ [卖家取消交易]
                                     └─→ 选择取消原因 → 订单取消 → 通知买家
 ```
+
+> **双向确认机制**：订单创建后首先进入「待接单」状态，卖家确认发货后进入「待面交」。面交阶段由买卖双方独立确认（卖家确认已交付、买家确认完成交易），双方均确认后订单才流转为「已完成」。任一方未确认前，另一方只能看到对方的确认状态，无法代替操作。聊天界面中的订单卡片也会实时同步双方确认状态。
 
 ---
 
@@ -501,7 +510,9 @@ Graduation_project/
 | buyer_id | bigint | 买家 ID |
 | seller_id | bigint | 卖家 ID |
 | price | decimal | 成交价格 |
-| status | tinyint | 状态：1 待面交 / 3 已完成 / 4 已评价 / 5 已取消（不存在 status=2） |
+| status | tinyint | 状态：1 待接单 / 2 待面交 / 3 已完成 / 4 已评价 / 5 已取消 |
+| seller_confirmed | tinyint | 卖家是否确认交付：0 否 / 1 是 |
+| buyer_confirmed | tinyint | 买家是否确认收货：0 否 / 1 是 |
 | cancel_by | tinyint | 取消方：0 系统 / 1 买家 / 2 卖家 |
 | expire_time | datetime | 超时时间（创建后 72 小时，超时自动取消） |
 | confirm_deadline | datetime | 自动确认收货时间（创建后 7 天） |
@@ -510,6 +521,8 @@ Graduation_project/
 | is_deleted_seller | tinyint | 卖家软删除标记 |
 
 > **`expire_time` vs `confirm_deadline` 区别**：`expire_time` 为 72 小时超时自动取消，由 `OrderExpireTask` 每 5 分钟检查；`confirm_deadline` 为 7 天自动确认收货，由 `OrderAutoConfirmTask` 每天凌晨 2:00 执行。
+
+> **双向确认字段**：`seller_confirmed` 和 `buyer_confirmed` 用于双向确认流程。订单进入「待面交」状态后，买卖双方独立确认，双方均确认（均为 1）后订单自动流转为「已完成」。
 
 #### 4. 评价表（review）
 
@@ -717,7 +730,17 @@ product(商品) ──1:N──→ product_comment(留言) ──N:1──→ us
 | 1 | 交易 |
 | 2 | 系统 |
 
-#### 3. 其他枚举
+#### 3. OrderStatus（订单状态）
+
+| code | 描述 | 说明 |
+|------|------|------|
+| 1 | 待接单 | 订单创建后，等待卖家确认发货 |
+| 2 | 待面交 | 卖家已确认发货，买卖双方进行面交并各自确认 |
+| 3 | 已完成 | 双方均确认后完成，或自动确认收货后完成 |
+| 4 | 已评价 | 双方均评价或系统自动好评后 |
+| 5 | 已取消 | 超时取消 / 买家取消 / 卖家取消 |
+
+#### 4. 其他枚举
 
 | 枚举名 | code | 描述 |
 |--------|------|------|
@@ -796,7 +819,8 @@ product(商品) ──1:N──→ product_comment(留言) ──N:1──→ us
 | POST | `/mini/order/create` | 创建订单（含 Redis 分布式锁防并发） | ✅ |
 | GET | `/mini/order/list` | 订单列表（支持买家/卖家视角） | ✅ |
 | GET | `/mini/order/detail/{id}` | 订单详情 | ✅ |
-| POST | `/mini/order/confirm` | 确认收货 | ✅ |
+| POST | `/mini/order/confirm` | 买家确认收货（设置 buyerConfirmed=1） | ✅ |
+| POST | `/mini/order/seller-confirm-receive` | 卖家确认交付（设置 sellerConfirmed=1） | ✅ |
 | POST | `/mini/order/cancel` | 取消订单 | ✅ |
 | POST | `/mini/order/delete` | 删除订单记录 | ✅ |
 
@@ -1301,14 +1325,14 @@ JWT 拦截器校验 Token → 正常处理业务
 
 **订单超时取消**
 ```text
-查询条件：expire_time < NOW() AND status = 1（待面交）
+查询条件：expire_time < NOW() AND status IN (1 待接单, 2 待面交)
 执行操作：status → 5（已取消），cancel_by → 0（系统取消）
 后续处理：通知买卖双方 + 商品恢复在售状态
 ```
 
 **订单自动确认收货**
 ```text
-查询条件：confirm_deadline < NOW() AND status = 1（待面交）
+查询条件：confirm_deadline < NOW() AND status IN (1 待接单, 2 待面交)
 执行操作：status → 3（已完成），记录 complete_time
 后续处理：通知买卖双方 + 商品状态 → 3（已售出）
 ```
@@ -1398,6 +1422,8 @@ JWT 拦截器校验 Token → 正常处理业务
 | 心跳保活 | 客户端每 30 秒发 PING，服务端回 PONG；心跳 TTL 60 秒，超时由 `WebSocketHeartbeatTask` 断线处理 |
 | 消息持久化 | 所有消息存储到 `chat_message` 表，支持历史消息分页查询 |
 | 未读管理 | 每个会话独立维护未读数，Redis 维护全局总未读数（`im:unread:{userId}`） |
+| 自动已读 | 拉取历史消息时自动标记该会话为已读（`getMessageHistory` 方法内调用 `markSessionReadByUserId`） |
+| 已读优化 | 标记已读前先查询未读数（`countUnread`），无未读时跳过 UPDATE 避免无效写入 |
 | 已读回执 | 接收方读取消息后推送 READ 帧，发送方收到 READ_ACK 确认 |
 | 离线消息 | 接收方离线时写入站内通知，上线后可在消息中心查看 |
 | 业务卡片 | 商品卡片（点击"我想要"自动发送）、订单卡片（创建订单后推送）、系统提示（价格修改等） |
@@ -1757,6 +1783,40 @@ A：WebSocket 连接在握手阶段由 `ChatHandshakeInterceptor` 处理，JWT T
 
 ---
 
+### V1.9（2026-05-10）
+
+**订单双向确认机制重构（全端联动）**
+
+1. **订单状态调整**：`OrderStatus` 枚举由 `1 待面交 / 3 已完成 / 4 已评价 / 5 已取消` 改为 `1 待接单 / 2 待面交 / 3 已完成 / 4 已评价 / 5 已取消`，新增 status=2 表示「待面交」
+2. **双向确认字段**：`trade_order` 表新增 `seller_confirmed`（tinyint）和 `buyer_confirmed`（tinyint）字段
+3. **新增接口**：`POST /mini/order/seller-confirm-receive`（卖家确认交付）
+4. **确认逻辑**：订单进入「待面交」后，买卖双方独立确认，双方均确认（seller_confirmed=1 且 buyer_confirmed=1）后自动流转为「已完成」并发送通知
+5. **聊天订单卡片同步**：`updateOrderCardMessageStatus()` 将双方确认状态写入聊天卡片 JSON，实时同步到双方聊天界面
+6. **定时任务适配**：`OrderExpireTask` 和 `OrderAutoConfirmTask` 的查询条件由 `[1]` 改为 `[1, 2]`，覆盖待接单和待面交两个状态
+
+**聊天系统优化**
+
+1. 拉取历史消息时自动标记会话已读（`getMessageHistory` 内调用 `markSessionReadByUserId`）
+2. 标记已读前先查询未读数（`countUnread`），无未读时跳过 UPDATE 避免无效写入
+3. 聊天轮询间隔由 5 秒调整为 10 秒，已读标记逻辑移至后端
+
+**商品浏览量优化**
+
+1. `ProductMapper` 新增 `incrementViewCount(productId)` 方法，直接执行 `UPDATE product SET view_count = view_count + 1`
+2. `ProductAsyncService` 替换旧的 select-then-update 模式，避免竞态条件
+
+**管理后台增强**
+
+1. `ProductList.vue` / `ProductReview.vue`：新增订单详情弹窗（720px），包含订单信息、取消信息、商品封面、买家/卖家信息（含手机脱敏和认证状态）
+2. 关联订单表格新增卖家姓名列，改用 `getRelatedOrders` 接口
+3. `OrderManage.vue`：状态标签更新为「待接单」/「待面交」，时间格式修复时区
+
+**小程序端修复**
+
+1. `publish.vue`：修复自定义面交地点字段名错误（`meetingPointName` → `meetingPointText`）
+
+---
+
 ### V1.8（2026-05-07）
 
 **文档修复与代码对齐**
@@ -1818,4 +1878,4 @@ A：WebSocket 连接在握手阶段由 `ChatHandshakeInterceptor` 处理，JWT T
 
 ---
 
-*最后更新时间：2026-05-07 ｜ 文档版本：V1.8 ｜ 项目路径：`G:\Code\Graduation_project`*
+*最后更新时间：2026-05-10 ｜ 文档版本：V1.9 ｜ 项目路径：`G:\Code\Graduation_project`*
