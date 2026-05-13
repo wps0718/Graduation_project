@@ -5,223 +5,53 @@
 			"style": {
 				"navigationBarTitleText": "轻院二手"
 			}
+		}
+	],
+	"subPackages": [
+		{
+			"root": "login-sub",
+			"name": "login",
+			"pages": [
+				"login/login",
+				"sms-login",
+				"search/search",
+				"report/report",
+				"agreement/agreement",
+				"privacy/privacy",
+				"help/help"
+			]
 		},
 		{
-			"path": "pages/login-sub/login/login",
-			"style": {
-				"navigationBarTitleText": "登录",
-				"navigationStyle": "custom"
-			}
+			"root": "user-sub",
+			"name": "user",
+			"pages": [
+				"favorite/favorite",
+				"footprint/footprint",
+				"review/review",
+				"settings/settings",
+				"settings/edit-profile",
+				"settings/about",
+				"seller/profile"
+			]
 		},
 		{
-			"path": "pages/login-sub/login/sms-login",
-			"style": {
-				"navigationBarTitleText": "短信验证",
-				"navigationStyle": "custom"
-			}
+			"root": "notification-sub",
+			"name": "notifications",
+			"pages": [
+				"notification/notification",
+				"notification/received-replies",
+				"notification/received-favorites",
+				"notification/follower"
+			]
 		},
 		{
-			"path": "pages/login-sub/search/search",
-			"style": {
-				"navigationStyle": "custom",
-				"navigationBarTitleText": "搜索"
-			}
-		},
-		{
-			"path": "pages/product/detail/detail",
-			"style": {
-				"navigationBarTitleText": "商品详情"
-			}
-		},
-		{
-			"path": "pages/product/publish/publish",
-			"style": {
-				"navigationBarTitleText": "发布商品",
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/product/my-list/my-list",
-			"style": {
-				"navigationBarTitleText": "我发布的"
-			}
-		},
-		{
-			"path": "pages/product/edit/edit",
-			"style": {
-				"navigationBarTitleText": "编辑商品"
-			}
-		},
-		{
-			"path": "pages/chat/list/list",
-			"style": {
-				"navigationBarTitleText": "消息",
-				"navigationStyle": "custom",
-				"enablePullDownRefresh": true
-			}
-		},
-		{
-			"path": "pages/chat/detail/detail",
-			"style": {
-				"navigationBarTitleText": "聊天详情",
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/chat/settings/settings",
-			"style": {
-				"navigationBarTitleText": "消息设置",
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/order/list/list",
-			"style": {
-				"navigationBarTitleText": "交易记录",
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/order/detail/detail",
-			"style": {
-				"navigationBarTitleText": "订单详情"
-			}
-		},
-		{
-			"path": "pages/user/user",
-			"style": {
-				"navigationBarTitleText": "个人中心"
-			}
-		},
-		{
-			"path": "pages/auth-sub/auth/auth",
-			"style": {
-				"navigationBarTitleText": "校园认证"
-			}
-		},
-		{
-			"path": "pages/auth-sub/history/list",
-			"style": {
-				"navigationBarTitleText": "认证历史"
-			}
-		},
-		{
-			"path": "pages/auth-sub/history/detail",
-			"style": {
-				"navigationBarTitleText": "认证详情"
-			}
-		},
-		{
-			"path": "pages/auth-sub/history/compare",
-			"style": {
-				"navigationBarTitleText": "认证内容对比"
-			}
-		},
-		{
-			"path": "pages/user-sub/favorite/favorite",
-			"style": {
-				"navigationBarTitleText": "我的收藏"
-			}
-		},
-		{
-			"path": "pages/user-sub/footprint/footprint",
-			"style": {
-				"navigationBarTitleText": "足迹"
-			}
-		},
-		{
-			"path": "pages/notification-sub/notification/notification",
-			"style": {
-				"navigationBarTitleText": "系统消息"
-			}
-		},
-		{
-			"path": "pages/notification-sub/notification/received-replies",
-			"style": {
-				"navigationBarTitleText": "收到回复"
-			}
-		},
-		{
-			"path": "pages/notification-sub/notification/received-favorites",
-			"style": {
-				"navigationBarTitleText": "收到收藏"
-			}
-		},
-		{
-			"path": "pages/notification-sub/notification/follower",
-			"style": {
-				"navigationBarTitleText": "新增粉丝",
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/user-sub/review/review",
-			"style": {
-				"navigationBarTitleText": "评价"
-			}
-		},
-		{
-			"path": "pages/login-sub/report/report",
-			"style": {
-				"navigationBarTitleText": "举报"
-			}
-		},
-		{
-			"path": "pages/user-sub/seller/profile",
-			"style": {
-				"navigationBarTitleText": "卖家主页",
-				"navigationStyle": "custom"
-			}
-		},
-		{
-			"path": "pages/user-sub/settings/settings",
-			"style": {
-				"navigationBarTitleText": "设置"
-			}
-		},
-		{
-			"path": "pages/user-sub/settings/edit-profile",
-			"style": {
-				"navigationBarTitleText": "编辑资料"
-			}
-		},
-		{
-			"path": "pages/user-sub/settings/about",
-			"style": {
-				"navigationBarTitleText": "关于我们"
-			}
-		},
-		{
-			"path": "pages/login-sub/agreement/agreement",
-			"style": {
-				"navigationBarTitleText": "用户协议"
-			}
-		},
-		{
-			"path": "pages/login-sub/privacy/privacy",
-			"style": {
-				"navigationBarTitleText": "隐私政策"
-			}
-		},
-		{
-			"path": "pages/login-sub/help/help",
-			"style": {
-				"navigationBarTitleText": "客服与帮助"
-			}
-		},
-		{
-			"path": "pages/category-detail/category-detail",
-			"style": {
-				"navigationBarTitleText": "分类详情",
-				"navigationStyle": "custom",
-				"enablePullDownRefresh": true
-			}
-		},
-		{
-			"path": "pages/common/web-view/web-view",
-			"style": {
-				"navigationBarTitleText": "详情"
-			}
+			"root": "chat",
+			"name": "chat",
+			"pages": [
+				"detail/detail",
+				"list/list",
+				"settings/settings"
+			]
 		}
 	],
 	"globalStyle": {
@@ -229,7 +59,7 @@
 		"navigationBarTitleText": "轻院二手",
 		"navigationBarBackgroundColor": "#4A90D9",
 		"backgroundColor": "#F5F5F5",
-    "enablePullDownRefresh": false
+		"enablePullDownRefresh": false
 	},
 	"tabBar": {
 		"color": "#999999",

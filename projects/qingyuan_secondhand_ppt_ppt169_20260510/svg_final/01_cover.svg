@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#1E40AF" />
+    </linearGradient>
+    <radialGradient id="glowTL" cx="10%" cy="10%" r="40%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glowBR" cx="90%" cy="90%" r="35%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  
+  <rect width="1280" height="720" fill="url(#bgGrad)" />
+  <rect width="1280" height="720" fill="url(#glowTL)" />
+  <rect width="1280" height="720" fill="url(#glowBR)" />
+  
+  <rect x="0" y="0" width="1280" height="720" fill="#FFFFFF" fill-opacity="0.03" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="0.5" />
+  
+  <line x1="80" y1="80" x2="200" y2="80" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.5" />
+  <line x1="80" y1="80" x2="80" y2="200" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.5" />
+  <line x1="1080" y1="640" x2="1200" y2="640" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.5" />
+  <line x1="1200" y1="640" x2="1200" y2="520" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.5" />
+  
+  <path fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-dasharray="8,4" d="M348,100 H932 A8,8 0 0 1 940,108 V212 A8,8 0 0 1 932,220 H348 A8,8 0 0 1 340,212 V108 A8,8 0 0 1 348,100 Z" />
+  <text x="640" y="168" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#FFFFFF" fill-opacity="0.4">待插入: hero_cover.png (校园/产品背景图)</text>
+  
+  <text x="640" y="300" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="60" font-weight="bold" fill="#FFFFFF">轻院二手交易平台</text>
+  
+  <text x="640" y="360" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" fill="#E5E7EB">校园闲置物品流转解决方案</text>
+  
+  <path fill="#FFFFFF" fill-opacity="0.1" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1" d="M192,420 H428 A12,12 0 0 1 440,432 V518 A12,12 0 0 1 428,530 H192 A12,12 0 0 1 180,518 V432 A12,12 0 0 1 192,420 Z" />
+  
+  <g transform="translate(270.0, 438.0) scale(1.3333333333333333)" fill="#FFFFFF">
+    <path d="M19 13.431v2.569c0 2.398 -3.205 4 -7 4s-7 -1.602 -7 -4v-2.569l5.886 2.354a3 3 0 0 0 2.011 .078l.217 -.078zm2 -2.955l-8.629 3.452a1 1 0 0 1 -.742 0l-10 -4c-.839 -.335 -.839 -1.521 0 -1.856l10 -4a1 1 0 0 1 .245 -.064l.126 -.008l.126 .008a1 1 0 0 1 .245 .064l10.032 4.013l.108 .055l.099 .068l.088 .076l.075 .082l.035 .044l.073 .115l.052 .115l.034 .102l.025 .135l.006 .058l.002 6.065a1 1 0 0 1 -2 0z" />
+  </g>
+  <text x="310" y="490" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#E5E7EB">项目类型</text>
+  <text x="310" y="514" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">毕业设计小程序</text>
+
+  <path fill="#FFFFFF" fill-opacity="0.1" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1" d="M522,420 H758 A12,12 0 0 1 770,432 V518 A12,12 0 0 1 758,530 H522 A12,12 0 0 1 510,518 V432 A12,12 0 0 1 522,420 Z" />
+  <use data-icon="tabler-filled/code" x="600" y="438" width="32" height="32" fill="#FFFFFF" />
+  <text x="640" y="490" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#E5E7EB">技术栈</text>
+  <text x="640" y="514" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">Spring Boot + Vue 3</text>
+
+  <path fill="#FFFFFF" fill-opacity="0.1" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1" d="M852,420 H1088 A12,12 0 0 1 1100,432 V518 A12,12 0 0 1 1088,530 H852 A12,12 0 0 1 840,518 V432 A12,12 0 0 1 852,420 Z" />
+  
+  <g transform="translate(930.0, 438.0) scale(1.3333333333333333)" fill="#FFFFFF">
+    <path d="M9.883 2.207a1.9 1.9 0 0 1 2.087 1.522l.025 .167l.005 .104v7a1 1 0 0 0 .883 .993l.117 .007h6.8a2 2 0 0 1 2 2a1 1 0 0 1 -.026 .226a10 10 0 1 1 -12.27 -11.933l.27 -.067l.11 -.02z" />
+    <path d="M14 3.5v5.5a1 1 0 0 0 1 1h5.5a1 1 0 0 0 .943 -1.332a10 10 0 0 0 -6.11 -6.111a1 1 0 0 0 -1.333 .943z" />
+  </g>
+  <text x="970" y="490" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#E5E7EB">开发状态</text>
+  <text x="970" y="514" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">核心完成 98%</text>
+  
+  <text x="640" y="680" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#E5E7EB" fill-opacity="0.7">版本 V1.9  |  更新: 2026-05</text>
+</svg>

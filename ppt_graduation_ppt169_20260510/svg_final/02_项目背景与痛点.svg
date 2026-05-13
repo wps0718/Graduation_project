@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <defs>
+    <filter id="cardShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" />
+      <feOffset dx="0" dy="2" result="offsetblur" />
+      <feFlood flood-color="#0F172A" flood-opacity="0.06" result="shadowColor" />
+      <feComposite in="shadowColor" in2="offsetblur" operator="in" result="shadow" />
+      <feMerge><feMergeNode in="shadow" /><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+  </defs>
+  
+  <rect width="1280" height="720" fill="#FFFFFF" />
+  
+  <rect x="0" y="0" width="1280" height="4" fill="#1565C0" />
+  
+  <path fill="#1565C0" d="M63,40 H63 A3,3 0 0 1 66,43 V69 A3,3 0 0 1 63,72 H63 A3,3 0 0 1 60,69 V43 A3,3 0 0 1 63,40 Z" />
+  <text x="80" y="66" font-family="Microsoft YaHei, Arial, sans-serif" font-size="32" font-weight="bold" fill="#1A1A2E">项目背景与痛点</text>
+  
+  
+  <g filter="url(#cardShadow)">
+    <path fill="#F5F7FA" stroke="#E0E0E0" stroke-width="1" d="M72,110 H598 A12,12 0 0 1 610,122 V218 A12,12 0 0 1 598,230 H72 A12,12 0 0 1 60,218 V122 A12,12 0 0 1 72,110 Z" />
+  </g>
+  <path fill="#C62828" d="M63,110 H63 A3,3 0 0 1 66,113 V227 A3,3 0 0 1 63,230 H63 A3,3 0 0 1 60,227 V113 A3,3 0 0 1 63,110 Z" />
+  
+  <g transform="translate(84.0, 138.0) scale(1.1666666666666667)" fill="#C62828">
+    <path d="M12 1.67c.955 0 1.845 .467 2.39 1.247l.105 .16l8.114 13.548a2.914 2.914 0 0 1 -2.307 4.363l-.195 .008h-16.225a2.914 2.914 0 0 1 -2.582 -4.2l.099 -.185l8.11 -13.538a2.914 2.914 0 0 1 2.491 -1.403zm.01 13.33l-.127 .007a1 1 0 0 0 0 1.986l.117 .007l.127 -.007a1 1 0 0 0 0 -1.986l-.117 -.007zm-.01 -7a1 1 0 0 0 -.993 .883l-.007 .117v4l.007 .117a1 1 0 0 0 1.986 0l.007 -.117v-4l-.007 -.117a1 1 0 0 0 -.993 -.883z" />
+  </g>
+  <text x="124" y="154" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="bold" fill="#1A1A2E">痛点一：信息分散</text>
+  <text x="124" y="182" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" fill="#5A5A7A">学生出售闲置物品依赖 QQ 群、微信群，信息零散、易刷屏、难检索</text>
+  
+  <g filter="url(#cardShadow)">
+    <path fill="#F5F7FA" stroke="#E0E0E0" stroke-width="1" d="M72,250 H598 A12,12 0 0 1 610,262 V358 A12,12 0 0 1 598,370 H72 A12,12 0 0 1 60,358 V262 A12,12 0 0 1 72,250 Z" />
+  </g>
+  <path fill="#C62828" d="M63,250 H63 A3,3 0 0 1 66,253 V367 A3,3 0 0 1 63,370 H63 A3,3 0 0 1 60,367 V253 A3,3 0 0 1 63,250 Z" />
+  
+  <g transform="translate(84.0, 278.0) scale(1.1666666666666667)" fill="#C62828">
+    <path d="M12 1.67c.955 0 1.845 .467 2.39 1.247l.105 .16l8.114 13.548a2.914 2.914 0 0 1 -2.307 4.363l-.195 .008h-16.225a2.914 2.914 0 0 1 -2.582 -4.2l.099 -.185l8.11 -13.538a2.914 2.914 0 0 1 2.491 -1.403zm.01 13.33l-.127 .007a1 1 0 0 0 0 1.986l.117 .007l.127 -.007a1 1 0 0 0 0 -1.986l-.117 -.007zm-.01 -7a1 1 0 0 0 -.993 .883l-.007 .117v4l.007 .117a1 1 0 0 0 1.986 0l.007 -.117v-4l-.007 -.117a1 1 0 0 0 -.993 -.883z" />
+  </g>
+  <text x="124" y="294" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="bold" fill="#1A1A2E">痛点二：信任缺失</text>
+  <text x="124" y="322" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" fill="#5A5A7A">群内交易无信用体系，商品质量和卖家信誉无法保障</text>
+  
+  <g filter="url(#cardShadow)">
+    <path fill="#F5F7FA" stroke="#E0E0E0" stroke-width="1" d="M72,390 H598 A12,12 0 0 1 610,402 V498 A12,12 0 0 1 598,510 H72 A12,12 0 0 1 60,498 V402 A12,12 0 0 1 72,390 Z" />
+  </g>
+  <path fill="#C62828" d="M63,390 H63 A3,3 0 0 1 66,393 V507 A3,3 0 0 1 63,510 H63 A3,3 0 0 1 60,507 V393 A3,3 0 0 1 63,390 Z" />
+  
+  <g transform="translate(84.0, 418.0) scale(1.1666666666666667)" fill="#C62828">
+    <path d="M12 1.67c.955 0 1.845 .467 2.39 1.247l.105 .16l8.114 13.548a2.914 2.914 0 0 1 -2.307 4.363l-.195 .008h-16.225a2.914 2.914 0 0 1 -2.582 -4.2l.099 -.185l8.11 -13.538a2.914 2.914 0 0 1 2.491 -1.403zm.01 13.33l-.127 .007a1 1 0 0 0 0 1.986l.117 .007l.127 -.007a1 1 0 0 0 0 -1.986l-.117 -.007zm-.01 -7a1 1 0 0 0 -.993 .883l-.007 .117v4l.007 .117a1 1 0 0 0 1.986 0l.007 -.117v-4l-.007 -.117a1 1 0 0 0 -.993 -.883z" />
+  </g>
+  <text x="124" y="434" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="bold" fill="#1A1A2E">痛点三：效率低下</text>
+  <text x="124" y="462" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" fill="#5A5A7A">买卖双方缺乏高效的沟通和交易管理工具</text>
+  
+  <g filter="url(#cardShadow)">
+    <path fill="#F5F7FA" stroke="#E0E0E0" stroke-width="1" d="M72,530 H598 A12,12 0 0 1 610,542 V638 A12,12 0 0 1 598,650 H72 A12,12 0 0 1 60,638 V542 A12,12 0 0 1 72,530 Z" />
+  </g>
+  <path fill="#C62828" d="M63,530 H63 A3,3 0 0 1 66,533 V647 A3,3 0 0 1 63,650 H63 A3,3 0 0 1 60,647 V533 A3,3 0 0 1 63,530 Z" />
+  
+  <g transform="translate(84.0, 558.0) scale(1.1666666666666667)" fill="#C62828">
+    <path d="M12 1.67c.955 0 1.845 .467 2.39 1.247l.105 .16l8.114 13.548a2.914 2.914 0 0 1 -2.307 4.363l-.195 .008h-16.225a2.914 2.914 0 0 1 -2.582 -4.2l.099 -.185l8.11 -13.538a2.914 2.914 0 0 1 2.491 -1.403zm.01 13.33l-.127 .007a1 1 0 0 0 0 1.986l.117 .007l.127 -.007a1 1 0 0 0 0 -1.986l-.117 -.007zm-.01 -7a1 1 0 0 0 -.993 .883l-.007 .117v4l.007 .117a1 1 0 0 0 1.986 0l.007 -.117v-4l-.007 -.117a1 1 0 0 0 -.993 -.883z" />
+  </g>
+  <text x="124" y="574" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="bold" fill="#1A1A2E">痛点四：毕业浪费</text>
+  <text x="124" y="602" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" fill="#5A5A7A">每年毕业季大量物品被丢弃，缺乏集中的处理渠道</text>
+  
+  <g filter="url(#cardShadow)">
+    <path fill="#FFFFFF" stroke="#1565C0" stroke-width="1.5" d="M666,110 H1204 A16,16 0 0 1 1220,126 V634 A16,16 0 0 1 1204,650 H666 A16,16 0 0 1 650,634 V126 A16,16 0 0 1 666,110 Z" />
+  </g>
+  <path fill="#1565C0" d="M666,110 H1204 A16,16 0 0 1 1220,126 V150 A16,16 0 0 1 1204,166 H666 A16,16 0 0 1 650,150 V126 A16,16 0 0 1 666,110 Z" />
+  <rect x="650" y="150" width="570" height="16" fill="#1565C0" />
+  <text x="935" y="146" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="22" font-weight="bold" fill="#FFFFFF">解决方案</text>
+  
+  <text x="690" y="210" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="bold" fill="#1565C0">轻院二手</text>
+  <text x="690" y="240" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" fill="#5A5A7A">一款专为广东轻工职业技术大学</text>
+  <text x="690" y="265" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" fill="#5A5A7A">在校学生打造的微信小程序</text>
+  
+  
+  <g transform="translate(690.0, 305.0) scale(0.9166666666666666)" fill="#2E7D32">
+    <path d="M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0" />
+  </g>
+  <text x="722" y="322" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" fill="#1A1A2E">商品发布、浏览搜索、即时通讯、面交撮合</text>
+  
+  <g transform="translate(690.0, 345.0) scale(0.9166666666666666)" fill="#2E7D32">
+    <path d="M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0" />
+  </g>
+  <text x="722" y="362" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" fill="#1A1A2E">校园认证体系，构建校内信任环境</text>
+  
+  <g transform="translate(690.0, 385.0) scale(0.9166666666666666)" fill="#2E7D32">
+    <path d="M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0" />
+  </g>
+  <text x="722" y="402" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" fill="#1A1A2E">微信小程序 + 管理后台双端架构</text>
+  
+  <g transform="translate(690.0, 425.0) scale(0.9166666666666666)" fill="#2E7D32">
+    <path d="M20.707 6.293a1 1 0 0 1 0 1.414l-10 10a1 1 0 0 1 -1.414 0l-5 -5a1 1 0 0 1 1.414 -1.414l4.293 4.293l9.293 -9.293a1 1 0 0 1 1.414 0" />
+  </g>
+  <text x="722" y="442" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" fill="#1A1A2E">让闲置物品在校园内高效流转</text>
+  
+  <path fill="#1565C0" fill-opacity="0.08" d="M698,485 H1172 A8,8 0 0 1 1180,493 V537 A8,8 0 0 1 1172,545 H698 A8,8 0 0 1 690,537 V493 A8,8 0 0 1 698,485 Z" />
+  <text x="935" y="512" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1565C0">参考闲鱼模式，结合校园特色</text>
+  <text x="935" y="535" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1565C0">打造一站式校园二手交易平台</text>
+  
+  <text x="1240" y="700" text-anchor="end" font-family="Microsoft YaHei, Arial, sans-serif" font-size="12" fill="#9E9E9E">02 / 10</text>
+</svg>

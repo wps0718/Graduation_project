@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
+    </linearGradient>
+    <radialGradient id="glowTL" cx="10%" cy="10%" r="40%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowBR" cx="90%" cy="90%" r="35%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="1280" height="720" fill="url(#bgGrad)"/>
+  <rect width="1280" height="720" fill="url(#glowTL)"/>
+  <rect width="1280" height="720" fill="url(#glowBR)"/>
+  <!-- Grid pattern overlay -->
+  <rect x="0" y="0" width="1280" height="720" fill="#FFFFFF" fill-opacity="0.03" stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="0.5"/>
+  <!-- Decorative lines -->
+  <line x1="80" y1="80" x2="200" y2="80" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.5"/>
+  <line x1="80" y1="80" x2="80" y2="200" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.5"/>
+  <line x1="1080" y1="640" x2="1200" y2="640" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.5"/>
+  <line x1="1200" y1="640" x2="1200" y2="520" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1.5"/>
+  <!-- Hero image placeholder -->
+  <rect x="340" y="100" width="600" height="120" rx="8" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-dasharray="8,4"/>
+  <text x="640" y="168" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#FFFFFF" fill-opacity="0.4">待插入: hero_cover.png (校园/产品背景图)</text>
+  <!-- Main title -->
+  <text x="640" y="300" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="60" font-weight="bold" fill="#FFFFFF">轻院二手交易平台</text>
+  <!-- Subtitle -->
+  <text x="640" y="360" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" fill="#E5E7EB">校园闲置物品流转解决方案</text>
+  <!-- Three info cards -->
+  <rect x="180" y="420" width="260" height="110" rx="12" fill="#FFFFFF" fill-opacity="0.1" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1"/>
+  <use data-icon="tabler-filled/school" x="270" y="438" width="32" height="32" fill="#FFFFFF"/>
+  <text x="310" y="490" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#E5E7EB">项目类型</text>
+  <text x="310" y="514" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">毕业设计小程序</text>
+
+  <rect x="510" y="420" width="260" height="110" rx="12" fill="#FFFFFF" fill-opacity="0.1" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1"/>
+  <use data-icon="tabler-filled/code" x="600" y="438" width="32" height="32" fill="#FFFFFF"/>
+  <text x="640" y="490" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#E5E7EB">技术栈</text>
+  <text x="640" y="514" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">Spring Boot + Vue 3</text>
+
+  <rect x="840" y="420" width="260" height="110" rx="12" fill="#FFFFFF" fill-opacity="0.1" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1"/>
+  <use data-icon="tabler-filled/chart-pie" x="930" y="438" width="32" height="32" fill="#FFFFFF"/>
+  <text x="970" y="490" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#E5E7EB">开发状态</text>
+  <text x="970" y="514" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">核心完成 98%</text>
+  <!-- Bottom info bar -->
+  <text x="640" y="680" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#E5E7EB" fill-opacity="0.7">版本 V1.9  |  更新: 2026-05</text>
+</svg>

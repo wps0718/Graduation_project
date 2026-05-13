@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <!-- Background -->
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <rect x="0" y="0" width="1280" height="4" fill="#1565C0"/>
+  <!-- Page title - breathing: centered -->
+  <text x="640" y="68" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="36" font-weight="bold" fill="#1A1A2E">系统演示</text>
+  <line x1="540" y1="85" x2="740" y2="85" stroke="#1565C0" stroke-width="2"/>
+  <!-- Mini program area -->
+  <text x="320" y="130" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="bold" fill="#1565C0">微信小程序端</text>
+  <!-- Phone frame -->
+  <rect x="170" y="145" width="300" height="520" rx="24" fill="#F5F7FA" stroke="#E0E0E0" stroke-width="2"/>
+  <rect x="185" y="180" width="270" height="450" rx="8" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+  <!-- Screen content mockup -->
+  <!-- Tab bar -->
+  <rect x="185" y="595" width="270" height="35" rx="0" fill="#F5F7FA" stroke="#E0E0E0" stroke-width="1"/>
+  <text x="237" y="618" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#1565C0">首页</text>
+  <text x="320" y="618" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#9E9E9E">发布</text>
+  <text x="403" y="618" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#9E9E9E">消息</text>
+  <!-- Status bar -->
+  <rect x="185" y="180" width="270" height="25" rx="8" fill="#1565C0"/>
+  <text x="320" y="198" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="11" fill="#FFFFFF">轻院二手</text>
+  <!-- Banner area -->
+  <rect x="195" y="215" width="250" height="80" rx="8" fill="#EFF6FF"/>
+  <text x="320" y="260" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="12" fill="#90CAF9">Banner 运营位</text>
+  <!-- Category icons -->
+  <circle cx="230" cy="320" r="20" fill="#EFF6FF"/>
+  <circle cx="300" cy="320" r="20" fill="#EFF6FF"/>
+  <circle cx="370" cy="320" r="20" fill="#EFF6FF"/>
+  <circle cx="440" cy="320" r="20" fill="#EFF6FF"/>
+  <text x="230" y="355" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="9" fill="#5A5A7A">书籍</text>
+  <text x="300" y="355" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="9" fill="#5A5A7A">服饰</text>
+  <text x="370" y="355" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="9" fill="#5A5A7A">电子</text>
+  <text x="440" y="355" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="9" fill="#5A5A7A">运动</text>
+  <!-- Product cards -->
+  <rect x="195" y="370" width="118" height="100" rx="6" fill="#F5F7FA" stroke="#E0E0E0" stroke-width="1"/>
+  <rect x="327" y="370" width="118" height="100" rx="6" fill="#F5F7FA" stroke="#E0E0E0" stroke-width="1"/>
+  <rect x="195" y="480" width="118" height="100" rx="6" fill="#F5F7FA" stroke="#E0E0E0" stroke-width="1"/>
+  <rect x="327" y="480" width="118" height="100" rx="6" fill="#F5F7FA" stroke="#E0E0E0" stroke-width="1"/>
+  <text x="254" y="425" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#9E9E9E">商品卡片</text>
+  <text x="386" y="425" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#9E9E9E">商品卡片</text>
+  <text x="254" y="535" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#9E9E9E">商品卡片</text>
+  <text x="386" y="535" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#9E9E9E">商品卡片</text>
+  <!-- Divider -->
+  <line x1="640" y1="145" x2="640" y2="620" stroke="#E0E0E0" stroke-width="1" stroke-dasharray="6 4"/>
+  <!-- Admin panel area -->
+  <text x="960" y="130" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="bold" fill="#0D47A1">管理后台</text>
+  <!-- Browser frame -->
+  <rect x="680" y="145" width="540" height="360" rx="10" fill="#F5F7FA" stroke="#E0E0E0" stroke-width="2"/>
+  <!-- Browser toolbar -->
+  <rect x="680" y="145" width="540" height="30" rx="10" fill="#E0E0E0"/>
+  <circle cx="705" cy="160" r="5" fill="#C62828"/>
+  <circle cx="725" cy="160" r="5" fill="#FF6F00"/>
+  <circle cx="745" cy="160" r="5" fill="#2E7D32"/>
+  <rect x="770" y="153" width="200" height="14" rx="7" fill="#FFFFFF"/>
+  <text x="870" y="164" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="8" fill="#9E9E9E">localhost:5173</text>
+  <!-- Admin content mockup -->
+  <!-- Sidebar -->
+  <rect x="680" y="175" width="100" height="330" fill="#1565C0"/>
+  <text x="730" y="200" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#FFFFFF">数据概览</text>
+  <text x="730" y="225" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#FFFFFF" fill-opacity="0.7">商品审核</text>
+  <text x="730" y="250" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#FFFFFF" fill-opacity="0.7">认证审核</text>
+  <text x="730" y="275" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#FFFFFF" fill-opacity="0.7">用户管理</text>
+  <text x="730" y="300" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#FFFFFF" fill-opacity="0.7">订单管理</text>
+  <text x="730" y="325" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="10" fill="#FFFFFF" fill-opacity="0.7">举报处理</text>
+  <!-- Main content -->
+  <rect x="780" y="175" width="440" height="330" fill="#FFFFFF"/>
+  <!-- KPI cards row -->
+  <rect x="790" y="185" width="100" height="60" rx="6" fill="#EFF6FF" stroke="#90CAF9" stroke-width="1"/>
+  <text x="840" y="210" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1565C0">98%</text>
+  <text x="840" y="232" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="9" fill="#5A5A7A">后端</text>
+  <rect x="900" y="185" width="100" height="60" rx="6" fill="#E8F5E9" stroke="#A5D6A7" stroke-width="1"/>
+  <text x="950" y="210" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" font-weight="bold" fill="#2E7D32">99%</text>
+  <text x="950" y="232" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="9" fill="#5A5A7A">管理端</text>
+  <rect x="1010" y="185" width="100" height="60" rx="6" fill="#FFF3E0" stroke="#FFB74D" stroke-width="1"/>
+  <text x="1060" y="210" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" font-weight="bold" fill="#FF6F00">96%</text>
+  <text x="1060" y="232" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="9" fill="#5A5A7A">小程序</text>
+  <!-- Chart area -->
+  <rect x="790" y="260" width="420" height="120" rx="6" fill="#F5F7FA" stroke="#E0E0E0" stroke-width="1"/>
+  <text x="1000" y="325" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="12" fill="#9E9E9E">ECharts 数据图表区域</text>
+  <!-- Table area -->
+  <rect x="790" y="395" width="420" height="100" rx="6" fill="#F5F7FA" stroke="#E0E0E0" stroke-width="1"/>
+  <text x="1000" y="450" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="12" fill="#9E9E9E">审核管理表格区域</text>
+  <!-- Bottom label -->
+  <text x="640" y="550" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="18" fill="#5A5A7A">微信小程序 + 管理后台双端完整实现</text>
+  <text x="640" y="580" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="14" fill="#9E9E9E">实际运行效果请参见现场演示</text>
+  <!-- Page number -->
+  <text x="1240" y="700" text-anchor="end" font-family="Microsoft YaHei, Arial, sans-serif" font-size="12" fill="#9E9E9E">08 / 10</text>
+</svg>

@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#FFFFFF" />
+  
+  <path fill="#3B82F6" d="M64,32 H64 A4,4 0 0 1 68,36 V64 A4,4 0 0 1 64,68 H64 A4,4 0 0 1 60,64 V36 A4,4 0 0 1 64,32 Z" />
+  <text x="80" y="60" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="32" font-weight="bold" fill="#1F2937">管理端功能与数据概览</text>
+  <text x="80" y="84" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#6B7280">ADMIN PANEL FEATURES &amp; DATA DASHBOARD</text>
+
+  
+  
+  <path fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5" d="M72,110 H508 A12,12 0 0 1 520,122 V268 A12,12 0 0 1 508,280 H72 A12,12 0 0 1 60,268 V122 A12,12 0 0 1 72,110 Z" />
+  <path fill="#EF4444" d="M62,110 H62 A2,2 0 0 1 64,112 V278 A2,2 0 0 1 62,280 H62 A2,2 0 0 1 60,278 V112 A2,2 0 0 1 62,110 Z" />
+  <text x="84" y="138" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#DC2626">审核模块</text>
+  <text x="84" y="168" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">商品审核 — 通过/驳回/强制下架</text>
+  <text x="84" y="194" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">认证审核 — 历史时间线/多版本对比</text>
+  <text x="84" y="220" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">举报处理 — 6类举报原因分类</text>
+  <path fill="#FEF2F2" d="M97,240 H171 A13,13 0 0 1 184,253 V253 A13,13 0 0 1 171,266 H97 A13,13 0 0 1 84,253 V253 A13,13 0 0 1 97,240 Z" />
+  <text x="134" y="258" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#EF4444">待审核: 23</text>
+
+  
+  <path fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5" d="M72,300 H508 A12,12 0 0 1 520,312 V428 A12,12 0 0 1 508,440 H72 A12,12 0 0 1 60,428 V312 A12,12 0 0 1 72,300 Z" />
+  <path fill="#3B82F6" d="M62,300 H62 A2,2 0 0 1 64,302 V438 A2,2 0 0 1 62,440 H62 A2,2 0 0 1 60,438 V302 A2,2 0 0 1 62,300 Z" />
+  <text x="84" y="328" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#2563EB">管理模块</text>
+  <text x="84" y="358" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">用户管理 — 封禁/解封/详情查看</text>
+  <text x="84" y="384" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">订单管理 — 列表/详情/关联查询</text>
+  <text x="84" y="410" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">订单详情弹窗 720px 四区块展示</text>
+
+  
+  <path fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5" d="M72,460 H508 A12,12 0 0 1 520,472 V628 A12,12 0 0 1 508,640 H72 A12,12 0 0 1 60,628 V472 A12,12 0 0 1 72,460 Z" />
+  <path fill="#10B981" d="M62,460 H62 A2,2 0 0 1 64,462 V638 A2,2 0 0 1 62,640 H62 A2,2 0 0 1 60,638 V462 A2,2 0 0 1 62,460 Z" />
+  <text x="84" y="488" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#059669">配置模块</text>
+  <text x="84" y="518" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">分类管理 — CRUD/状态/排序</text>
+  <text x="84" y="544" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">校区管理 — 校区+面交地点双层</text>
+  <text x="84" y="570" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">Banner/公告/员工管理</text>
+  <path fill="#ECFDF5" d="M97,596 H251 A13,13 0 0 1 264,609 V609 A13,13 0 0 1 251,622 H97 A13,13 0 0 1 84,609 V609 A13,13 0 0 1 97,596 Z" />
+  <text x="174" y="614" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#059669">完成度 99%</text>
+
+  
+  
+  
+  <path fill="#DBEAFE" d="M562,110 H868 A12,12 0 0 1 880,122 V228 A12,12 0 0 1 868,240 H562 A12,12 0 0 1 550,228 V122 A12,12 0 0 1 562,110 Z" />
+  <use data-icon="tabler-filled/users" x="570" y="128" width="28" height="28" fill="#3B82F6" />
+  <text x="606" y="148" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">用户总数</text>
+  <text x="570" y="190" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="36" font-weight="bold" fill="#1E40AF">5,247</text>
+  <text x="840" y="175" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#10B981">12.5%</text>
+
+  
+  <path fill="#D1FAE5" d="M912,110 H1218 A12,12 0 0 1 1230,122 V228 A12,12 0 0 1 1218,240 H912 A12,12 0 0 1 900,228 V122 A12,12 0 0 1 912,110 Z" />
+  
+  <g transform="translate(920.0, 128.0) scale(1.1666666666666667)" fill="#10B981">
+    <path d="M17.997 4.17a3 3 0 0 1 2.003 2.83v12a3 3 0 0 1 -3 3h-10a3 3 0 0 1 -3 -3v-12a3 3 0 0 1 2.003 -2.83a4 4 0 0 0 3.997 3.83h4a4 4 0 0 0 3.98 -3.597zm-8.987 10.83h-.01a1 1 0 0 0 -.117 1.993l.127 .007a1 1 0 0 0 0 -2m5.99 0h-2a1 1 0 0 0 0 2h2a1 1 0 0 0 0 -2m-5.99 -4h-.01a1 1 0 0 0 -.117 1.993l.127 .007a1 1 0 0 0 0 -2m5.99 0h-2a1 1 0 0 0 0 2h2a1 1 0 0 0 0 -2m-1 -9a2 2 0 1 1 0 4h-4a2 2 0 1 1 0 -4z" />
+  </g>
+  <text x="956" y="148" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">商品总数</text>
+  <text x="920" y="190" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="36" font-weight="bold" fill="#065F46">1,839</text>
+  <text x="1190" y="175" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#10B981">8.3%</text>
+
+  
+  <path fill="#FED7AA" d="M562,260 H868 A12,12 0 0 1 880,272 V378 A12,12 0 0 1 868,390 H562 A12,12 0 0 1 550,378 V272 A12,12 0 0 1 562,260 Z" />
+  
+  <g transform="translate(570.0, 278.0) scale(1.1666666666666667)" fill="#F59E0B">
+    <path d="M17.997 4.17a3 3 0 0 1 2.003 2.83v12a3 3 0 0 1 -3 3h-10a3 3 0 0 1 -3 -3v-12a3 3 0 0 1 2.003 -2.83a4 4 0 0 0 3.997 3.83h4a4 4 0 0 0 3.98 -3.597zm-3.704 7.123l-3.293 3.292l-1.293 -1.292a1 1 0 1 0 -1.414 1.414l2 2a1 1 0 0 0 1.414 0l4 -4a1 1 0 0 0 -1.414 -1.414m-.293 -9.293a2 2 0 1 1 0 4h-4a2 2 0 1 1 0 -4z" />
+  </g>
+  <text x="606" y="298" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">订单总数</text>
+  <text x="570" y="340" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="36" font-weight="bold" fill="#B45309">892</text>
+  <text x="840" y="325" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#10B981">15.7%</text>
+
+  
+  <path fill="#E9D5FF" d="M912,260 H1218 A12,12 0 0 1 1230,272 V378 A12,12 0 0 1 1218,390 H912 A12,12 0 0 1 900,378 V272 A12,12 0 0 1 912,260 Z" />
+  
+  <g transform="translate(920.0, 278.0) scale(1.1666666666666667)" fill="#8B5CF6">
+    <path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" />
+  </g>
+  <text x="956" y="298" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">评价总数</text>
+  <text x="920" y="340" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="36" font-weight="bold" fill="#6D28D9">654</text>
+  <text x="1190" y="325" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#10B981">6.2%</text>
+
+  
+  <path fill="#F9FAFB" stroke="#E5E7EB" stroke-width="1" d="M562,410 H1218 A12,12 0 0 1 1230,422 V528 A12,12 0 0 1 1218,540 H562 A12,12 0 0 1 550,528 V422 A12,12 0 0 1 562,410 Z" />
+  <text x="570" y="435" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1F2937">7日数据趋势</text>
+  
+  <polyline points="600,510 660,500 720,490 780,495 840,478 900,468 960,455" fill="none" stroke="#3B82F6" stroke-width="2" />
+  <polyline points="600,520 660,515 720,508 780,510 840,500 900,492 960,485" fill="none" stroke="#10B981" stroke-width="2" />
+  <polyline points="600,530 660,528 720,525 780,526 840,522 900,518 960,512" fill="none" stroke="#F59E0B" stroke-width="2" />
+  <text x="1000" y="460" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#3B82F6">新增用户</text>
+  <text x="1000" y="485" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#10B981">新增商品</text>
+  <text x="1000" y="510" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#F59E0B">新增订单</text>
+  
+  <text x="600" y="548" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" fill="#9CA3AF">Day1</text>
+  <text x="720" y="548" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" fill="#9CA3AF">Day3</text>
+  <text x="840" y="548" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" fill="#9CA3AF">Day5</text>
+  <text x="960" y="548" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" fill="#9CA3AF">Day7</text>
+
+  
+  <path fill="none" stroke="#93C5FD" stroke-dasharray="6,4" stroke-width="1.5" d="M558,560 H1222 A8,8 0 0 1 1230,568 V632 A8,8 0 0 1 1222,640 H558 A8,8 0 0 1 550,632 V568 A8,8 0 0 1 558,560 Z" />
+  <text x="890" y="605" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">待插入: admin_dashboard.png (管理后台截图)</text>
+</svg>

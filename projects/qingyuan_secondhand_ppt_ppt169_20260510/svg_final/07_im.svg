@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#1E293B" />
+  
+  <path fill="#3B82F6" d="M64,32 H64 A4,4 0 0 1 68,36 V64 A4,4 0 0 1 64,68 H64 A4,4 0 0 1 60,64 V36 A4,4 0 0 1 64,32 Z" />
+  <text x="80" y="60" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="32" font-weight="bold" fill="#F1F5F9">自建WebSocket即时通讯方案</text>
+  <text x="80" y="84" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#94A3B8">REAL-TIME COMMUNICATION SYSTEM</text>
+
+  
+  <path fill="#334155" d="M72,110 H1208 A12,12 0 0 1 1220,122 V238 A12,12 0 0 1 1208,250 H72 A12,12 0 0 1 60,238 V122 A12,12 0 0 1 72,110 Z" />
+  <text x="160" y="138" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">客户端</text>
+  <path fill="#3B82F6" d="M118,148 H202 A8,8 0 0 1 210,156 V200 A8,8 0 0 1 202,208 H118 A8,8 0 0 1 110,200 V156 A8,8 0 0 1 118,148 Z" />
+  <text x="160" y="182" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF">WebSocket</text>
+  <text x="160" y="198" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#DBEAFE">Client</text>
+  
+  <line x1="220" y1="178" x2="350" y2="178" stroke="#60A5FA" stroke-width="2" marker-end="url(#arrowBlue)" />
+  <defs><marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#60A5FA" /></marker></defs>
+  <text x="285" y="170" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="10" fill="#60A5FA">ws://host/ws</text>
+
+  
+  <text x="430" y="138" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">服务端</text>
+  <path fill="#10B981" d="M368,148 H492 A8,8 0 0 1 500,156 V200 A8,8 0 0 1 492,208 H368 A8,8 0 0 1 360,200 V156 A8,8 0 0 1 368,148 Z" />
+  <text x="430" y="178" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF">WebSocket</text>
+  <text x="430" y="194" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#D1FAE5">Server</text>
+
+  
+  <line x1="510" y1="178" x2="620" y2="178" stroke="#60A5FA" stroke-width="2" />
+  
+  <path fill="#8B5CF6" d="M638,155 H722 A8,8 0 0 1 730,163 V193 A8,8 0 0 1 722,201 H638 A8,8 0 0 1 630,193 V163 A8,8 0 0 1 638,155 Z" />
+  <text x="680" y="182" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF">分发器</text>
+
+  
+  <line x1="740" y1="165" x2="830" y2="148" stroke="#60A5FA" stroke-width="1.5" />
+  <line x1="740" y1="178" x2="830" y2="178" stroke="#60A5FA" stroke-width="1.5" />
+  <line x1="740" y1="191" x2="830" y2="208" stroke="#60A5FA" stroke-width="1.5" />
+
+  
+  <path fill="#334155" stroke="#3B82F6" stroke-width="1" d="M846,132 H974 A6,6 0 0 1 980,138 V156 A6,6 0 0 1 974,162 H846 A6,6 0 0 1 840,156 V138 A6,6 0 0 1 846,132 Z" />
+  <text x="910" y="152" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="11" fill="#93C5FD">ChatHandler</text>
+  <path fill="#334155" stroke="#10B981" stroke-width="1" d="M846,170 H974 A6,6 0 0 1 980,176 V194 A6,6 0 0 1 974,200 H846 A6,6 0 0 1 840,194 V176 A6,6 0 0 1 846,170 Z" />
+  <text x="910" y="190" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6EE7B7">ReadHandler</text>
+  <path fill="#334155" stroke="#F59E0B" stroke-width="1" d="M846,208 H974 A6,6 0 0 1 980,214 V232 A6,6 0 0 1 974,238 H846 A6,6 0 0 1 840,232 V214 A6,6 0 0 1 846,208 Z" />
+  <text x="910" y="228" text-anchor="middle" font-family="Consolas, Courier New, monospace" font-size="11" fill="#FCD34D">PingHandler</text>
+
+  
+  
+  <path fill="#334155" d="M72,270 H608 A12,12 0 0 1 620,282 V448 A12,12 0 0 1 608,460 H72 A12,12 0 0 1 60,448 V282 A12,12 0 0 1 72,270 Z" />
+  
+  <g transform="translate(84.0, 292.0) scale(1.3333333333333333)" fill="#3B82F6">
+    <path d="M11.998 2l.118 .007l.059 .008l.061 .013l.111 .034a.993 .993 0 0 1 .217 .112l.104 .082l.255 .218a11 11 0 0 0 7.189 2.537l.342 -.01a1 1 0 0 1 1.005 .717a13 13 0 0 1 -9.208 16.25a1 1 0 0 1 -.502 0a13 13 0 0 1 -9.209 -16.25a1 1 0 0 1 1.005 -.717a11 11 0 0 0 7.531 -2.527l.263 -.225l.096 -.075a.993 .993 0 0 1 .217 -.112l.112 -.034a.97 .97 0 0 1 .119 -.021l.115 -.007zm.002 7a2 2 0 0 0 -1.995 1.85l-.005 .15l.005 .15a2 2 0 0 0 .995 1.581v1.769l.007 .117a1 1 0 0 0 1.993 -.117l.001 -1.768a2 2 0 0 0 -1.001 -3.732z" />
+  </g>
+  <text x="128" y="314" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#F1F5F9">握手鉴权</text>
+  <text x="84" y="348" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#CBD5E1">ChatHandshakeInterceptor 验证JWT Token</text>
+  <text x="84" y="374" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">URL参数token解析 → JwtUtil验证</text>
+  <text x="84" y="398" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">userId存入Attributes → 验证失败返回403</text>
+  <text x="84" y="430" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">封号用户拒绝连接 · Token过期自动断开</text>
+
+  
+  <path fill="#334155" d="M672,270 H1208 A12,12 0 0 1 1220,282 V448 A12,12 0 0 1 1208,460 H672 A12,12 0 0 1 660,448 V282 A12,12 0 0 1 672,270 Z" />
+  
+  <g transform="translate(684.0, 292.0) scale(1.3333333333333333)" fill="#10B981">
+    <path d="M3 15.731c1.968 1.507 5.234 2.269 9 2.269c3.76 0 7.025 -.76 9 -2.252v2.252c0 2.425 -3.895 3.936 -8.693 3.998l-.307 .002c-4.938 0 -9 -1.523 -9 -4z" />
+    <path d="M3 9.731c1.968 1.507 5.234 2.269 9 2.269c3.76 0 7.025 -.76 9 -2.252v2.252c0 2.477 -4.062 4 -9 4c-4.798 0 -8.77 -1.438 -8.979 -3.795l-.016 -.101l-.005 -.104z" />
+    <path d="M12 2c1.041 0 2.044 .068 2.977 .198l.469 .071q .84 .14 1.586 .348l.44 .131l.075 .024a11 11 0 0 1 .805 .3l.199 .086q .535 .242 .967 .53q .165 .11 .313 .225a3.8 3.8 0 0 1 .669 .668l.091 .128q .07 .105 .129 .211l.07 .139q .163 .35 .2 .73l.01 .211c0 2.477 -4.062 4 -9 4c-4.798 0 -8.77 -1.438 -8.979 -3.795a1 1 0 0 1 -.021 -.205l.005 -.104l.016 -.1c.205 -2.306 4.01 -3.733 8.667 -3.794z" />
+  </g>
+  <text x="728" y="314" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#F1F5F9">消息持久化</text>
+  <text x="684" y="348" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#CBD5E1">chat_message表存储全部消息</text>
+  <text x="684" y="374" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">session_key + sender/receiver + msg_type</text>
+  <text x="684" y="398" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">分页每页20条 · 最近50条热数据缓存</text>
+  <text x="684" y="430" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">当前: 12,345条约8.5MB · 支持无限回溯</text>
+
+  
+  <path fill="#334155" d="M72,480 H608 A12,12 0 0 1 620,492 V658 A12,12 0 0 1 608,670 H72 A12,12 0 0 1 60,658 V492 A12,12 0 0 1 72,480 Z" />
+  
+  <g transform="translate(84.0, 502.0) scale(1.3333333333333333)" fill="#EF4444">
+    <path d="M13 2l.018 .001l.016 .001l.083 .005l.011 .002h.011l.038 .009l.052 .008l.016 .006l.011 .001l.029 .011l.052 .014l.019 .009l.015 .004l.028 .014l.04 .017l.021 .012l.022 .01l.023 .015l.031 .017l.034 .024l.018 .011l.013 .012l.024 .017l.038 .034l.022 .017l.008 .01l.014 .012l.036 .041l.026 .027l.006 .009c.12 .147 .196 .322 .218 .513l.001 .012l.002 .041l.004 .064v6h5a1 1 0 0 1 .868 1.497l-.06 .091l-8 11c-.568 .783 -1.808 .38 -1.808 -.588v-6h-5a1 1 0 0 1 -.868 -1.497l.06 -.091l8 -11l.01 -.013l.018 -.024l.033 -.038l.018 -.022l.009 -.008l.013 -.014l.04 -.036l.028 -.026l.008 -.006a1 1 0 0 1 .402 -.199l.011 -.001l.027 -.005l.074 -.013l.011 -.001l.041 -.002z" />
+  </g>
+  <text x="128" y="524" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#F1F5F9">心跳保活</text>
+  <text x="84" y="558" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#CBD5E1">30秒PING/PONG · 60秒TTL</text>
+  <text x="84" y="584" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">Redis Key: im:heartbeat:{userId}</text>
+  <text x="84" y="608" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">WebSocketHeartbeatTask 每30秒扫描</text>
+  <text x="84" y="640" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">超时强制断开 + 清理SessionManager</text>
+
+  
+  <path fill="#334155" d="M672,480 H1208 A12,12 0 0 1 1220,492 V658 A12,12 0 0 1 1208,670 H672 A12,12 0 0 1 660,658 V492 A12,12 0 0 1 672,480 Z" />
+  
+  <g transform="translate(684.0, 502.0) scale(1.3333333333333333)" fill="#F59E0B">
+    <path d="M14.235 19c.865 0 1.322 1.024 .745 1.668a3.992 3.992 0 0 1 -2.98 1.332a3.992 3.992 0 0 1 -2.98 -1.332c-.552 -.616 -.158 -1.579 .634 -1.661l.11 -.006h4.471z" />
+    <path d="M12 2c1.358 0 2.506 .903 2.875 2.141l.046 .171l.008 .043a8.013 8.013 0 0 1 4.024 6.069l.028 .287l.019 .289v2.931l.021 .136a3 3 0 0 0 1.143 1.847l.167 .117l.162 .099c.86 .487 .56 1.766 -.377 1.864l-.116 .006h-16c-1.028 0 -1.387 -1.364 -.493 -1.87a3 3 0 0 0 1.472 -2.063l.021 -.143l.001 -2.97a8 8 0 0 1 3.821 -6.454l.248 -.146l.01 -.043a3.003 3.003 0 0 1 2.562 -2.29l.182 -.017l.176 -.004z" />
+  </g>
+  <text x="728" y="524" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#F1F5F9">离线消息</text>
+  <text x="684" y="558" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#CBD5E1">接收方不在线 → 存储+站内通知</text>
+  <text x="684" y="584" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">Redis未读数+1 · 上线后自动拉取</text>
+  <text x="684" y="608" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">会话级 + 全局级未读管理</text>
+  <text x="684" y="640" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">单会话最多缓存500条未读</text>
+
+  
+  <path fill="none" stroke="#475569" stroke-dasharray="6,4" stroke-width="1" d="M66,680 H614 A6,6 0 0 1 620,686 V704 A6,6 0 0 1 614,710 H66 A6,6 0 0 1 60,704 V686 A6,6 0 0 1 66,680 Z" />
+  <text x="340" y="700" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#64748B">待插入: chat_interface.png (IM聊天界面)</text>
+
+  
+  <path fill="#334155" d="M668,680 H1212 A8,8 0 0 1 1220,688 V702 A8,8 0 0 1 1212,710 H668 A8,8 0 0 1 660,702 V688 A8,8 0 0 1 668,680 Z" />
+  <text x="740" y="700" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#F1F5F9">并发 <tspan font-weight="bold" fill="#3B82F6">500+</tspan></text>
+  <text x="940" y="700" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#F1F5F9">延迟 <tspan font-weight="bold" fill="#10B981">&lt;50ms</tspan></text>
+  <text x="1120" y="700" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#F1F5F9">成功率 <tspan font-weight="bold" fill="#F59E0B">99.2%</tspan></text>
+</svg>

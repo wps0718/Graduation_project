@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="summaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E40AF" />
+      <stop offset="50%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#60A5FA" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="1280" height="720" fill="url(#summaryGrad)" />
+  
+  <circle cx="1100" cy="100" r="200" fill="#FFFFFF" fill-opacity="0.05" />
+  <circle cx="150" cy="600" r="150" fill="#FFFFFF" fill-opacity="0.05" />
+  <circle cx="900" cy="650" r="100" fill="#FFFFFF" fill-opacity="0.04" />
+
+  
+  <path fill="#FFFFFF" d="M64,32 H64 A4,4 0 0 1 68,36 V64 A4,4 0 0 1 64,68 H64 A4,4 0 0 1 60,64 V36 A4,4 0 0 1 64,32 Z" />
+  <text x="80" y="60" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="32" font-weight="bold" fill="#FFFFFF">项目总结与未来展望</text>
+  <text x="80" y="84" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#BFDBFE">SUMMARY &amp; OUTLOOK</text>
+
+  
+  <path fill="#FFFFFF" fill-opacity="0.12" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1" d="M72,110 H418 A12,12 0 0 1 430,122 V278 A12,12 0 0 1 418,290 H72 A12,12 0 0 1 60,278 V122 A12,12 0 0 1 72,110 Z" />
+  <text x="80" y="142" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">技术亮点</text>
+  <text x="80" y="170" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">自建WebSocket IM系统</text>
+  <text x="80" y="192" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">七层安全防护体系</text>
+  <text x="80" y="214" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">Redis多级缓存策略</text>
+  <text x="80" y="236" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">7大定时任务自动化运维</text>
+  <text x="80" y="262" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#93C5FD">43,613行代码 · 78%测试覆盖</text>
+
+  <path fill="#FFFFFF" fill-opacity="0.12" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1" d="M467,110 H813 A12,12 0 0 1 825,122 V278 A12,12 0 0 1 813,290 H467 A12,12 0 0 1 455,278 V122 A12,12 0 0 1 467,110 Z" />
+  <text x="475" y="142" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">业务价值</text>
+  <text x="475" y="170" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">精准校园定位 · 5000+潜在用户</text>
+  <text x="475" y="192" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">完整交易闭环 · 平均3.5天完成</text>
+  <text x="475" y="214" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">信任体系 · 校园认证+双向评价</text>
+  <text x="475" y="236" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">87.3%完成率 · 92.1%好评率</text>
+  <text x="475" y="262" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#93C5FD">22张表 · 42个API · 98%核心完成</text>
+
+  <path fill="#FFFFFF" fill-opacity="0.12" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1" d="M862,110 H1208 A12,12 0 0 1 1220,122 V278 A12,12 0 0 1 1208,290 H862 A12,12 0 0 1 850,278 V122 A12,12 0 0 1 862,110 Z" />
+  <text x="870" y="142" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">创新特色</text>
+  <text x="870" y="170" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">双向确认面交机制 (核心创新)</text>
+  <text x="870" y="192" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">认证历史版本追溯系统</text>
+  <text x="870" y="214" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">多维度评价体系 (三维度5分制)</text>
+  <text x="870" y="236" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">自动好评 + 评价提醒机制</text>
+  <text x="870" y="262" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#93C5FD">订单超时自动取消 · 商品自动下架</text>
+
+  
+  <path fill="#FFFFFF" fill-opacity="0.1" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="1" d="M72,310 H1208 A12,12 0 0 1 1220,322 V508 A12,12 0 0 1 1208,520 H72 A12,12 0 0 1 60,508 V322 A12,12 0 0 1 72,310 Z" />
+  <text x="80" y="342" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">未来发展路线图</text>
+
+  
+  <line x1="150" y1="380" x2="1100" y2="380" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="2" />
+
+  
+  <circle cx="220" cy="380" r="12" fill="#FCD34D" />
+  <text x="220" y="385" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" font-weight="bold" fill="#1F2937">短</text>
+  <text x="220" y="410" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FCD34D">短期 (3月)</text>
+  <text x="220" y="432" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#DBEAFE">OSS对象存储迁移</text>
+  <text x="220" y="450" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#DBEAFE">微信支付接入</text>
+  <text x="220" y="468" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#DBEAFE">商品图片压缩优化</text>
+
+  
+  <circle cx="560" cy="380" r="12" fill="#60A5FA" />
+  <text x="560" y="385" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" font-weight="bold" fill="#1F2937">中</text>
+  <text x="560" y="410" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#60A5FA">中期 (6月)</text>
+  <text x="560" y="432" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#DBEAFE">Elasticsearch全文搜索</text>
+  <text x="560" y="450" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#DBEAFE">RabbitMQ消息队列</text>
+  <text x="560" y="468" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#DBEAFE">推荐算法 (协同过滤)</text>
+
+  
+  <circle cx="900" cy="380" r="12" fill="#A78BFA" />
+  <text x="900" y="385" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" font-weight="bold" fill="#1F2937">远</text>
+  <text x="900" y="410" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#A78BFA">长期 (1年)</text>
+  <text x="900" y="432" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#DBEAFE">大数据分析平台</text>
+  <text x="900" y="450" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#DBEAFE">AI智能客服</text>
+  <text x="900" y="468" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#DBEAFE">多校区联盟平台</text>
+
+  
+  <line x1="280" y1="380" x2="500" y2="380" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1.5" stroke-dasharray="6,4" />
+  <line x1="620" y1="380" x2="840" y2="380" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1.5" stroke-dasharray="6,4" />
+
+  
+  <text x="640" y="560" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="28" font-weight="bold" fill="#FFFFFF">Thank You!</text>
+  <text x="640" y="595" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#BFDBFE">轻院二手交易平台 — 毕业设计答辩</text>
+
+  
+  <path fill="#FFFFFF" fill-opacity="0.08" d="M268,620 H1012 A8,8 0 0 1 1020,628 V652 A8,8 0 0 1 1012,660 H268 A8,8 0 0 1 260,652 V628 A8,8 0 0 1 268,620 Z" />
+  <text x="640" y="646" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#DBEAFE">感谢导师指导 · 感谢团队协作 · 感谢开源社区</text>
+
+  
+  <path fill="none" stroke="#FFFFFF" stroke-opacity="0.15" stroke-dasharray="6,4" stroke-width="1" d="M66,670 H1214 A6,6 0 0 1 1220,676 V699 A6,6 0 0 1 1214,705 H66 A6,6 0 0 1 60,699 V676 A6,6 0 0 1 66,670 Z" />
+  <text x="640" y="693" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" fill="#93C5FD">待插入图片: future_vision.png (未来展望背景图，可选) · 建议尺寸: 1280x400px</text>
+</svg>

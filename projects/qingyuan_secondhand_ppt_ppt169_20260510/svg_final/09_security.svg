@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#1E293B" />
+  <path fill="#F59E0B" d="M64,32 H64 A4,4 0 0 1 68,36 V64 A4,4 0 0 1 64,68 H64 A4,4 0 0 1 60,64 V36 A4,4 0 0 1 64,32 Z" />
+  <text x="80" y="60" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="32" font-weight="bold" fill="#F1F5F9">七层安全防护体系</text>
+  <text x="80" y="84" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#94A3B8">SECURITY PROTECTION SYSTEM</text>
+
+  
+  <path fill="#F59E0B" d="M546,280 H734 A16,16 0 0 1 750,296 V384 A16,16 0 0 1 734,400 H546 A16,16 0 0 1 530,384 V296 A16,16 0 0 1 546,280 Z" />
+  
+  <g transform="translate(610.0, 295.0) scale(2.0)" fill="#FFFFFF">
+    <path d="M11.998 2l.118 .007l.059 .008l.061 .013l.111 .034a.993 .993 0 0 1 .217 .112l.104 .082l.255 .218a11 11 0 0 0 7.189 2.537l.342 -.01a1 1 0 0 1 1.005 .717a13 13 0 0 1 -9.208 16.25a1 1 0 0 1 -.502 0a13 13 0 0 1 -9.209 -16.25a1 1 0 0 1 1.005 -.717a11 11 0 0 0 7.531 -2.527l.263 -.225l.096 -.075a.993 .993 0 0 1 .217 -.112l.112 -.034a.97 .97 0 0 1 .119 -.021l.115 -.007zm3.71 7.293a1 1 0 0 0 -1.415 0l-3.293 3.292l-1.293 -1.292l-.094 -.083a1 1 0 0 0 -1.32 1.497l2 2l.094 .083a1 1 0 0 0 1.32 -.083l4 -4l.083 -.094a1 1 0 0 0 -.083 -1.32z" />
+  </g>
+  <text x="640" y="365" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="18" font-weight="bold" fill="#FFFFFF">核心数据安全</text>
+  <text x="640" y="388" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#FEF3C7">用户/交易/聊天</text>
+
+  
+  <path fill="#334155" d="M70,110 H490 A10,10 0 0 1 500,120 V175 A10,10 0 0 1 490,185 H70 A10,10 0 0 1 60,175 V120 A10,10 0 0 1 70,110 Z" />
+  <text x="80" y="138" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#3B82F6">1. JWT认证</text>
+  <text x="80" y="160" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">双端独立Token · 24小时有效期 · Interceptor拦截</text>
+  <path fill="#334155" d="M790,110 H1210 A10,10 0 0 1 1220,120 V175 A10,10 0 0 1 1210,185 H790 A10,10 0 0 1 780,175 V120 A10,10 0 0 1 790,110 Z" />
+  <text x="800" y="138" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#10B981">2. BCrypt密码加密</text>
+  <text x="800" y="160" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">自适应哈希 · 自动加盐 · 无法逆向破解</text>
+
+  
+  <path fill="#334155" d="M70,205 H490 A10,10 0 0 1 500,215 V270 A10,10 0 0 1 490,280 H70 A10,10 0 0 1 60,270 V215 A10,10 0 0 1 70,205 Z" />
+  <text x="80" y="233" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#EF4444">3. 防暴力破解</text>
+  <text x="80" y="255" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">登录失败5次 → 锁定15分钟 · Redis计数器</text>
+  <path fill="#334155" d="M790,205 H1210 A10,10 0 0 1 1220,215 V270 A10,10 0 0 1 1210,280 H790 A10,10 0 0 1 780,270 V215 A10,10 0 0 1 790,205 Z" />
+  <text x="800" y="233" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#F59E0B">4. SQL注入防护</text>
+  <text x="800" y="255" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">#{}参数绑定 · LambdaQueryWrapper天然防注入</text>
+
+  
+  <path fill="#334155" d="M70,420 H490 A10,10 0 0 1 500,430 V485 A10,10 0 0 1 490,495 H70 A10,10 0 0 1 60,485 V430 A10,10 0 0 1 70,420 Z" />
+  <text x="80" y="448" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#8B5CF6">5. XSS跨站脚本防护</text>
+  <text x="80" y="470" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">前后端双重校验 · 输出HTML实体编码</text>
+  <path fill="#334155" d="M790,420 H1210 A10,10 0 0 1 1220,430 V485 A10,10 0 0 1 1210,495 H790 A10,10 0 0 1 780,485 V430 A10,10 0 0 1 790,420 Z" />
+  <text x="800" y="448" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#3B82F6">6. Redis分布式锁</text>
+  <text x="800" y="470" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">订单创建防并发 · 30秒TTL自动释放</text>
+
+  
+  <path fill="#334155" d="M70,515 H1210 A10,10 0 0 1 1220,525 V580 A10,10 0 0 1 1210,590 H70 A10,10 0 0 1 60,580 V525 A10,10 0 0 1 70,515 Z" />
+  <text x="80" y="543" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#10B981">7. 越权防护</text>
+  <text x="80" y="565" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#94A3B8">水平越权：查询时强制加用户ID过滤 · 垂直越权：管理员独立拦截器 · 订单详情：买卖双方身份校验</text>
+
+  
+  <path fill="#334155" d="M68,610 H1212 A8,8 0 0 1 1220,618 V647 A8,8 0 0 1 1212,655 H68 A8,8 0 0 1 60,647 V618 A8,8 0 0 1 68,610 Z" />
+  <text x="160" y="638" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#F1F5F9">安全层级</text>
+  <text x="480" y="638" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#F1F5F9">实现方式</text>
+  <text x="800" y="638" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#F1F5F9">防护效果</text>
+  <text x="1080" y="638" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#F1F5F9">事件统计</text>
+  
+  <path fill="#475569" fill-opacity="0.3" d="M64,660 H1216 A4,4 0 0 1 1220,664 V678 A4,4 0 0 1 1216,682 H64 A4,4 0 0 1 60,678 V664 A4,4 0 0 1 64,660 Z" />
+  <text x="160" y="676" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#CBD5E1">SQL注入</text>
+  <text x="480" y="676" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#CBD5E1">#{}参数绑定</text>
+  <text x="800" y="676" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#10B981">100%</text>
+  <text x="1080" y="676" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#10B981">0次拦截</text>
+
+  <path fill="#475569" fill-opacity="0.1" d="M64,684 H1216 A4,4 0 0 1 1220,688 V702 A4,4 0 0 1 1216,706 H64 A4,4 0 0 1 60,702 V688 A4,4 0 0 1 64,684 Z" />
+  <text x="160" y="700" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#CBD5E1">异常登录</text>
+  <text x="480" y="700" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#CBD5E1">Redis限流</text>
+  <text x="800" y="700" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#F59E0B">95%</text>
+  <text x="1080" y="700" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#F59E0B">23次已拦截</text>
+</svg>

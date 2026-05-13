@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#F9FAFB"/>
+  <rect x="60" y="32" width="8" height="36" rx="4" fill="#3B82F6"/>
+  <text x="80" y="60" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="32" font-weight="bold" fill="#1F2937">数据库设计与核心表结构</text>
+  <text x="80" y="84" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#6B7280">22张表 · 286字段 · 45索引 · 125MB</text>
+
+  <!-- Left: ER Diagram -->
+  <rect x="60" y="110" width="560" height="550" rx="12" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="340" y="140" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937">ER关系图</text>
+
+  <!-- user entity -->
+  <rect x="160" y="165" width="200" height="110" rx="8" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/>
+  <text x="260" y="190" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1E40AF">user (用户)</text>
+  <text x="180" y="212" font-family="Consolas, Courier New, monospace" font-size="11" fill="#F59E0B">id (PK)</text>
+  <text x="180" y="230" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6B7280">open_id, phone</text>
+  <text x="180" y="248" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6B7280">nick_name, status</text>
+  <text x="180" y="266" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6B7280">auth_status, score</text>
+
+  <!-- product entity -->
+  <rect x="50" y="330" width="200" height="100" rx="8" fill="#D1FAE5" stroke="#10B981" stroke-width="1.5"/>
+  <text x="150" y="355" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#065F46">product (商品)</text>
+  <text x="70" y="377" font-family="Consolas, Courier New, monospace" font-size="11" fill="#F59E0B">id (PK)</text>
+  <text x="70" y="395" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6B7280">user_id (FK), title</text>
+  <text x="70" y="413" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6B7280">price, status, category</text>
+
+  <!-- trade_order entity -->
+  <rect x="310" y="330" width="220" height="100" rx="8" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="420" y="355" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#92400E">trade_order (订单)</text>
+  <text x="330" y="377" font-family="Consolas, Courier New, monospace" font-size="11" fill="#F59E0B">id (PK)</text>
+  <text x="330" y="395" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6B7280">buyer_id, seller_id</text>
+  <text x="330" y="413" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6B7280">status, confirmed双向</text>
+
+  <!-- review entity -->
+  <rect x="350" y="460" width="180" height="90" rx="8" fill="#F5F3FF" stroke="#8B5CF6" stroke-width="1.5"/>
+  <text x="440" y="485" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#6D28D9">review (评价)</text>
+  <text x="370" y="507" font-family="Consolas, Courier New, monospace" font-size="11" fill="#F59E0B">id (PK)</text>
+  <text x="370" y="525" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6B7280">order_id, scores</text>
+
+  <!-- campus_auth entity -->
+  <rect x="80" y="460" width="210" height="90" rx="8" fill="#DBEAFE" stroke="#3B82F6" stroke-width="1.5"/>
+  <text x="185" y="485" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1E40AF">campus_auth (认证)</text>
+  <text x="100" y="507" font-family="Consolas, Courier New, monospace" font-size="11" fill="#F59E0B">id (PK)</text>
+  <text x="100" y="525" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6B7280">user_id, college_id</text>
+
+  <!-- chat entities -->
+  <rect x="80" y="575" width="210" height="70" rx="8" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
+  <text x="185" y="600" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#065F46">chat_session</text>
+  <text x="100" y="622" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6B7280">session_key, user_id</text>
+
+  <rect x="330" y="575" width="210" height="70" rx="8" fill="#ECFDF5" stroke="#10B981" stroke-width="1.5"/>
+  <text x="435" y="600" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#065F46">chat_message</text>
+  <text x="350" y="622" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6B7280">sender, receiver, type</text>
+
+  <!-- Relationship lines -->
+  <line x1="260" y1="275" x2="150" y2="330" stroke="#10B981" stroke-width="1.5"/>
+  <text x="195" y="305" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#10B981">1:N</text>
+  <line x1="260" y1="275" x2="420" y2="330" stroke="#F59E0B" stroke-width="1.5"/>
+  <text x="350" y="305" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#F59E0B">1:N</text>
+  <line x1="420" y1="430" x2="440" y2="460" stroke="#8B5CF6" stroke-width="1.5"/>
+  <text x="445" y="448" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#8B5CF6">1:2</text>
+  <line x1="260" y1="275" x2="185" y2="460" stroke="#3B82F6" stroke-width="1.5"/>
+  <text x="210" y="380" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#3B82F6">1:1</text>
+
+  <!-- Right: Table details -->
+  <!-- Overview card -->
+  <rect x="650" y="110" width="570" height="120" rx="12" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="670" y="138" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937">数据库概览</text>
+  <text x="670" y="165" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">总表数: 22张 (业务表14 + 配置表8)</text>
+  <text x="670" y="190" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">当前数据: 用户5,247 | 商品1,839 | 订单892 | 消息12,345</text>
+
+  <!-- user table card -->
+  <rect x="650" y="250" width="275" height="160" rx="12" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="670" y="278" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1E40AF">user (用户表)</text>
+  <text x="670" y="300" font-family="Consolas, Courier New, monospace" font-size="12" fill="#F59E0B">15字段 · 4索引</text>
+  <text x="670" y="322" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">唯一: idx_open_id, idx_phone</text>
+  <text x="670" y="344" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">score: 综合评分(默认5.0)</text>
+  <text x="670" y="366" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">auth_status: 0未认证/2已认证</text>
+  <text x="670" y="388" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">自动填充: create/update_time</text>
+
+  <!-- trade_order table card -->
+  <rect x="945" y="250" width="275" height="160" rx="12" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="965" y="278" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#B45309">trade_order (订单表)</text>
+  <text x="965" y="300" font-family="Consolas, Courier New, monospace" font-size="12" fill="#F59E0B">17字段 · 双向确认</text>
+  <text x="965" y="322" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">seller_confirmed + buyer_confirmed</text>
+  <text x="965" y="344" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">expire_time: 创建后72小时</text>
+  <text x="965" y="366" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">confirm_deadline: 创建后7天</text>
+  <text x="965" y="388" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">软删除: 双方独立删除</text>
+
+  <!-- campus_auth + history card -->
+  <rect x="650" y="430" width="275" height="130" rx="12" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="670" y="458" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1E40AF">campus_auth (认证)</text>
+  <text x="670" y="480" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">主表 + auth_history 1:N</text>
+  <text x="670" y="502" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">每次提交创建历史快照</text>
+  <text x="670" y="524" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">支持全轨迹回溯+版本对比</text>
+
+  <!-- chat table card -->
+  <rect x="945" y="430" width="275" height="130" rx="12" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+  <text x="965" y="458" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#065F46">chat (IM聊天)</text>
+  <text x="965" y="480" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">session_key: min_max_productId</text>
+  <text x="965" y="502" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">双份记录: 各自管理unread</text>
+  <text x="965" y="524" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">5种消息类型: 文字/卡片/系统</text>
+
+  <!-- Bottom stats -->
+  <rect x="650" y="580" width="570" height="80" rx="12" fill="#EFF6FF"/>
+  <text x="940" y="610" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#1E40AF">14张业务表</text>
+  <text x="940" y="640" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#1E40AF">45个组合索引 · 逻辑删除+软删除 · MyBatis-Plus自动填充</text>
+</svg>

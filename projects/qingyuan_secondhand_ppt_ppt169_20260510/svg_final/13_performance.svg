@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#F9FAFB" />
+  
+  <path fill="#3B82F6" d="M64,32 H64 A4,4 0 0 1 68,36 V64 A4,4 0 0 1 64,68 H64 A4,4 0 0 1 60,64 V36 A4,4 0 0 1 64,32 Z" />
+  <text x="80" y="60" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="32" font-weight="bold" fill="#1F2937">性能优化与测试质量保障</text>
+  <text x="80" y="84" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#6B7280">PERFORMANCE &amp; QUALITY ASSURANCE — 123用例100%通过 · 覆盖率78%</text>
+
+  
+  <path fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5" d="M72,110 H608 A12,12 0 0 1 620,122 V648 A12,12 0 0 1 608,660 H72 A12,12 0 0 1 60,648 V122 A12,12 0 0 1 72,110 Z" />
+  <text x="80" y="138" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937">性能优化措施</text>
+
+  
+  <path fill="#EFF6FF" d="M88,155 H592 A8,8 0 0 1 600,163 V242 A8,8 0 0 1 592,250 H88 A8,8 0 0 1 80,242 V163 A8,8 0 0 1 88,155 Z" />
+  <text x="100" y="180" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1E40AF">数据库优化</text>
+  <text x="100" y="202" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#4B5563">45个组合索引 · 慢查询 &lt; 50ms · 分页查询优化</text>
+  <text x="100" y="222" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#4B5563">LambdaQueryWrapper链式查询 · 避免N+1问题</text>
+  <text x="100" y="242" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">平均查询耗时: 8ms</text>
+
+  
+  <path fill="#ECFDF5" d="M88,262 H592 A8,8 0 0 1 600,270 V349 A8,8 0 0 1 592,357 H88 A8,8 0 0 1 80,349 V270 A8,8 0 0 1 88,262 Z" />
+  <text x="100" y="287" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#065F46">缓存优化</text>
+  <text x="100" y="309" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#4B5563">Redis多级缓存 · Cache-Aside模式 · 命中率87%</text>
+  <text x="100" y="329" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#4B5563">防穿透/防雪崩/主动失效 · TTL随机偏移</text>
+  <text x="100" y="349" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">缓存查询耗时: 3ms (提升15倍)</text>
+
+  
+  <path fill="#F5F3FF" d="M88,369 H592 A8,8 0 0 1 600,377 V456 A8,8 0 0 1 592,464 H88 A8,8 0 0 1 80,456 V377 A8,8 0 0 1 88,369 Z" />
+  <text x="100" y="394" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#6D28D9">异步处理</text>
+  <text x="100" y="416" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#4B5563">@Async + 线程池隔离 · 通知发送异步化</text>
+  <text x="100" y="436" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#4B5563">商品统计异步更新 · 日志异步写入</text>
+  <text x="100" y="456" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">主线程响应时间降低40%</text>
+
+  
+  <path fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" d="M88,478 H237 A8,8 0 0 1 245,486 V545 A8,8 0 0 1 237,553 H88 A8,8 0 0 1 80,545 V486 A8,8 0 0 1 88,478 Z" />
+  <text x="162" y="508" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="22" font-weight="bold" fill="#3B82F6">8ms</text>
+  <text x="162" y="534" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#6B7280">平均响应</text>
+
+  <path fill="#FFFFFF" stroke="#10B981" stroke-width="1.5" d="M266,478 H415 A8,8 0 0 1 423,486 V545 A8,8 0 0 1 415,553 H266 A8,8 0 0 1 258,545 V486 A8,8 0 0 1 266,478 Z" />
+  <text x="340" y="508" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="22" font-weight="bold" fill="#10B981">1200+</text>
+  <text x="340" y="534" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#6B7280">QPS峰值</text>
+
+  <path fill="#FFFFFF" stroke="#8B5CF6" stroke-width="1.5" d="M444,478 H593 A8,8 0 0 1 601,486 V545 A8,8 0 0 1 593,553 H444 A8,8 0 0 1 436,545 V486 A8,8 0 0 1 444,478 Z" />
+  <text x="518" y="508" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="22" font-weight="bold" fill="#8B5CF6">500+</text>
+  <text x="518" y="534" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#6B7280">WebSocket并发</text>
+
+  
+  <path fill="#FFFBEB" stroke="#FCD34D" stroke-width="1" d="M88,568 H592 A8,8 0 0 1 600,576 V635 A8,8 0 0 1 592,643 H88 A8,8 0 0 1 80,635 V576 A8,8 0 0 1 88,568 Z" />
+  <text x="100" y="593" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#92400E">压测结果 (JMeter)</text>
+  <text x="100" y="615" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#4B5563">100并发循环10次 · 平均8ms · 错误率0% · TP99: 35ms</text>
+  <text x="100" y="633" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">测试环境: 4C8G · MySQL 8.0 · Redis 7.0</text>
+
+  
+  <path fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5" d="M662,110 H1208 A12,12 0 0 1 1220,122 V648 A12,12 0 0 1 1208,660 H662 A12,12 0 0 1 650,648 V122 A12,12 0 0 1 662,110 Z" />
+  <text x="670" y="138" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937">测试质量保障体系</text>
+
+  
+  <path fill="#F9FAFB" d="M678,155 H1192 A8,8 0 0 1 1200,163 V347 A8,8 0 0 1 1192,355 H678 A8,8 0 0 1 670,347 V163 A8,8 0 0 1 678,155 Z" />
+  <text x="935" y="178" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1F2937">测试金字塔</text>
+
+  
+  <path fill="#3B82F6" d="M756,300 H1114 A6,6 0 0 1 1120,306 V334 A6,6 0 0 1 1114,340 H756 A6,6 0 0 1 750,334 V306 A6,6 0 0 1 756,300 Z" />
+  <text x="935" y="326" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF">单元测试 75% (92个用例)</text>
+
+  
+  <path fill="#10B981" d="M816,248 H1054 A6,6 0 0 1 1060,254 V282 A6,6 0 0 1 1054,288 H816 A6,6 0 0 1 810,282 V254 A6,6 0 0 1 816,248 Z" />
+  <text x="935" y="274" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF">集成测试 20% (25个用例)</text>
+
+  
+  <path fill="#F59E0B" d="M876,196 H994 A6,6 0 0 1 1000,202 V230 A6,6 0 0 1 994,236 H876 A6,6 0 0 1 870,230 V202 A6,6 0 0 1 876,196 Z" />
+  <text x="935" y="222" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FFFFFF">E2E 5% (6个)</text>
+
+  
+  <text x="720" y="325" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#3B82F6">75%</text>
+  <text x="780" y="273" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#10B981">20%</text>
+  <text x="845" y="222" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#F59E0B">5%</text>
+
+  
+  <path fill="#EFF6FF" d="M678,370 H917 A8,8 0 0 1 925,378 V442 A8,8 0 0 1 917,450 H678 A8,8 0 0 1 670,442 V378 A8,8 0 0 1 678,370 Z" />
+  <text x="798" y="400" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="22" font-weight="bold" fill="#3B82F6">78%</text>
+  <text x="798" y="430" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">代码覆盖率 (JaCoCo)</text>
+
+  <path fill="#ECFDF5" d="M946,370 H1195 A8,8 0 0 1 1203,378 V442 A8,8 0 0 1 1195,450 H946 A8,8 0 0 1 938,442 V378 A8,8 0 0 1 946,370 Z" />
+  <text x="1070" y="400" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="22" font-weight="bold" fill="#10B981">123</text>
+  <text x="1070" y="430" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">测试用例 (100%通过)</text>
+
+  
+  <path fill="#F9FAFB" d="M678,464 H1192 A8,8 0 0 1 1200,472 V636 A8,8 0 0 1 1192,644 H678 A8,8 0 0 1 670,636 V472 A8,8 0 0 1 678,464 Z" />
+  <text x="690" y="490" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1F2937">测试覆盖模块</text>
+
+  <path fill="#EFF6FF" d="M696,505 H929 A6,6 0 0 1 935,511 V525 A6,6 0 0 1 929,531 H696 A6,6 0 0 1 690,525 V511 A6,6 0 0 1 696,505 Z" />
+  <text x="812" y="523" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#1E40AF">Service层: 35个测试类</text>
+
+  <path fill="#ECFDF5" d="M954,505 H1187 A6,6 0 0 1 1193,511 V525 A6,6 0 0 1 1187,531 H954 A6,6 0 0 1 948,525 V511 A6,6 0 0 1 954,505 Z" />
+  <text x="1070" y="523" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#065F46">Controller层: 18个测试类</text>
+
+  <path fill="#F5F3FF" d="M696,540 H929 A6,6 0 0 1 935,546 V560 A6,6 0 0 1 929,566 H696 A6,6 0 0 1 690,560 V546 A6,6 0 0 1 696,540 Z" />
+  <text x="812" y="558" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6D28D9">Mapper层: 12个测试类</text>
+
+  <path fill="#FFFBEB" d="M954,540 H1187 A6,6 0 0 1 1193,546 V560 A6,6 0 0 1 1187,566 H954 A6,6 0 0 1 948,560 V546 A6,6 0 0 1 954,540 Z" />
+  <text x="1070" y="558" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#92400E">工具类: 8个测试类</text>
+
+  <path fill="#FEF2F2" d="M696,575 H929 A6,6 0 0 1 935,581 V595 A6,6 0 0 1 929,601 H696 A6,6 0 0 1 690,595 V581 A6,6 0 0 1 696,575 Z" />
+  <text x="812" y="593" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#DC2626">定时任务: 6个测试类</text>
+
+  <path fill="#F0FDFA" d="M954,575 H1187 A6,6 0 0 1 1193,581 V595 A6,6 0 0 1 1187,601 H954 A6,6 0 0 1 948,595 V581 A6,6 0 0 1 954,575 Z" />
+  <text x="1070" y="593" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#0F766E">安全/异常: 4个测试类</text>
+
+  <text x="690" y="632" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#6B7280">测试框架: JUnit 5 + Mockito + Spring Boot Test · 覆盖率工具: JaCoCo</text>
+</svg>

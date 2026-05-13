@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#1E293B"/>
+  <!-- Title -->
+  <rect x="60" y="32" width="8" height="36" rx="4" fill="#F59E0B"/>
+  <text x="80" y="60" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="32" font-weight="bold" fill="#F1F5F9">Redis多级缓存优化策略</text>
+  <text x="80" y="84" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#94A3B8">MULTI-LEVEL CACHING STRATEGY — 命中率87.3% · Key 5,247</text>
+
+  <!-- Left: Cache Key Tree -->
+  <rect x="60" y="110" width="460" height="550" rx="12" fill="#334155"/>
+  <text x="290" y="142" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#F1F5F9">缓存Key体系 (4大类)</text>
+
+  <!-- Category 1: 业务缓存 -->
+  <rect x="80" y="162" width="420" height="110" rx="8" fill="#1E293B"/>
+  <text x="100" y="186" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#3B82F6">业务缓存 (Cache-Aside)</text>
+  <text x="100" y="210" font-family="Consolas, Courier New, monospace" font-size="11" fill="#93C5FD">product:detail:{id} -- 商品详情 TTL 30min</text>
+  <text x="100" y="228" font-family="Consolas, Courier New, monospace" font-size="11" fill="#93C5FD">product:list:{category}:{page} -- 列表 TTL 10min</text>
+  <text x="100" y="246" font-family="Consolas, Courier New, monospace" font-size="11" fill="#93C5FD">user:profile:{id} -- 用户信息 TTL 1h</text>
+  <text x="100" y="264" font-family="Consolas, Courier New, monospace" font-size="11" fill="#93C5FD">order:detail:{id} -- 订单详情 TTL 15min</text>
+
+  <!-- Category 2: 会话缓存 -->
+  <rect x="80" y="286" width="420" height="100" rx="8" fill="#1E293B"/>
+  <text x="100" y="310" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#10B981">会话缓存</text>
+  <text x="100" y="334" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6EE7B7">im:heartbeat:{userId} -- 心跳 TTL 60s</text>
+  <text x="100" y="352" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6EE7B7">im:unread:{userId} -- 未读计数</text>
+  <text x="100" y="370" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6EE7B7">im:session:hot:{sessionKey} -- 热数据 TTL 24h</text>
+
+  <!-- Category 3: 安全缓存 -->
+  <rect x="80" y="400" width="420" height="100" rx="8" fill="#1E293B"/>
+  <text x="100" y="424" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#EF4444">安全缓存</text>
+  <text x="100" y="448" font-family="Consolas, Courier New, monospace" font-size="11" fill="#FCA5A5">login:fail:{ip} -- 登录失败计数 TTL 15min</text>
+  <text x="100" y="466" font-family="Consolas, Courier New, monospace" font-size="11" fill="#FCA5A5">lock:order:{productId} -- 分布式锁 TTL 30s</text>
+  <text x="100" y="484" font-family="Consolas, Courier New, monospace" font-size="11" fill="#FCA5A5">token:blacklist:{jti} -- Token黑名单</text>
+
+  <!-- Category 4: 配置缓存 -->
+  <rect x="80" y="514" width="420" height="60" rx="8" fill="#1E293B"/>
+  <text x="100" y="538" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#F59E0B">配置缓存</text>
+  <text x="100" y="560" font-family="Consolas, Courier New, monospace" font-size="11" fill="#FCD34D">config:banner / config:category / config:notice -- TTL 2h</text>
+
+  <!-- Category count badges -->
+  <rect x="380" y="168" width="90" height="22" rx="11" fill="#3B82F6" fill-opacity="0.2"/>
+  <text x="425" y="184" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#93C5FD">2,180 keys</text>
+  <rect x="380" y="292" width="90" height="22" rx="11" fill="#10B981" fill-opacity="0.2"/>
+  <text x="425" y="308" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#6EE7B7">1,520 keys</text>
+  <rect x="380" y="406" width="90" height="22" rx="11" fill="#EF4444" fill-opacity="0.2"/>
+  <text x="425" y="422" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#FCA5A5">890 keys</text>
+  <rect x="380" y="520" width="90" height="22" rx="11" fill="#F59E0B" fill-opacity="0.2"/>
+  <text x="425" y="536" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#FCD34D">657 keys</text>
+
+  <!-- Right top: Strategy cards -->
+  <rect x="550" y="110" width="670" height="260" rx="12" fill="#334155"/>
+  <text x="570" y="138" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#F1F5F9">4大缓存策略</text>
+
+  <!-- Strategy 1 -->
+  <rect x="570" y="152" width="310" height="95" rx="8" fill="#1E293B" stroke="#3B82F6" stroke-width="1"/>
+  <text x="590" y="176" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#3B82F6">Cache-Aside 模式</text>
+  <text x="590" y="198" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">读: 查缓存 → miss → 查DB → 回填缓存</text>
+  <text x="590" y="216" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">写: 更新DB → 删除缓存 → 下次读回填</text>
+  <text x="590" y="238" font-family="Consolas, Courier New, monospace" font-size="11" fill="#93C5FD">@Cacheable / @CacheEvict</text>
+
+  <!-- Strategy 2 -->
+  <rect x="895" y="152" width="310" height="95" rx="8" fill="#1E293B" stroke="#EF4444" stroke-width="1"/>
+  <text x="915" y="176" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#EF4444">防缓存穿透</text>
+  <text x="915" y="198" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">布隆过滤器拦截不存在的Key</text>
+  <text x="915" y="216" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">空值缓存: TTL 5min 防重复查询</text>
+  <text x="915" y="238" font-family="Consolas, Courier New, monospace" font-size="11" fill="#FCA5A5">拦截率: 99.2%</text>
+
+  <!-- Strategy 3 -->
+  <rect x="570" y="260" width="310" height="95" rx="8" fill="#1E293B" stroke="#10B981" stroke-width="1"/>
+  <text x="590" y="284" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#10B981">防缓存雪崩</text>
+  <text x="590" y="306" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">TTL加随机偏移 (base + random 0~300s)</text>
+  <text x="590" y="324" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">热点数据永不过期 + 异步刷新</text>
+  <text x="590" y="346" font-family="Consolas, Courier New, monospace" font-size="11" fill="#6EE7B7">零雪崩事故</text>
+
+  <!-- Strategy 4 -->
+  <rect x="895" y="260" width="310" height="95" rx="8" fill="#1E293B" stroke="#F59E0B" stroke-width="1"/>
+  <text x="915" y="284" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#F59E0B">主动失效机制</text>
+  <text x="915" y="306" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">数据变更时立即删除相关缓存</text>
+  <text x="915" y="324" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">级联失效: 商品→列表→搜索结果</text>
+  <text x="915" y="346" font-family="Consolas, Courier New, monospace" font-size="11" fill="#FCD34D">延迟 &lt; 10ms</text>
+
+  <!-- Right bottom: Stats -->
+  <rect x="550" y="390" width="670" height="270" rx="12" fill="#334155"/>
+  <text x="570" y="418" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#F1F5F9">缓存运行指标</text>
+
+  <!-- Stats row 1 -->
+  <rect x="570" y="434" width="200" height="70" rx="8" fill="#1E293B"/>
+  <text x="670" y="466" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="bold" fill="#3B82F6">87.3%</text>
+  <text x="670" y="492" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">缓存命中率</text>
+
+  <rect x="785" y="434" width="200" height="70" rx="8" fill="#1E293B"/>
+  <text x="885" y="466" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="bold" fill="#10B981">5,247</text>
+  <text x="885" y="492" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">当前Key总数</text>
+
+  <rect x="1000" y="434" width="200" height="70" rx="8" fill="#1E293B"/>
+  <text x="1100" y="466" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="bold" fill="#F59E0B">128MB</text>
+  <text x="1100" y="492" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">内存使用 / 512MB</text>
+
+  <!-- Memory usage bar -->
+  <rect x="570" y="524" width="630" height="16" rx="8" fill="#1E293B"/>
+  <rect x="570" y="524" width="158" height="16" rx="8" fill="#3B82F6"/>
+  <text x="575" y="536" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="10" fill="#FFFFFF">25%</text>
+
+  <!-- Hit/Miss breakdown -->
+  <rect x="570" y="554" width="310" height="90" rx="8" fill="#1E293B"/>
+  <text x="590" y="578" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#F1F5F9">读取命中分布</text>
+  <rect x="590" y="590" width="270" height="10" rx="5" fill="#1E293B"/>
+  <rect x="590" y="590" width="235" height="10" rx="5" fill="#3B82F6"/>
+  <rect x="825" y="590" width="35" height="10" rx="5" fill="#10B981"/>
+  <text x="590" y="618" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#93C5FD">缓存命中 87.3%</text>
+  <text x="720" y="618" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#6EE7B7">DB回填 10.2%</text>
+  <text x="850" y="618" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#94A3B8">穿透 2.5%</text>
+
+  <!-- Performance improvement -->
+  <rect x="895" y="554" width="310" height="90" rx="8" fill="#1E293B"/>
+  <text x="915" y="578" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" font-weight="bold" fill="#F1F5F9">性能提升对比</text>
+  <text x="915" y="600" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#94A3B8">无缓存: 平均 45ms (DB查询)</text>
+  <text x="915" y="620" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#10B981">有缓存: 平均 3ms (Redis查询)</text>
+  <text x="915" y="638" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" font-weight="bold" fill="#3B82F6">提升 15倍 · QPS 1200+</text>
+</svg>

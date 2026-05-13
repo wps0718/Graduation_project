@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <defs>
+    <marker id="arrowR" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#1565C0"/>
+    </marker>
+    <marker id="arrowL" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2E7D32"/>
+    </marker>
+    <filter id="cardShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feFlood flood-color="#0F172A" flood-opacity="0.06" result="shadowColor"/>
+      <feComposite in="shadowColor" in2="offsetblur" operator="in" result="shadow"/>
+      <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <rect x="0" y="0" width="1280" height="4" fill="#1565C0"/>
+  <!-- Page title - breathing style: centered, more spacious -->
+  <text x="640" y="68" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="36" font-weight="bold" fill="#1A1A2E">IM 即时通讯</text>
+  <line x1="540" y1="85" x2="740" y2="85" stroke="#1565C0" stroke-width="2"/>
+  <!-- Architecture diagram: Client → Interceptor → Server → Dispatcher → Handlers -->
+  <!-- Client side -->
+  <g filter="url(#cardShadow)">
+    <rect x="60" y="130" width="200" height="80" rx="10" fill="#EFF6FF" stroke="#90CAF9" stroke-width="1.5"/>
+  </g>
+  <use data-icon="tabler-filled/device-mobile" x="100" y="142" width="32" height="32" fill="#1565C0"/>
+  <text x="160" y="178" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1A1A2E">客户端</text>
+  <text x="160" y="198" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="12" fill="#5A5A7A">ws://host:port/ws/chat</text>
+  <!-- Arrow 1 -->
+  <line x1="260" y1="170" x2="330" y2="170" stroke="#1565C0" stroke-width="2" marker-end="url(#arrowR)"/>
+  <text x="295" y="160" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="11" fill="#1565C0">JWT</text>
+  <!-- Interceptor -->
+  <g filter="url(#cardShadow)">
+    <rect x="340" y="130" width="180" height="80" rx="10" fill="#FFF3E0" stroke="#FFB74D" stroke-width="1.5"/>
+  </g>
+  <use data-icon="tabler-filled/shield-lock" x="375" y="142" width="32" height="32" fill="#FF6F00"/>
+  <text x="430" y="178" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1A1A2E">握手鉴权</text>
+  <text x="430" y="198" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="11" fill="#5A5A7A">ChatHandshakeInterceptor</text>
+  <!-- Arrow 2 -->
+  <line x1="520" y1="170" x2="590" y2="170" stroke="#1565C0" stroke-width="2" marker-end="url(#arrowR)"/>
+  <!-- Session Manager -->
+  <g filter="url(#cardShadow)">
+    <rect x="600" y="130" width="180" height="80" rx="10" fill="#EFF6FF" stroke="#90CAF9" stroke-width="1.5"/>
+  </g>
+  <use data-icon="tabler-filled/settings" x="635" y="142" width="32" height="32" fill="#1565C0"/>
+  <text x="690" y="178" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1A1A2E">会话管理</text>
+  <text x="690" y="198" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="11" fill="#5A5A7A">WebSocketSessionManager</text>
+  <!-- Arrow 3 -->
+  <line x1="780" y1="170" x2="850" y2="170" stroke="#1565C0" stroke-width="2" marker-end="url(#arrowR)"/>
+  <!-- Dispatcher -->
+  <g filter="url(#cardShadow)">
+    <rect x="860" y="130" width="180" height="80" rx="10" fill="#E3F2FD" stroke="#64B5F6" stroke-width="1.5"/>
+  </g>
+  <text x="950" y="170" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" font-weight="bold" fill="#0D47A1">消息分发器</text>
+  <text x="950" y="195" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="11" fill="#5A5A7A">MessageDispatcher</text>
+  <!-- Arrows to handlers -->
+  <line x1="1040" y1="170" x2="1100" y2="170" stroke="#5A5A7A" stroke-width="1.5" marker-end="url(#arrowR)"/>
+  <!-- Handler: Chat -->
+  <g filter="url(#cardShadow)">
+    <rect x="1110" y="120" width="130" height="44" rx="8" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+  </g>
+  <text x="1175" y="148" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="13" font-weight="bold" fill="#1565C0">Chat 聊天</text>
+  <!-- Handler: Read -->
+  <g filter="url(#cardShadow)">
+    <rect x="1110" y="175" width="130" height="44" rx="8" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+  </g>
+  <text x="1175" y="203" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="13" font-weight="bold" fill="#2E7D32">Read 已读</text>
+  <!-- Handler: Ping -->
+  <g filter="url(#cardShadow)">
+    <rect x="1110" y="230" width="130" height="44" rx="8" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+  </g>
+  <text x="1175" y="258" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FF6F00">Ping 心跳</text>
+  <!-- Response arrow -->
+  <line x1="1110" y1="310" x2="260" y2="310" stroke="#2E7D32" stroke-width="1.5" marker-end="url(#arrowL)"/>
+  <text x="685" y="305" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="11" fill="#2E7D32">消息推送 / 已读回执 / PONG</text>
+  <!-- Bottom: Core features - breathing style: fewer items, more whitespace -->
+  <line x1="60" y1="355" x2="1220" y2="355" stroke="#E0E0E0" stroke-width="1"/>
+  <text x="640" y="390" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="bold" fill="#1A1A2E">核心特性</text>
+  <!-- Features as simple list items, not cards -->
+  <text x="100" y="435" font-family="Microsoft YaHei, Arial, sans-serif" font-size="17" fill="#1A1A2E">
+    <tspan x="100" dy="0">心跳保活：客户端每 30s 发 PING，服务端回 PONG，60s 超时断线检测</tspan>
+    <tspan x="100" dy="35">未读管理：每个会话独立维护未读数，Redis 全局总未读（im:unread:{userId}）</tspan>
+    <tspan x="100" dy="35">已读回执：接收方读取消息后推送 READ 帧，发送方收到 READ_ACK 确认</tspan>
+    <tspan x="100" dy="35">离线通知：接收方离线时写入站内通知，上线后可在消息中心查看</tspan>
+    <tspan x="100" dy="35">业务卡片：商品卡片（「我想要」自动发送）、订单卡片（创建订单后推送）</tspan>
+    <tspan x="100" dy="35">踢下线：服务端主动推送 FORCE_OFFLINE 帧（封号场景）</tspan>
+  </text>
+  <!-- Page number -->
+  <text x="1240" y="700" text-anchor="end" font-family="Microsoft YaHei, Arial, sans-serif" font-size="12" fill="#9E9E9E">06 / 10</text>
+</svg>

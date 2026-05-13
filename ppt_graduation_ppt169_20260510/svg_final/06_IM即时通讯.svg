@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="1280" height="720">
+  <defs>
+    <marker id="arrowR" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#1565C0" />
+    </marker>
+    <marker id="arrowL" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#2E7D32" />
+    </marker>
+    <filter id="cardShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" />
+      <feOffset dx="0" dy="2" result="offsetblur" />
+      <feFlood flood-color="#0F172A" flood-opacity="0.06" result="shadowColor" />
+      <feComposite in="shadowColor" in2="offsetblur" operator="in" result="shadow" />
+      <feMerge><feMergeNode in="shadow" /><feMergeNode in="SourceGraphic" /></feMerge>
+    </filter>
+  </defs>
+  
+  <rect width="1280" height="720" fill="#FFFFFF" />
+  <rect x="0" y="0" width="1280" height="4" fill="#1565C0" />
+  
+  <text x="640" y="68" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="36" font-weight="bold" fill="#1A1A2E">IM 即时通讯</text>
+  <line x1="540" y1="85" x2="740" y2="85" stroke="#1565C0" stroke-width="2" />
+  
+  
+  <g filter="url(#cardShadow)">
+    <path fill="#EFF6FF" stroke="#90CAF9" stroke-width="1.5" d="M70,130 H250 A10,10 0 0 1 260,140 V200 A10,10 0 0 1 250,210 H70 A10,10 0 0 1 60,200 V140 A10,10 0 0 1 70,130 Z" />
+  </g>
+  
+  <g transform="translate(100.0, 142.0) scale(1.3333333333333333)" fill="#1565C0">
+    <path d="M16 2a3 3 0 0 1 2.995 2.824l.005 .176v14a3 3 0 0 1 -2.824 2.995l-.176 .005h-8a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-14a3 3 0 0 1 2.824 -2.995l.176 -.005h8zm-4 14a1 1 0 0 0 -.993 .883l-.007 .117l.007 .127a1 1 0 0 0 1.986 0l.007 -.117l-.007 -.127a1 1 0 0 0 -.993 -.883zm1 -12h-2l-.117 .007a1 1 0 0 0 0 1.986l.117 .007h2l.117 -.007a1 1 0 0 0 0 -1.986l-.117 -.007z" />
+  </g>
+  <text x="160" y="178" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1A1A2E">客户端</text>
+  <text x="160" y="198" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="12" fill="#5A5A7A">ws://host:port/ws/chat</text>
+  
+  <line x1="260" y1="170" x2="330" y2="170" stroke="#1565C0" stroke-width="2" marker-end="url(#arrowR)" />
+  <text x="295" y="160" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="11" fill="#1565C0">JWT</text>
+  
+  <g filter="url(#cardShadow)">
+    <path fill="#FFF3E0" stroke="#FFB74D" stroke-width="1.5" d="M350,130 H510 A10,10 0 0 1 520,140 V200 A10,10 0 0 1 510,210 H350 A10,10 0 0 1 340,200 V140 A10,10 0 0 1 350,130 Z" />
+  </g>
+  
+  <g transform="translate(375.0, 142.0) scale(1.3333333333333333)" fill="#FF6F00">
+    <path d="M11.998 2l.118 .007l.059 .008l.061 .013l.111 .034a.993 .993 0 0 1 .217 .112l.104 .082l.255 .218a11 11 0 0 0 7.189 2.537l.342 -.01a1 1 0 0 1 1.005 .717a13 13 0 0 1 -9.208 16.25a1 1 0 0 1 -.502 0a13 13 0 0 1 -9.209 -16.25a1 1 0 0 1 1.005 -.717a11 11 0 0 0 7.531 -2.527l.263 -.225l.096 -.075a.993 .993 0 0 1 .217 -.112l.112 -.034a.97 .97 0 0 1 .119 -.021l.115 -.007zm.002 7a2 2 0 0 0 -1.995 1.85l-.005 .15l.005 .15a2 2 0 0 0 .995 1.581v1.769l.007 .117a1 1 0 0 0 1.993 -.117l.001 -1.768a2 2 0 0 0 -1.001 -3.732z" />
+  </g>
+  <text x="430" y="178" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1A1A2E">握手鉴权</text>
+  <text x="430" y="198" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="11" fill="#5A5A7A">ChatHandshakeInterceptor</text>
+  
+  <line x1="520" y1="170" x2="590" y2="170" stroke="#1565C0" stroke-width="2" marker-end="url(#arrowR)" />
+  
+  <g filter="url(#cardShadow)">
+    <path fill="#EFF6FF" stroke="#90CAF9" stroke-width="1.5" d="M610,130 H770 A10,10 0 0 1 780,140 V200 A10,10 0 0 1 770,210 H610 A10,10 0 0 1 600,200 V140 A10,10 0 0 1 610,130 Z" />
+  </g>
+  
+  <g transform="translate(635.0, 142.0) scale(1.3333333333333333)" fill="#1565C0">
+    <path d="M14.647 4.081a.724 .724 0 0 0 1.08 .448c2.439 -1.485 5.23 1.305 3.745 3.744a.724 .724 0 0 0 .447 1.08c2.775 .673 2.775 4.62 0 5.294a.724 .724 0 0 0 -.448 1.08c1.485 2.439 -1.305 5.23 -3.744 3.745a.724 .724 0 0 0 -1.08 .447c-.673 2.775 -4.62 2.775 -5.294 0a.724 .724 0 0 0 -1.08 -.448c-2.439 1.485 -5.23 -1.305 -3.745 -3.744a.724 .724 0 0 0 -.447 -1.08c-2.775 -.673 -2.775 -4.62 0 -5.294a.724 .724 0 0 0 .448 -1.08c-1.485 -2.439 1.305 -5.23 3.744 -3.745a.722 .722 0 0 0 1.08 -.447c.673 -2.775 4.62 -2.775 5.294 0zm-2.647 4.919a3 3 0 1 0 0 6a3 3 0 0 0 0 -6" />
+  </g>
+  <text x="690" y="178" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="14" font-weight="bold" fill="#1A1A2E">会话管理</text>
+  <text x="690" y="198" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="11" fill="#5A5A7A">WebSocketSessionManager</text>
+  
+  <line x1="780" y1="170" x2="850" y2="170" stroke="#1565C0" stroke-width="2" marker-end="url(#arrowR)" />
+  
+  <g filter="url(#cardShadow)">
+    <path fill="#E3F2FD" stroke="#64B5F6" stroke-width="1.5" d="M870,130 H1030 A10,10 0 0 1 1040,140 V200 A10,10 0 0 1 1030,210 H870 A10,10 0 0 1 860,200 V140 A10,10 0 0 1 870,130 Z" />
+  </g>
+  <text x="950" y="170" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="16" font-weight="bold" fill="#0D47A1">消息分发器</text>
+  <text x="950" y="195" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="11" fill="#5A5A7A">MessageDispatcher</text>
+  
+  <line x1="1040" y1="170" x2="1100" y2="170" stroke="#5A5A7A" stroke-width="1.5" marker-end="url(#arrowR)" />
+  
+  <g filter="url(#cardShadow)">
+    <path fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1" d="M1118,120 H1232 A8,8 0 0 1 1240,128 V156 A8,8 0 0 1 1232,164 H1118 A8,8 0 0 1 1110,156 V128 A8,8 0 0 1 1118,120 Z" />
+  </g>
+  <text x="1175" y="148" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="13" font-weight="bold" fill="#1565C0">Chat 聊天</text>
+  
+  <g filter="url(#cardShadow)">
+    <path fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1" d="M1118,175 H1232 A8,8 0 0 1 1240,183 V211 A8,8 0 0 1 1232,219 H1118 A8,8 0 0 1 1110,211 V183 A8,8 0 0 1 1118,175 Z" />
+  </g>
+  <text x="1175" y="203" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="13" font-weight="bold" fill="#2E7D32">Read 已读</text>
+  
+  <g filter="url(#cardShadow)">
+    <path fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1" d="M1118,230 H1232 A8,8 0 0 1 1240,238 V266 A8,8 0 0 1 1232,274 H1118 A8,8 0 0 1 1110,266 V238 A8,8 0 0 1 1118,230 Z" />
+  </g>
+  <text x="1175" y="258" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="13" font-weight="bold" fill="#FF6F00">Ping 心跳</text>
+  
+  <line x1="1110" y1="310" x2="260" y2="310" stroke="#2E7D32" stroke-width="1.5" marker-end="url(#arrowL)" />
+  <text x="685" y="305" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="11" fill="#2E7D32">消息推送 / 已读回执 / PONG</text>
+  
+  <line x1="60" y1="355" x2="1220" y2="355" stroke="#E0E0E0" stroke-width="1" />
+  <text x="640" y="390" text-anchor="middle" font-family="Microsoft YaHei, Arial, sans-serif" font-size="20" font-weight="bold" fill="#1A1A2E">核心特性</text>
+  
+  <text font-size="17" fill="#1A1A2E" font-family="Microsoft YaHei, Arial, sans-serif" x="100" y="435">心跳保活：客户端每 30s 发 PING，服务端回 PONG，60s 超时断线检测</text><text font-size="17" fill="#1A1A2E" font-family="Microsoft YaHei, Arial, sans-serif" x="100" y="470">未读管理：每个会话独立维护未读数，Redis 全局总未读（im:unread:{userId}）</text><text font-size="17" fill="#1A1A2E" font-family="Microsoft YaHei, Arial, sans-serif" x="100" y="505">已读回执：接收方读取消息后推送 READ 帧，发送方收到 READ_ACK 确认</text><text font-size="17" fill="#1A1A2E" font-family="Microsoft YaHei, Arial, sans-serif" x="100" y="540">离线通知：接收方离线时写入站内通知，上线后可在消息中心查看</text><text font-size="17" fill="#1A1A2E" font-family="Microsoft YaHei, Arial, sans-serif" x="100" y="575">业务卡片：商品卡片（「我想要」自动发送）、订单卡片（创建订单后推送）</text><text font-size="17" fill="#1A1A2E" font-family="Microsoft YaHei, Arial, sans-serif" x="100" y="610">踢下线：服务端主动推送 FORCE_OFFLINE 帧（封号场景）</text><text x="1240" y="700" text-anchor="end" font-family="Microsoft YaHei, Arial, sans-serif" font-size="12" fill="#9E9E9E">06 / 10</text>
+</svg>

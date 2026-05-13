@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="timelineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="100%" stop-color="#10B981" />
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="#FFFFFF" />
+  
+  <path fill="#3B82F6" d="M64,32 H64 A4,4 0 0 1 68,36 V64 A4,4 0 0 1 64,68 H64 A4,4 0 0 1 60,64 V36 A4,4 0 0 1 64,32 Z" />
+  <text x="80" y="60" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="32" font-weight="bold" fill="#1F2937">完整交易闭环流程</text>
+  <text x="80" y="84" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#6B7280">FROM BROWSE TO REVIEW — 7 STEPS</text>
+
+  
+  <line x1="640" y1="110" x2="640" y2="620" stroke="url(#timelineGrad)" stroke-width="3" />
+
+  
+  <circle cx="640" cy="130" r="14" fill="#3B82F6" />
+  <text x="640" y="135" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF">1</text>
+  <path fill="#EFF6FF" d="M68,110 H532 A8,8 0 0 1 540,118 V152 A8,8 0 0 1 532,160 H68 A8,8 0 0 1 60,152 V118 A8,8 0 0 1 68,110 Z" />
+  <text x="80" y="138" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1E40AF">买家点击"我想要"</text>
+  <text x="80" y="152" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">跳转至IM聊天界面，自动发送商品卡片</text>
+  <text x="700" y="138" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#9CA3AF">Day 0</text>
+
+  
+  <circle cx="640" cy="210" r="14" fill="#3B82F6" />
+  <text x="640" y="215" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF">2</text>
+  <path fill="#F9FAFB" d="M708,190 H1172 A8,8 0 0 1 1180,198 V232 A8,8 0 0 1 1172,240 H708 A8,8 0 0 1 700,232 V198 A8,8 0 0 1 708,190 Z" />
+  <text x="720" y="218" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1F2937">双方沟通协商</text>
+  <text x="720" y="232" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">最终价格确认，面交时间地点协定</text>
+  <text x="80" y="218" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#9CA3AF">Day 0-1</text>
+
+  
+  <circle cx="640" cy="290" r="16" fill="#F59E0B" />
+  <text x="640" y="296" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF">3</text>
+  <path fill="#FFFBEB" stroke="#FCD34D" stroke-width="1.5" d="M68,266 H532 A8,8 0 0 1 540,274 V314 A8,8 0 0 1 532,322 H68 A8,8 0 0 1 60,314 V274 A8,8 0 0 1 68,266 Z" />
+  <text x="80" y="294" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#B45309">创建订单</text>
+  <text x="80" y="312" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#92400E">Redis分布式锁 · 72小时计时开始</text>
+  <text x="700" y="294" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#9CA3AF">Day 1</text>
+
+  
+  <circle cx="640" cy="370" r="14" fill="#10B981" />
+  <text x="640" y="375" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF">4</text>
+  <path fill="#ECFDF5" d="M708,350 H1172 A8,8 0 0 1 1180,358 V392 A8,8 0 0 1 1172,400 H708 A8,8 0 0 1 700,392 V358 A8,8 0 0 1 708,350 Z" />
+  <text x="720" y="378" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#065F46">卖家确认接单</text>
+  <text x="720" y="392" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">状态变更：待接单→待面交</text>
+  <text x="80" y="378" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#9CA3AF">Day 1</text>
+
+  
+  <circle cx="640" cy="450" r="16" fill="#F59E0B" />
+  <text x="640" y="456" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF">5</text>
+  <path fill="#FFFBEB" stroke="#FCD34D" stroke-width="1.5" d="M68,426 H532 A8,8 0 0 1 540,434 V474 A8,8 0 0 1 532,482 H68 A8,8 0 0 1 60,474 V434 A8,8 0 0 1 68,426 Z" />
+  <text x="80" y="454" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#B45309">双向确认面交</text>
+  <text x="80" y="472" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#92400E">卖家确认+买家确认→自动完成，核心创新点</text>
+  <text x="700" y="454" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#9CA3AF">Day 2</text>
+
+  
+  <circle cx="640" cy="530" r="14" fill="#8B5CF6" />
+  <text x="640" y="535" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF">6</text>
+  <path fill="#F5F3FF" d="M708,510 H1172 A8,8 0 0 1 1180,518 V552 A8,8 0 0 1 1172,560 H708 A8,8 0 0 1 700,552 V518 A8,8 0 0 1 708,510 Z" />
+  <text x="720" y="538" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#6D28D9">交易后互评</text>
+  <text x="720" y="552" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">7天窗口，三维度评分（描述/态度/体验）</text>
+  <text x="80" y="538" text-anchor="end" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#9CA3AF">Day 2-9</text>
+
+  
+  <circle cx="640" cy="610" r="14" fill="#10B981" />
+  <text x="640" y="615" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF">7</text>
+  <path fill="#ECFDF5" d="M68,590 H532 A8,8 0 0 1 540,598 V622 A8,8 0 0 1 532,630 H68 A8,8 0 0 1 60,622 V598 A8,8 0 0 1 68,590 Z" />
+  <text x="80" y="615" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#065F46">流程结束 — 用户信誉分更新</text>
+  <text x="700" y="615" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#9CA3AF">Day 9 完成</text>
+
+  
+  <path fill="#F9FAFB" d="M68,660 H1212 A8,8 0 0 1 1220,668 V692 A8,8 0 0 1 1212,700 H68 A8,8 0 0 1 60,692 V668 A8,8 0 0 1 68,660 Z" />
+  <text x="200" y="686" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#1F2937">平均周期 <tspan font-weight="bold" fill="#3B82F6">3.5天</tspan></text>
+  <text x="480" y="686" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#1F2937">完成率 <tspan font-weight="bold" fill="#10B981">87.3%</tspan></text>
+  <text x="740" y="686" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#1F2937">好评率 <tspan font-weight="bold" fill="#F59E0B">92.1%</tspan></text>
+  <text x="1020" y="686" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#1F2937">重复交易率 <tspan font-weight="bold" fill="#8B5CF6">34.6%</tspan></text>
+</svg>

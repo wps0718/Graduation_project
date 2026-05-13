@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
+  <defs>
+    <linearGradient id="painGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEE2E2"/>
+      <stop offset="100%" stop-color="#FECACA"/>
+    </linearGradient>
+    <linearGradient id="painGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEF3C7"/>
+      <stop offset="100%" stop-color="#FDE68A"/>
+    </linearGradient>
+    <linearGradient id="leftAccent" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="1280" height="720" fill="#FFFFFF"/>
+  <!-- Top accent bar -->
+  <rect x="0" y="0" width="1280" height="4" fill="url(#leftAccent)"/>
+  <!-- Page title -->
+  <text x="60" y="55" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="32" font-weight="bold" fill="#1E3A8A">为什么做这个项目？</text>
+  <line x1="60" y1="70" x2="280" y2="70" stroke="#3B82F6" stroke-width="3" stroke-linecap="round"/>
+  <!-- Left panel -->
+  <rect x="60" y="90" width="340" height="560" rx="12" fill="#EFF6FF"/>
+  <text x="230" y="130" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1E3A8A">目标用户</text>
+  <!-- User placeholder -->
+  <rect x="120" y="150" width="220" height="165" rx="8" fill="none" stroke="#93C5FD" stroke-dasharray="6,4" stroke-width="1.5"/>
+  <text x="230" y="240" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="12" fill="#6B7280">待插入: campus_students.png</text>
+  <!-- User count -->
+  <text x="230" y="365" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="36" font-weight="bold" fill="#3B82F6">5,000+</text>
+  <text x="230" y="390" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#6B7280">潜在用户</text>
+  <use data-icon="tabler-filled/users" x="212" y="405" width="36" height="36" fill="#3B82F6"/>
+  <text x="230" y="465" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="16" fill="#1E3A8A">校区学生</text>
+  <!-- Campus info -->
+  <text x="230" y="510" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#6B7280">覆盖3个校区</text>
+  <text x="230" y="530" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#6B7280">南海北 / 南海南 / 新港</text>
+  <text x="230" y="570" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="13" fill="#6B7280">年均闲置物品 &gt; 50万元</text>
+  <!-- Right panel - Pain points 2x2 grid -->
+  <!-- Pain 1: 信息分散 -->
+  <rect x="430" y="90" width="400" height="265" rx="12" fill="url(#painGrad1)"/>
+  <use data-icon="tabler-filled/message-circle" x="460" y="110" width="36" height="36" fill="#EF4444"/>
+  <text x="510" y="135" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="20" font-weight="bold" fill="#DC2626">信息分散</text>
+  <text x="460" y="170" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#7F1D1D">依赖QQ群、微信群发布信息</text>
+  <text x="460" y="195" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#7F1D1D">消息刷屏速度快，2小时后难找到</text>
+  <text x="460" y="220" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#7F1D1D">缺少商品分类和筛选功能</text>
+  <text x="460" y="255" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="bold" fill="#EF4444">78%</text>
+  <text x="520" y="255" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#991B1B">学生反映检索困难</text>
+
+  <!-- Pain 2: 信任缺失 -->
+  <rect x="860" y="90" width="370" height="265" rx="12" fill="url(#painGrad1)"/>
+  <use data-icon="tabler-filled/shield-x" x="890" y="110" width="36" height="36" fill="#F59E0B"/>
+  <text x="940" y="135" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="20" font-weight="bold" fill="#D97706">信任缺失</text>
+  <text x="890" y="170" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#78350F">卖家身份无法验证</text>
+  <text x="890" y="195" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#78350F">商品质量仅靠口头承诺</text>
+  <text x="890" y="220" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#78350F">交易纠纷无处理机制</text>
+  <text x="890" y="255" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="bold" fill="#F59E0B">65%</text>
+  <text x="950" y="255" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#92400E">担心上当受骗</text>
+
+  <!-- Pain 3: 效率低下 -->
+  <rect x="430" y="380" width="400" height="270" rx="12" fill="url(#painGrad2)"/>
+  <use data-icon="tabler-filled/clock" x="460" y="400" width="36" height="36" fill="#D97706"/>
+  <text x="510" y="425" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="20" font-weight="bold" fill="#B45309">效率低下</text>
+  <text x="460" y="460" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#78350F">买卖双方沟通渠道混乱</text>
+  <text x="460" y="485" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#78350F">价格协商无记录可查</text>
+  <text x="460" y="510" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#78350F">面交时间地点难确定</text>
+  <text x="460" y="545" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="bold" fill="#D97706">52%</text>
+  <text x="520" y="545" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#92400E">反映沟通效率低</text>
+
+  <!-- Pain 4: 毕业浪费 -->
+  <rect x="860" y="380" width="370" height="270" rx="12" fill="#F3F4F6"/>
+  <use data-icon="tabler-filled/trash" x="890" y="400" width="36" height="36" fill="#6B7280"/>
+  <text x="940" y="425" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="20" font-weight="bold" fill="#4B5563">毕业浪费</text>
+  <text x="890" y="460" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">每年6月毕业季集中丢弃</text>
+  <text x="890" y="485" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">书籍、家电、生活用品堆积</text>
+  <text x="890" y="510" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#4B5563">缺少集中处理渠道</text>
+  <text x="890" y="545" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="24" font-weight="bold" fill="#6B7280">43%</text>
+  <text x="950" y="545" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="14" fill="#6B7280">物品直接丢弃</text>
+
+  <!-- Bottom mini bar chart -->
+  <rect x="430" y="665" width="800" height="40" rx="8" fill="#F9FAFB"/>
+  <text x="450" y="691" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#6B7280">用户反馈占比：</text>
+  <!-- Bar 1: 78% -->
+  <rect x="580" y="678" width="156" height="14" rx="4" fill="#EF4444"/>
+  <text x="744" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#EF4444">78%</text>
+  <!-- Bar 2: 65% -->
+  <rect x="810" y="678" width="130" height="14" rx="4" fill="#F59E0B"/>
+  <text x="948" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#F59E0B">65%</text>
+  <!-- Bar 3: 52% -->
+  <rect x="1000" y="678" width="104" height="14" rx="4" fill="#D97706"/>
+  <text x="1112" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#D97706">52%</text>
+  <!-- Bar 4: 43% -->
+  <rect x="1150" y="678" width="86" height="14" rx="4" fill="#6B7280"/>
+  <text x="1244" y="690" font-family="Microsoft YaHei, PingFang SC, Arial, sans-serif" font-size="11" fill="#6B7280">43%</text>
+</svg>
