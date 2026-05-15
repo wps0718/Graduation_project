@@ -215,9 +215,6 @@ class ReportServiceImplTest {
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
         Mockito.when(userMapper.offShelfAllProducts(10002L)).thenReturn(1);
         Mockito.when(tradeOrderMapper.selectList(Mockito.any())).thenReturn(List.of(order));
-        Mockito.when(tradeOrderMapper.updateById(Mockito.any(TradeOrder.class))).thenReturn(1);
-        Mockito.when(productMapper.selectById(10L)).thenReturn(product);
-        Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
         Mockito.when(reportMapper.updateById(Mockito.any(Report.class))).thenReturn(1);
 
         ReportServiceImpl service = new ReportServiceImpl(reportMapper, productMapper, userMapper, tradeOrderMapper, notificationService, objectMapper);
@@ -229,9 +226,7 @@ class ReportServiceImplTest {
         Mockito.verify(userMapper).updateById(userCaptor.capture());
         Assertions.assertEquals("违规", userCaptor.getValue().getBanReason());
 
-        ArgumentCaptor<TradeOrder> orderCaptor = ArgumentCaptor.forClass(TradeOrder.class);
-        Mockito.verify(tradeOrderMapper).updateById(orderCaptor.capture());
-        Assertions.assertEquals(5, orderCaptor.getValue().getStatus());
+        Mockito.verify(tradeOrderMapper).update(Mockito.isNull(), Mockito.any());
 
         ArgumentCaptor<Report> reportCaptor = ArgumentCaptor.forClass(Report.class);
         Mockito.verify(reportMapper).updateById(reportCaptor.capture());

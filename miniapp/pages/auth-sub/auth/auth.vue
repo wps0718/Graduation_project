@@ -116,6 +116,7 @@ import { get, post, uploadFile } from '@/utils/request'
 import { resolveImageUrl } from '@/utils/image'
 import { AUTH_STATUS } from '@/utils/constant'
 import { useUserStore } from '@/store'
+import { showToast, ensureLogin } from '@/utils/nav'
 
 const userStore = useUserStore()
 
@@ -165,18 +166,6 @@ const canSubmit = computed(() => {
     !!form.value.certImage
   )
 })
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
-function ensureLogin() {
-  if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login-sub/login/login' })
-    return false
-  }
-  return true
-}
 
 function goAuthHistory() {
   if (!canViewHistory.value) return

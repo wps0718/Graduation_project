@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
+import static com.qingyuan.secondhand.common.util.ImageJsonUtil.parseCoverImage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.context.UserContext;
 import com.qingyuan.secondhand.common.enums.NotificationCategory;
@@ -42,7 +43,7 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
     private final NotificationService notificationService;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void addFavorite(Long productId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -111,7 +112,7 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void cancelFavorite(Long productId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -178,21 +179,6 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
         return count != null && count > 0;
     }
 
-    private String parseCoverImage(String imagesJson) {
-        if (!StringUtils.hasText(imagesJson)) {
-            return null;
-        }
-        try {
-            List<String> images = objectMapper.readValue(imagesJson, new TypeReference<List<String>>() {
-            });
-            if (images == null || images.isEmpty()) {
-                return null;
-            }
-            return images.get(0);
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
     private int extractFavoriteCount(String content) {
         if (!StringUtils.hasText(content)) {

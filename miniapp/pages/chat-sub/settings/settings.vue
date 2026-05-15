@@ -29,37 +29,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { showToast, goBack } from '@/utils/nav'
+import { useNavBar } from '@/utils/useNavBar'
 
-const statusBarHeight = ref(0)
-const navBarHeight = ref(44)
-
-onMounted(() => {
-  const info = uni.getSystemInfoSync()
-  statusBarHeight.value = (info && info.statusBarHeight) || 0
-  const menuButton = typeof uni.getMenuButtonBoundingClientRect === 'function'
-    ? uni.getMenuButtonBoundingClientRect()
-    : null
-  if (menuButton && menuButton.top) {
-    const padding = menuButton.top - statusBarHeight.value
-    navBarHeight.value = menuButton.height + padding * 2
-  } else {
-    navBarHeight.value = 44
-  }
-})
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
-function goBack() {
-  const pages = getCurrentPages()
-  if (!pages || pages.length <= 1) {
-    uni.switchTab({ url: '/pages/chat/list/list' })
-    return
-  }
-  uni.navigateBack()
-}
+const { statusBarHeight, navBarHeight } = useNavBar()
 </script>
 
 <style lang="scss" scoped>

@@ -1,16 +1,5 @@
 <template>
   <view class="publish">
-    <view :style="{ height: `${statusBarHeight}px` }"></view>
-    <view class="publish__nav" :style="{ height: `${navBarHeight}px` }">
-      <view class="publish__nav-left" @click="goBack">
-        <text class="publish__nav-close">×</text>
-      </view>
-      <text class="publish__nav-title">发布闲置</text>
-      <view class="publish__nav-right" :class="{ 'is-disabled': submitDisabled }" @click="submitPublish">
-        <text class="publish__nav-action">发布</text>
-      </view>
-    </view>
-
     <view class="publish__content">
       <view class="publish__card">
         <view class="publish__upload">
@@ -157,16 +146,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { get, post, uploadFile } from '@/utils/request'
 import { resolveImageUrl } from '@/utils/image'
 import { useAppStore } from '@/store/app'
 import { CONDITION_LEVELS } from '@/utils/constant'
+import { showToast } from '@/utils/nav'
 
 const appStore = useAppStore()
-const statusBarHeight = ref(0)
-const navBarHeight = ref(44)
 const maxImages = 9
 const resetAfterSuccessKey = 'publish_reset_after_success'
 
@@ -220,10 +208,6 @@ const meetingLabel = computed(() => {
 
 const submitDisabled = computed(() => submitting.value)
 
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
 function resetForm() {
   form.value = getInitialForm()
   imageList.value = []
@@ -237,14 +221,6 @@ function resetForm() {
   }
 }
 
-function goBack() {
-  const pages = getCurrentPages()
-  if (!pages || pages.length <= 1) {
-    uni.switchTab({ url: '/pages/index/index' })
-    return
-  }
-  uni.navigateBack()
-}
 
 function onInput(field, e) {
   form.value[field] = String((e && e.detail && e.detail.value) || '')
@@ -399,20 +375,6 @@ async function loadMeetingPoints() {
   }
 }
 
-onMounted(() => {
-  const info = uni.getSystemInfoSync()
-  statusBarHeight.value = (info && info.statusBarHeight) || 0
-  const menuButton = typeof uni.getMenuButtonBoundingClientRect === 'function'
-    ? uni.getMenuButtonBoundingClientRect()
-    : null
-  if (menuButton && menuButton.top) {
-    const padding = menuButton.top - statusBarHeight.value
-    navBarHeight.value = menuButton.height + padding * 2
-  } else {
-    navBarHeight.value = 44
-  }
-})
-
 onLoad(async () => {
   await Promise.all([appStore.loadCampusList(), appStore.loadCategoryList()])
   if (!form.value.campusId && appStore.currentCampusId) {
@@ -435,47 +397,6 @@ onShow(async () => {
   min-height: 100vh;
   background-color: var(--bg-page);
   padding-bottom: calc(140rpx + var(--spacing-lg));
-}
-
-.publish__nav {
-  height: 96rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--spacing-md);
-  background-color: var(--bg-page);
-}
-
-.publish__nav-left,
-.publish__nav-right {
-  width: 120rpx;
-  display: flex;
-  align-items: center;
-}
-
-.publish__nav-right {
-  justify-content: flex-end;
-}
-
-.publish__nav-title {
-  font-size: var(--font-lg);
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.publish__nav-close {
-  font-size: 48rpx;
-  color: var(--text-secondary);
-}
-
-.publish__nav-action {
-  font-size: var(--font-md);
-  color: var(--success-color);
-  font-weight: 600;
-}
-
-.publish__nav-right.is-disabled .publish__nav-action {
-  color: var(--text-placeholder);
 }
 
 .publish__content {

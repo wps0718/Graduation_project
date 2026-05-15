@@ -5,6 +5,7 @@ import com.qingyuan.secondhand.common.result.Result;
 import com.qingyuan.secondhand.dto.NoticeDTO;
 import com.qingyuan.secondhand.service.NoticeService;
 import com.qingyuan.secondhand.vo.NoticeVO;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "管理端-公告")
 @RestController
 @RequestMapping("/admin/notice")
 @RequiredArgsConstructor

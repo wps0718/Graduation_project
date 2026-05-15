@@ -38,6 +38,7 @@ import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { post } from '@/utils/request'
 import { useUserStore } from '@/store'
+import { showToast, ensureLogin } from '@/utils/nav'
 
 const userStore = useUserStore()
 
@@ -56,18 +57,6 @@ const reasonOptions = [
 ]
 
 const descriptionCount = computed(() => description.value.length)
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
-function ensureLogin() {
-  if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login-sub/login/login' })
-    return false
-  }
-  return true
-}
 
 function onReasonChange(event) {
   const value = Number((event && event.detail && event.detail.value) || 0)

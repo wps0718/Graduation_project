@@ -39,6 +39,7 @@ import { useUserStore } from '@/store'
 import Navbar from '@/components/navbar/navbar.vue'
 import OrderCard from '@/components/order-card/order-card.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
+import { showToast, ensureLogin } from '@/utils/nav'
 
 const userStore = useUserStore()
 
@@ -54,18 +55,6 @@ const pageSize = 20
 const hasMore = ref(true)
 const loading = ref(false)
 const loadingMore = ref(false)
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
-function ensureLogin() {
-  if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login-sub/login/login' })
-    return false
-  }
-  return true
-}
 
 function buildRoleOrders(records, role, targetPage) {
   const currentId = userStore.userInfo && userStore.userInfo.id
@@ -163,8 +152,8 @@ function onOrderAction(payload) {
   const { action, order } = payload
   if (!order) return
   if (action === 'contact') {
-    const userId = order.otherUser && order.otherUser.id
-    uni.navigateTo({ url: `/pages/chat/detail/detail?userId=${userId || ''}` })
+    const userId = order.otherUserId
+    uni.navigateTo({ url: `/pages/chat-sub/detail/detail?userId=${userId || ''}` })
     return
   }
   if (action === 'cancel') {
@@ -192,7 +181,7 @@ function onOrderAction(payload) {
     return
   }
   if (action === 'reorder') {
-    const sellerId = order.otherUser && order.otherUser.id
+    const sellerId = order.otherUserId
     uni.navigateTo({ url: `/pages/user-sub/seller/profile?id=${sellerId || ''}` })
     return
   }
@@ -210,7 +199,7 @@ function openCancel(order) {
     success: async (res) => {
       const reason = reasons[res.tapIndex]
       try {
-        await post('/mini/order/cancel', { orderId: order.id, reason }, { showLoading: true })
+        await post('/mini/order/cancel', { orderId: order.id, cancelReason: reason }, { showLoading: true })
         showToast('已取消交易')
         refreshList()
       } catch (error) {

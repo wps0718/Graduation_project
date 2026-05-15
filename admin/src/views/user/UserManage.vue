@@ -253,6 +253,7 @@ import { onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { User } from '@element-plus/icons-vue'
 import { getUserPage, getUserDetail, banUser, unbanUser, getCampusList } from '@/api/user'
+import { getImageUrl } from '@/utils/baseUrl'
 
 // ==================== 数据定义 ====================
 
@@ -383,17 +384,6 @@ const onUnban = async (row) => {
 }
 
 // ==================== 工具函数 ====================
-
-/**
- * 图片URL处理
- * @param {string} path - 图片路径
- * @returns {string} 完整URL
- */
-const getImageUrl = (path) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  return `http://localhost:8080${path.startsWith('/') ? '' : '/'}${path}`
-}
 
 /**
  * 时间格式化

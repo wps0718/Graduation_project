@@ -34,7 +34,7 @@ public class ProductCommentServiceImpl extends ServiceImpl<ProductCommentMapper,
     private final UserMapper userMapper;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void addComment(ProductCommentAddDTO dto) {
         Long currentUserId = UserContext.getCurrentUserId();
         Product product = productMapper.selectById(dto.getProductId());
@@ -196,7 +196,7 @@ public class ProductCommentServiceImpl extends ServiceImpl<ProductCommentMapper,
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void markRepliesRead() {
         Long currentUserId = UserContext.getCurrentUserId();
         ProductComment update = new ProductComment();

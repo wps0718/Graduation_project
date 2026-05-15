@@ -7,6 +7,7 @@ import com.qingyuan.secondhand.dto.EmployeeLoginDTO;
 import com.qingyuan.secondhand.service.EmployeeService;
 import com.qingyuan.secondhand.vo.EmployeeLoginVO;
 import com.qingyuan.secondhand.vo.EmployeeVO;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "管理端-管理员")
 @RestController
 @RequestMapping("/admin/employee")
 @RequiredArgsConstructor

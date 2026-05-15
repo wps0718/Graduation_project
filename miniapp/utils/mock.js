@@ -75,10 +75,10 @@ const products = [
     categoryName: '电子设备',
     conditionLevel: 3,
     conditionText: '9成新',
-    coverImage: '/static/pic/耳机.png',
+    coverImage: '/static/pic/placeholder.png',
     images: [
-      '/static/pic/耳机.png',
-      '/static/pic/耳机.png'
+      '/static/pic/placeholder.png',
+      '/static/pic/placeholder.png'
     ],
     campusId: 1,
     campusName: '南海北',
@@ -99,8 +99,8 @@ const products = [
     categoryName: '书籍',
     conditionLevel: 2,
     conditionText: '几乎全新(99新)',
-    coverImage: '/static/pic/高数教材.png',
-    images: ['/static/pic/高数教材.png'],
+    coverImage: '/static/pic/placeholder.png',
+    images: ['/static/pic/placeholder.png'],
     campusId: 2,
     campusName: '南海南',
     meetingPointName: '食堂门口',
@@ -120,8 +120,8 @@ const products = [
     categoryName: '运动设备',
     conditionLevel: 3,
     conditionText: '9成新',
-    coverImage: '/static/pic/自行车.png',
-    images: ['/static/pic/自行车.png'],
+    coverImage: '/static/pic/placeholder.png',
+    images: ['/static/pic/placeholder.png'],
     campusId: 1,
     campusName: '南海北',
     meetingPointName: '南门快递站',
@@ -141,8 +141,8 @@ const products = [
     categoryName: '电子设备',
     conditionLevel: 2,
     conditionText: '几乎全新(99新)',
-    coverImage: '/static/pic/耳机.png',
-    images: ['/static/pic/耳机.png'],
+    coverImage: '/static/pic/placeholder.png',
+    images: ['/static/pic/placeholder.png'],
     campusId: 3,
     campusName: '新港',
     meetingPointName: '教学楼前广场',
@@ -162,8 +162,8 @@ const products = [
     categoryName: '生活',
     conditionLevel: 4,
     conditionText: '8成新',
-    coverImage: '/static/pic/台灯.png',
-    images: ['/static/pic/台灯.png'],
+    coverImage: '/static/pic/placeholder.png',
+    images: ['/static/pic/placeholder.png'],
     campusId: 1,
     campusName: '南海北',
     meetingPointName: '图书馆门口',
@@ -183,8 +183,8 @@ const products = [
     categoryName: '服饰',
     conditionLevel: 3,
     conditionText: '9成新',
-    coverImage: '/static/pic/羽绒服.png',
-    images: ['/static/pic/羽绒服.png'],
+    coverImage: '/static/pic/placeholder.png',
+    images: ['/static/pic/placeholder.png'],
     campusId: 2,
     campusName: '南海南',
     meetingPointName: '操场看台',
@@ -348,7 +348,7 @@ const chatSessions = [
     productId: 10087,
     productTitle: '高数教材+笔记合集',
     productPrice: 60,
-    productImage: '/static/pic/高数教材.png'
+    productImage: '/static/pic/placeholder.png'
   },
   {
     id: 50002,
@@ -362,7 +362,7 @@ const chatSessions = [
     productId: 10088,
     productTitle: '山地自行车 九成新',
     productPrice: 500,
-    productImage: '/static/pic/自行车.png'
+    productImage: '/static/pic/placeholder.png'
   },
   {
     id: 50003,
@@ -376,7 +376,7 @@ const chatSessions = [
     productId: 10090,
     productTitle: '宿舍学习台灯 带插座',
     productPrice: 45,
-    productImage: '/static/pic/台灯.png'
+    productImage: '/static/pic/placeholder.png'
   },
   {
     id: 50004,
@@ -390,7 +390,7 @@ const chatSessions = [
     productId: 10089,
     productTitle: '索尼降噪耳机 WH-1000XM4',
     productPrice: 1200,
-    productImage: '/static/pic/耳机.png'
+    productImage: '/static/pic/placeholder.png'
   }
 ]
 
@@ -692,14 +692,14 @@ export const mockData = {
       {
         id: 1,
         title: '学长学姐闲置大甩卖(南海)',
-        image: '/static/pic/推广（南海北）.webp',
+        image: '/static/pic/推广（南海北）.png',
         linkType: 2,
         linkUrl: '/pages/login-sub/search/search'
       },
        {
         id: 2,
         title: '学长学姐闲置大甩卖(广州)',
-        image: '/static/pic/推广（广州）.webp',
+        image: '/static/pic/推广（广州）.png',
         linkType: 1,
         linkUrl: '/pages/login-sub/search/search'
       }

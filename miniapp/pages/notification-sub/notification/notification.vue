@@ -1,25 +1,19 @@
 <template>
   <view class="notification-page">
-    <view :style="{ height: `${statusBarHeight}px` }"></view>
-    <view class="notification-nav" :style="{ height: `${navBarHeight}px` }">
-      <view class="notification-nav__left" @click="goBack">
-        <text class="notification-nav__close">×</text>
-      </view>
-      <text class="notification-nav__title">消息中心</text>
-      <view class="notification-nav__right" :class="{ 'is-disabled': !canClear }" @click="confirmClear">
-        <text class="notification-nav__action">清空</text>
-      </view>
-    </view>
-
     <view class="notification-tabs">
-      <view
-        v-for="item in tabs"
-        :key="item.value"
-        class="notification-tab"
-        :class="{ 'is-active': activeTab === item.value }"
-        @click="switchTab(item.value)"
-      >
-        <text class="notification-tab__text">{{ item.label }}</text>
+      <view class="notification-tabs__inner">
+        <view
+          v-for="item in tabs"
+          :key="item.value"
+          class="notification-tab"
+          :class="{ 'is-active': activeTab === item.value }"
+          @click="switchTab(item.value)"
+        >
+          <text class="notification-tab__text">{{ item.label }}</text>
+        </view>
+      </view>
+      <view class="notification-tabs__clear" :class="{ 'is-disabled': !canClear }" @click="confirmClear">
+        <text class="notification-tabs__clear-text">清空</text>
       </view>
     </view>
 
@@ -68,17 +62,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
 import { useUserStore } from '@/store'
 import { getNotificationConfig } from '@/utils/notification-config'
 import EmptyState from '@/components/empty-state/empty-state.vue'
+import { showToast, ensureLogin } from '@/utils/nav'
 
 const userStore = useUserStore()
-
-const statusBarHeight = ref(0)
-const navBarHeight = ref(44)
 
 const tabs = [
   { label: '全部', value: 0 },
@@ -99,27 +91,6 @@ const canClear = computed(() => messageList.value.length > 0)
 
 function getConfig(type) {
   return getNotificationConfig(type)
-}
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
-function ensureLogin() {
-  if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login-sub/login/login' })
-    return false
-  }
-  return true
-}
-
-function goBack() {
-  const pages = getCurrentPages()
-  if (!pages || pages.length <= 1) {
-    uni.switchTab({ url: '/pages/index/index' })
-    return
-  }
-  uni.navigateBack()
 }
 
 function switchTab(value) {
@@ -235,7 +206,7 @@ async function onMessageClick(item) {
   await markAsRead(item)
   const relatedType = Number(item.relatedType || 0)
   if (relatedType === 1 && item.relatedId) {
-    uni.navigateTo({ url: `/pages/product/detail/detail?id=${item.relatedId}` })
+    uni.navigateTo({ url: `/pages/product-sub/detail/detail?id=${item.relatedId}` })
     return
   }
   if (relatedType === 2 && item.relatedId) {
@@ -277,20 +248,6 @@ function confirmClear() {
   })
 }
 
-onMounted(() => {
-  const info = uni.getSystemInfoSync()
-  statusBarHeight.value = (info && info.statusBarHeight) || 0
-  const menuButton = typeof uni.getMenuButtonBoundingClientRect === 'function'
-    ? uni.getMenuButtonBoundingClientRect()
-    : null
-  if (menuButton && menuButton.top) {
-    const padding = menuButton.top - statusBarHeight.value
-    navBarHeight.value = menuButton.height + padding * 2
-  } else {
-    navBarHeight.value = 44
-  }
-})
-
 onLoad((options) => {
   if (options && options.category !== undefined && options.category !== null && options.category !== '') {
     const next = Number(options.category)
@@ -323,54 +280,17 @@ onReachBottom(() => {
   background-color: var(--bg-page);
 }
 
-.notification-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--spacing-md);
-  background-color: var(--bg-page);
-}
-
-.notification-nav__left,
-.notification-nav__right {
-  width: 120rpx;
-  display: flex;
-  align-items: center;
-}
-
-.notification-nav__right {
-  justify-content: flex-end;
-}
-
-.notification-nav__right.is-disabled {
-  opacity: 0.5;
-}
-
-.notification-nav__right.is-disabled .notification-nav__action {
-  color: var(--text-placeholder);
-}
-
-.notification-nav__close {
-  font-size: 48rpx;
-  color: var(--text-secondary);
-}
-
-.notification-nav__title {
-  font-size: var(--font-lg);
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.notification-nav__action {
-  font-size: var(--font-md);
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
 .notification-tabs {
   display: flex;
+  align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm);
+}
+
+.notification-tabs__inner {
+  display: flex;
+  flex: 1;
+  gap: var(--spacing-sm);
 }
 
 .notification-tab {
@@ -391,6 +311,21 @@ onReachBottom(() => {
 }
 
 .notification-tab.is-active .notification-tab__text {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.notification-tabs__clear {
+  flex-shrink: 0;
+  padding: 10rpx 16rpx;
+}
+
+.notification-tabs__clear.is-disabled {
+  opacity: 0.4;
+}
+
+.notification-tabs__clear-text {
+  font-size: var(--font-sm);
   color: var(--primary-color);
   font-weight: 600;
 }

@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qingyuan.secondhand.common.context.UserContext;
-import com.qingyuan.secondhand.common.enums.NotificationCategory;
 import com.qingyuan.secondhand.common.enums.NotificationType;
 import com.qingyuan.secondhand.common.exception.BusinessException;
 import com.qingyuan.secondhand.entity.Notification;
@@ -17,8 +16,9 @@ import com.qingyuan.secondhand.vo.FollowerNotificationVO;
 import com.qingyuan.secondhand.vo.NotificationVO;
 import com.qingyuan.secondhand.vo.UnreadCountVO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.StringUtils;
 
 import java.util.Map;
@@ -155,26 +155,17 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         if (userId == null) {
             throw new BusinessException("未登录");
         }
-        Long totalCount = notificationMapper.selectCount(new LambdaQueryWrapper<Notification>()
-                .eq(Notification::getUserId, userId)
-                .eq(Notification::getIsRead, 0));
-        Long tradeCount = notificationMapper.selectCount(new LambdaQueryWrapper<Notification>()
-                .eq(Notification::getUserId, userId)
-                .eq(Notification::getIsRead, 0)
-                .eq(Notification::getCategory, NotificationCategory.TRANSACTION.getCode()));
-        Long systemCount = notificationMapper.selectCount(new LambdaQueryWrapper<Notification>()
-                .eq(Notification::getUserId, userId)
-                .eq(Notification::getIsRead, 0)
-                .eq(Notification::getCategory, NotificationCategory.SYSTEM.getCode()));
-        UnreadCountVO vo = new UnreadCountVO();
-        vo.setTrade(tradeCount == null ? 0L : tradeCount);
-        vo.setSystem(systemCount == null ? 0L : systemCount);
-        vo.setTotal(totalCount == null ? 0L : totalCount);
+        UnreadCountVO vo = notificationMapper.selectUnreadCountByUserId(userId);
+        if (vo == null) {
+            vo = new UnreadCountVO();
+            vo.setTotal(0L);
+            vo.setTrade(0L);
+            vo.setSystem(0L);
+        }
         return vo;
     }
 
     @Override
-    @Async
     public void send(Long userId, NotificationType type, Map<String, String> params, Long relatedId, Integer relatedType, Integer category) {
         if (type == null) {
             throw new BusinessException("消息类型不能为空");
@@ -184,7 +175,6 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
     }
 
     @Override
-    @Async
     public void send(Long userId, Integer type, String title, String content, Long relatedId, Integer relatedType, Integer category) {
         validateSend(userId, type, title, content, relatedType, category);
         Notification notification = new Notification();
@@ -196,14 +186,20 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         notification.setRelatedType(relatedType);
         notification.setIsRead(0);
         notification.setCategory(category);
-        int inserted = notificationMapper.insert(notification);
-        if (inserted <= 0) {
-            throw new BusinessException("发送通知失败");
+        Runnable insertAction = () -> notificationMapper.insert(notification);
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    insertAction.run();
+                }
+            });
+        } else {
+            insertAction.run();
         }
     }
 
     @Override
-    @Async
     public void sendNotification(Long userId, Integer type, String content) {
         send(userId, type, content, content, null, null, 1);
     }

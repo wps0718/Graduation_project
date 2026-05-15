@@ -132,6 +132,7 @@ import { get, post, uploadFile } from '@/utils/request'
 import { resolveImageUrl } from '@/utils/image'
 import { useAppStore } from '@/store/app'
 import { CONDITION_LEVELS } from '@/utils/constant'
+import { showToast } from '@/utils/nav'
 
 const appStore = useAppStore()
 const maxImages = 9
@@ -182,10 +183,6 @@ const meetingLabel = computed(() => {
   const found = meetingPointList.value.find(item => item.id === form.value.meetingPointId)
   return found ? found.name : '面交地点'
 })
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
 
 async function loadProductDetail() {
   if (!productId.value) {

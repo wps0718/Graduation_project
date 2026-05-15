@@ -39,14 +39,11 @@
 import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { get } from '@/utils/request'
+import { showToast } from '@/utils/nav'
 
 const loading = ref(false)
 const pendingRecord = ref(null)
 const verifiedRecord = ref(null)
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
 
 function pickLatest(list, status) {
   return list.find((item) => item.status === status) || null

@@ -93,6 +93,7 @@ import { onLoad } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
 import { useUserStore } from '@/store'
 import Price from '@/components/price/price.vue'
+import { showToast, ensureLogin } from '@/utils/nav'
 
 const userStore = useUserStore()
 
@@ -190,18 +191,6 @@ function normalizeReview(raw, currentId, index) {
     content: (raw && raw.content) || '',
     isAuto: (raw && (raw.isAuto ?? raw.is_auto)) || false
   }
-}
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
-function ensureLogin() {
-  if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login-sub/login/login' })
-    return false
-  }
-  return true
 }
 
 function selectStar(key, value) {

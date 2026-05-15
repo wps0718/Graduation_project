@@ -303,6 +303,7 @@ class ChatMessageServiceImplTest {
         Long userId = 10001L;
         String sessionKey = "10001_10002_1";
 
+        when(chatMessageMapper.countUnread(userId, sessionKey)).thenReturn(5);
         when(chatMessageMapper.markAsRead(userId, sessionKey)).thenReturn(5);
         when(chatSessionService.calculateUnreadTotal(userId)).thenReturn(10);
 

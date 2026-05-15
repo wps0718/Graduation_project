@@ -44,7 +44,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private final ObjectMapper objectMapper;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Long saveAndPushMessage(Long senderId, ChatPayload payload) {
         if (senderId == null) {
             throw new BusinessException("发送者不能为空");
@@ -91,7 +91,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> getMessageHistory(String sessionKey, Integer page, Integer pageSize) {
         Long currentUserId = UserContext.getCurrentUserId();
         if (currentUserId == null) {
@@ -182,7 +182,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void sendSystemMessage(String sessionKey, Long senderId, Long receiverId, Integer msgType, String content) {
         if (!StringUtils.hasText(sessionKey)) {
             throw new BusinessException("sessionKey不能为空");
@@ -229,7 +229,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Long sendMessage(com.qingyuan.secondhand.dto.ChatMessageSendDTO dto) {
         Long currentUserId = UserContext.getCurrentUserId();
         if (currentUserId == null) {

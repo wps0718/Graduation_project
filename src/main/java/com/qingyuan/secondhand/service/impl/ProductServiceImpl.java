@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.constant.RedisConstant;
 import com.qingyuan.secondhand.common.context.UserContext;
@@ -48,6 +47,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.concurrent.TimeUnit;
 
+import static com.qingyuan.secondhand.common.util.ImageJsonUtil.parseCoverImage;
+import static com.qingyuan.secondhand.common.util.ImageJsonUtil.parseImages;
+import static com.qingyuan.secondhand.common.util.PhoneUtil.maskPhone;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -64,6 +67,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     private final CollegeMapper collegeMapper;
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void publishProduct(ProductPublishDTO dto) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -221,6 +225,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void offShelf(Long productId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -425,6 +430,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void approveProduct(Long productId) {
         if (productId == null) {
             throw new BusinessException("商品ID不能为空");
@@ -474,6 +480,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void rejectProduct(Long productId, String rejectReason) {
         if (productId == null) {
             throw new BusinessException("商品ID不能为空");
@@ -512,7 +519,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void batchApproveProducts(List<Long> productIds) {
         if (productIds == null || productIds.isEmpty()) {
             throw new BusinessException("商品ID不能为空");
@@ -723,11 +730,6 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         }
     }
 
-    private String maskPhone(String phone) {
-        if (phone == null || phone.length() < 7) return phone;
-        return phone.substring(0, 3) + "****" + phone.substring(phone.length() - 4);
-    }
-
     private String maskRealName(String realName) {
         if (realName == null || realName.isEmpty()) return null;
         int len = realName.length();
@@ -763,20 +765,4 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         }
     }
 
-    private List<String> parseImages(String imagesJson) {
-        if (!StringUtils.hasText(imagesJson)) {
-            return List.of();
-        }
-        try {
-            return objectMapper.readValue(imagesJson, new TypeReference<List<String>>() {
-            });
-        } catch (Exception e) {
-            return List.of();
-        }
-    }
-
-    private String parseCoverImage(String imagesJson) {
-        List<String> images = parseImages(imagesJson);
-        return images.isEmpty() ? null : images.get(0);
-    }
 }

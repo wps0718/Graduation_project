@@ -267,6 +267,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { getOrderPage, getOrderDetail } from '@/api/order'
+import { getImageUrl } from '@/utils/baseUrl'
 
 // ==================== 数据定义 ====================
 
@@ -368,11 +369,6 @@ const openDetail = async (row) => {
  * @param {string} path - 图片路径
  * @returns {string} 完整URL
  */
-const getImageUrl = (path) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  return `http://localhost:8080${path.startsWith('/') ? '' : '/'}${path}`
-}
 
 /**
  * 时间格式化（东八区）

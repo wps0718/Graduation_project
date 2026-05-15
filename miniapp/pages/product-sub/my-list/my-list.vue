@@ -290,7 +290,7 @@ const sortOptions = [
   { label: '最新发布', sortBy: 'time', order: '' },
   { label: '价格从低到高', sortBy: 'price', order: 'asc' },
   { label: '价格从高到低', sortBy: 'price', order: 'desc' },
-  { label: '浏览量最多', sortBy: 'time', order: '' },
+  { label: '浏览量最多', sortBy: 'views', order: '' },
 ]
 const currentSortIndex = ref(0)
 const showSortMenu = ref(false)
@@ -401,7 +401,7 @@ function onSheetAction(action) {
   const item = sheetTarget.value
   if (!item) return
   if (action === '编辑') {
-    uni.navigateTo({ url: `/pages/product/edit/edit?id=${item.id}` })
+    uni.navigateTo({ url: `/pages/product-sub/edit/edit?id=${item.id}` })
   } else if (action === '下架') {
     handleOffShelf(item)
   } else if (action === '上架') {
@@ -544,11 +544,11 @@ function formatTime(timeStr) {
 }
 
 function goDetail(id) {
-  uni.navigateTo({ url: `/pages/product/detail/detail?id=${id}` })
+  uni.navigateTo({ url: `/pages/product-sub/detail/detail?id=${id}` })
 }
 
 function goPublish() {
-  uni.switchTab({ url: '/pages/publish/publish' })
+  uni.switchTab({ url: '/pages/product/publish/publish' })
 }
 
 function getStatusText(status) {

@@ -40,7 +40,7 @@ public class FollowServiceImpl implements FollowService {
     private final NotificationService notificationService;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void follow(Long targetUserId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -97,7 +97,7 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void unfollow(Long targetUserId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {

@@ -48,7 +48,7 @@
             o.create_time,
             o.product_id,
             p.title AS product_title,
-            JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]')) AS product_cover_image,
+            SUBSTRING_INDEX(SUBSTRING_INDEX(p.images, '"', 2), '"', -1) AS product_cover_image,
             <if test="role == 'buyer'">
                 o.seller_id AS other_user_id,
                 u.nick_name AS other_user_nick_name,
@@ -131,7 +131,7 @@
             p.title AS product_title,
             p.description AS product_description,
             p.images AS product_images_json,
-            JSON_UNQUOTE(JSON_EXTRACT(p.images, '$[0]')) AS product_cover_image,
+            SUBSTRING_INDEX(SUBSTRING_INDEX(p.images, '"', 2), '"', -1) AS product_cover_image,
             p.status AS product_status,
             cat.name AS product_category_name,
             p.condition_level AS product_condition_level,

@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "小程序-分类")
 @RestController
 @RequestMapping("/mini/category")
 @RequiredArgsConstructor

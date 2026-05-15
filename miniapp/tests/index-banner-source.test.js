@@ -23,8 +23,8 @@ async function run() {
 
   runTest('index page defines LOCAL_BANNERS with required webp paths', () => {
     assert.ok(/const\s+LOCAL_BANNERS\s*=\s*\[/.test(content))
-    assert.ok(/\/static\/pic\/推广（南海北）\.webp/.test(content))
-    assert.ok(/\/static\/pic\/推广（广州）\.webp/.test(content))
+    assert.ok(/\/static\/pic\/推广（南海北）\.png/.test(content))
+    assert.ok(/\/static\/pic\/推广（广州）\.png/.test(content))
   })
 
   runTest('loadBanners sets local banners first then uses api as fallback', () => {

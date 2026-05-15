@@ -56,14 +56,11 @@ import { onLoad } from '@dcloudio/uni-app'
 import { get } from '@/utils/request'
 import { AUTH_STATUS_TEXT } from '@/utils/constant'
 import { resolveImageUrl } from '@/utils/image'
+import { showToast } from '@/utils/nav'
 
 const loading = ref(false)
 const detail = ref(null)
 const historyId = ref(null)
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
 
 function formatTime(value) {
   if (!value) return ''

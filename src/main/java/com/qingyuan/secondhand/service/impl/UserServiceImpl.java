@@ -28,6 +28,7 @@ import com.qingyuan.secondhand.vo.UserInfoVO;
 import com.qingyuan.secondhand.vo.UserProfileVO;
 import com.qingyuan.secondhand.vo.UserStatsVO;
 import com.fasterxml.jackson.core.type.TypeReference;
+import static com.qingyuan.secondhand.common.util.ImageJsonUtil.parseCoverImage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,19 +98,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             updateById(user);
         }
 
-        LoginVO vo = new LoginVO();
-        vo.setUserId(user.getId());
-        vo.setIsNew(isNew);
-        vo.setAuthStatus(user.getAuthStatus());
-        vo.setNickName(user.getNickName());
-        vo.setAvatarUrl(user.getAvatarUrl());
-        vo.setDeactivating(UserStatus.DEREGISTERING.getCode().equals(user.getStatus()));
-        Integer agreementAccepted = user.getAgreementAccepted();
-        vo.setAgreementAccepted(agreementAccepted == null ? 0 : agreementAccepted);
-
-        String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId(), "type", "mini"));
-        vo.setToken(token);
-        return vo;
+        return buildLoginVO(user, isNew);
     }
 
     @Override
@@ -160,19 +149,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setUpdateTime(now);
         updateById(user);
 
-        LoginVO vo = new LoginVO();
-        vo.setUserId(user.getId());
-        vo.setIsNew(false);
-        vo.setAuthStatus(user.getAuthStatus());
-        vo.setNickName(user.getNickName());
-        vo.setAvatarUrl(user.getAvatarUrl());
-        vo.setDeactivating(UserStatus.DEREGISTERING.getCode().equals(user.getStatus()));
-        Integer agreementAccepted = user.getAgreementAccepted();
-        vo.setAgreementAccepted(agreementAccepted == null ? 0 : agreementAccepted);
-
-        String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId(), "type", "mini"));
-        vo.setToken(token);
-        return vo;
+        return buildLoginVO(user, false);
     }
 
     @Override
@@ -245,19 +222,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setUpdateTime(now);
         updateById(user);
 
-        LoginVO vo = new LoginVO();
-        vo.setUserId(user.getId());
-        vo.setIsNew(isNew);
-        vo.setAuthStatus(user.getAuthStatus());
-        vo.setNickName(user.getNickName());
-        vo.setAvatarUrl(user.getAvatarUrl());
-        vo.setDeactivating(UserStatus.DEREGISTERING.getCode().equals(user.getStatus()));
-        Integer agreementAccepted = user.getAgreementAccepted();
-        vo.setAgreementAccepted(agreementAccepted == null ? 0 : agreementAccepted);
-
-        String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId(), "type", "mini"));
-        vo.setToken(token);
-        return vo;
+        return buildLoginVO(user, isNew);
     }
 
     @Override
@@ -472,22 +437,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return days + "天前来过";
     }
 
-    private String parseCoverImage(String imagesJson) {
-        if (!StringUtils.hasText(imagesJson)) {
-            return null;
-        }
-        try {
-            List<String> images = objectMapper.readValue(imagesJson, new TypeReference<List<String>>() {
-            });
-            if (images == null || images.isEmpty()) {
-                return null;
-            }
-            return images.get(0);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     private String resolveClientIpRegion() {
         HttpServletRequest request = getCurrentRequest();
         if (request == null) {
@@ -554,7 +503,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deactivateAccount() {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -770,6 +719,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         result.put("openid", resp.get("openid"));
         result.put("session_key", resp.get("session_key"));
         return result;
+    }
+
+    private LoginVO buildLoginVO(User user, boolean isNew) {
+        LoginVO vo = new LoginVO();
+        vo.setUserId(user.getId());
+        vo.setIsNew(isNew);
+        vo.setAuthStatus(user.getAuthStatus());
+        vo.setNickName(user.getNickName());
+        vo.setAvatarUrl(user.getAvatarUrl());
+        vo.setDeactivating(UserStatus.DEREGISTERING.getCode().equals(user.getStatus()));
+        Integer agreementAccepted = user.getAgreementAccepted();
+        vo.setAgreementAccepted(agreementAccepted == null ? 0 : agreementAccepted);
+        String token = jwtUtil.createToken(user.getId(), Map.of("userId", user.getId(), "type", "mini"));
+        vo.setToken(token);
+        return vo;
     }
 
     private Long parseLongOrNull(String value) {

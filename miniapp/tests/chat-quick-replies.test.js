@@ -26,7 +26,7 @@ function extractQuickReplies(content) {
 }
 
 async function run() {
-  const detailContent = readFile('../pages/chat/detail/detail.vue')
+  const detailContent = readFile('../pages/chat-sub/detail/detail.vue')
   const constantContent = readFile('../utils/constant.js')
 
   runTest('chat detail uses QUICK_REPLIES constant', () => {

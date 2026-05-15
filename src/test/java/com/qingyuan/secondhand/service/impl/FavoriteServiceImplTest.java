@@ -189,8 +189,6 @@ class FavoriteServiceImplTest {
         Page<FavoriteListVO> page = new Page<>(1, 10, 1);
         page.setRecords(List.of(vo));
         Mockito.when(favoriteMapper.getFavoriteList(Mockito.any(Page.class), Mockito.eq(10001L))).thenReturn(page);
-        Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(TypeReference.class)))
-                .thenReturn(List.of("img1", "img2"));
 
         UserContext.setCurrentUserId(10001L);
         FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationMapper, notificationService);

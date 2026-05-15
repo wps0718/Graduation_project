@@ -59,6 +59,7 @@ import { get, post } from '@/utils/request'
 import { useUserStore } from '@/store'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
+import { showToast, goBack } from '@/utils/nav'
 
 const userStore = useUserStore()
 
@@ -89,18 +90,6 @@ onReachBottom(() => {
   }
 })
 
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
-function goBack() {
-  const pages = getCurrentPages()
-  if (!pages || pages.length <= 1) {
-    uni.switchTab({ url: '/pages/index/index' })
-    return
-  }
-  uni.navigateBack()
-}
 
 function goSettings() {
   uni.navigateTo({ url: '/pages/user-sub/settings/settings' })

@@ -2,6 +2,7 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/store/user'
 import { getToken, removeToken } from '@/utils/auth'
+import { BASE_URL } from '@/utils/baseUrl'
 
 /**
  * Axios 请求封装
@@ -10,8 +11,7 @@ import { getToken, removeToken } from '@/utils/auth'
 
 // 创建 axios 实例
 const request = axios.create({
-  // 基础URL，根据实际情况修改
-  baseURL: 'http://localhost:8080',
+  baseURL: BASE_URL,
   // 请求超时时间：10秒
   timeout: 10000,
   // 请求头配置

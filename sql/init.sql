@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS `user` (
   UNIQUE KEY `idx_open_id` (`open_id`),
   UNIQUE KEY `idx_phone` (`phone`),
   KEY `idx_campus_id` (`campus_id`),
-  KEY `idx_status` (`status`)
+  KEY `idx_status` (`status`),
+  KEY `idx_auth_status` (`auth_status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 -- -----------------------------------------------------
 -- 1.1 用户关注表（user_follow）
@@ -263,7 +264,8 @@ CREATE TABLE IF NOT EXISTS `trade_order` (
   KEY `idx_product_id` (`product_id`),
   KEY `idx_status` (`status`),
   KEY `idx_expire_time` (`expire_time`),
-  KEY `idx_confirm_deadline` (`confirm_deadline`)
+  KEY `idx_confirm_deadline` (`confirm_deadline`),
+  KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='交易订单表';
 -- -----------------------------------------------------
 -- 12. 评价表（review）
@@ -343,7 +345,8 @@ CREATE TABLE IF NOT EXISTS `banner` (
   `update_time` datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),
   KEY `idx_status` (`status`),
-  KEY `idx_campus_id` (`campus_id`)
+  KEY `idx_campus_id` (`campus_id`),
+  KEY `idx_status_campus` (`status`, `campus_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Banner表';
 -- -----------------------------------------------------
 -- 15. 搜索热词表（search_keyword）
@@ -374,7 +377,8 @@ CREATE TABLE IF NOT EXISTS `notice` (
   `create_time` datetime DEFAULT NULL COMMENT '创建时间',
   `update_time` datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  KEY `idx_status` (`status`)
+  KEY `idx_status` (`status`),
+  KEY `idx_type` (`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统公告表';
 -- -----------------------------------------------------
 -- 17. 会话-商品关联表（chat_session）

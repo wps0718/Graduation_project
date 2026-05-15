@@ -294,6 +294,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getReportPage, getReportDetail, handleReport } from '@/api/report'
+import { getImageUrl } from '@/utils/baseUrl'
 
 // Tab 状态
 const activeTab = ref('product') // 'product' | 'user'
@@ -417,15 +418,6 @@ const onHandle = async () => {
   } finally {
     handling.value = false
   }
-}
-
-/**
- * 图片URL处理
- */
-const getImageUrl = (path) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  return `http://localhost:8080${path.startsWith('/') ? '' : '/'}${path}`
 }
 
 /**

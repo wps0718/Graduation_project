@@ -4,6 +4,7 @@ import com.qingyuan.secondhand.common.result.Result;
 import com.qingyuan.secondhand.dto.FollowUserDTO;
 import com.qingyuan.secondhand.service.FollowService;
 import com.qingyuan.secondhand.vo.FollowStatsVO;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "小程序-关注")
 @RestController
 @RequestMapping("/mini/follow")
 @RequiredArgsConstructor

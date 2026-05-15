@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.iml
+
+# Node
+**/node_modules
+**/.nuxt
+**/.output
+
+# Build outputs
+admin/dist
+target/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env files
+**/.env*
+!**/.env.example
+
+# Docker
+docker-compose.yml
+Dockerfile
+**/Dockerfile
+
+# Docs & misc
+*.md
+LICENSE
+sql/

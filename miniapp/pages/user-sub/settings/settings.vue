@@ -50,22 +50,11 @@ import { onShow } from '@dcloudio/uni-app'
 import { post } from '@/utils/request'
 import { useUserStore } from '@/store'
 import StatusTag from '@/components/status-tag/status-tag.vue'
+import { showToast, ensureLogin } from '@/utils/nav'
 
 const userStore = useUserStore()
 
 const userInfo = computed(() => userStore.userInfo || {})
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
-function ensureLogin() {
-  if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login-sub/login/login' })
-    return false
-  }
-  return true
-}
 
 function goEditProfile() {
   if (!ensureLogin()) return

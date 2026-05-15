@@ -36,12 +36,12 @@ async function run() {
     const detail = {
       id: 10086,
       title: 'iPad Air 4 64G 天蓝色',
-      images: ['/static/pic/耳机.png']
+      images: ['/static/pic/placeholder.png']
     }
     const payload = buildSharePayload(detail)
     assert.strictEqual(payload.title, detail.title)
-    assert.strictEqual(payload.path, '/pages/product/detail/detail?id=10086')
-    assert.strictEqual(payload.imageUrl, '/static/pic/耳机.png')
+    assert.strictEqual(payload.path, '/pages/product-sub/detail/detail?id=10086')
+    assert.strictEqual(payload.imageUrl, '/static/pic/placeholder.png')
   })
 }
 

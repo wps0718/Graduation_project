@@ -19,6 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "管理端-校区")
 @RestController
 @RequestMapping("/admin/campus")
 @RequiredArgsConstructor

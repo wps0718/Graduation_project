@@ -44,8 +44,7 @@ class ReviewServiceImplTest {
         Mockito.when(reviewMapper.selectOne(Mockito.any(LambdaQueryWrapper.class))).thenReturn(null);
         Mockito.when(reviewMapper.insert(Mockito.any(Review.class))).thenReturn(1);
         Mockito.when(reviewMapper.selectCount(Mockito.any(LambdaQueryWrapper.class))).thenReturn(1L);
-        Mockito.when(reviewMapper.selectList(Mockito.any(LambdaQueryWrapper.class)))
-                .thenReturn(List.of(buildReview(1L, 10001L, 10002L, 5, 4, 3, "不错", 0)));
+        Mockito.when(reviewMapper.calculateAverageScore(10002L)).thenReturn(new BigDecimal("4.0"));
 
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
 
@@ -159,8 +158,7 @@ class ReviewServiceImplTest {
         Mockito.when(reviewMapper.selectOne(Mockito.any(LambdaQueryWrapper.class))).thenReturn(null);
         Mockito.when(reviewMapper.insert(Mockito.any(Review.class))).thenReturn(1);
         Mockito.when(reviewMapper.selectCount(Mockito.any(LambdaQueryWrapper.class))).thenReturn(2L);
-        Mockito.when(reviewMapper.selectList(Mockito.any(LambdaQueryWrapper.class)))
-                .thenReturn(List.of(buildReview(1L, 10001L, 10002L, 5, 5, 5, null, 0)));
+        Mockito.when(reviewMapper.calculateAverageScore(10002L)).thenReturn(new BigDecimal("5.0"));
 
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
         Mockito.when(tradeOrderMapper.updateById(Mockito.any(TradeOrder.class))).thenReturn(1);
@@ -188,8 +186,7 @@ class ReviewServiceImplTest {
         Mockito.when(reviewMapper.selectOne(Mockito.any(LambdaQueryWrapper.class))).thenReturn(null);
         Mockito.when(reviewMapper.insert(Mockito.any(Review.class))).thenReturn(1);
         Mockito.when(reviewMapper.selectCount(Mockito.any(LambdaQueryWrapper.class))).thenReturn(1L);
-        Mockito.when(reviewMapper.selectList(Mockito.any(LambdaQueryWrapper.class)))
-                .thenReturn(List.of(buildReview(1L, 10001L, 10002L, 4, 5, 4, null, 0)));
+        Mockito.when(reviewMapper.calculateAverageScore(10002L)).thenReturn(new BigDecimal("4.3"));
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
@@ -209,8 +206,7 @@ class ReviewServiceImplTest {
         Mockito.when(reviewMapper.selectOne(Mockito.any(LambdaQueryWrapper.class))).thenReturn(null);
         Mockito.when(reviewMapper.insert(Mockito.any(Review.class))).thenReturn(1);
         Mockito.when(reviewMapper.selectCount(Mockito.any(LambdaQueryWrapper.class))).thenReturn(1L);
-        Mockito.when(reviewMapper.selectList(Mockito.any(LambdaQueryWrapper.class)))
-                .thenReturn(List.of());
+        Mockito.when(reviewMapper.calculateAverageScore(10002L)).thenReturn(null);
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
 
         UserContext.setCurrentUserId(10001L);
@@ -236,11 +232,7 @@ class ReviewServiceImplTest {
         Mockito.when(reviewMapper.selectOne(Mockito.any(LambdaQueryWrapper.class))).thenReturn(null);
         Mockito.when(reviewMapper.insert(Mockito.any(Review.class))).thenReturn(1);
         Mockito.when(reviewMapper.selectCount(Mockito.any(LambdaQueryWrapper.class))).thenReturn(1L);
-        Mockito.when(reviewMapper.selectList(Mockito.any(LambdaQueryWrapper.class)))
-                .thenReturn(List.of(
-                        buildReview(1L, 10001L, 10002L, 4, 4, 5, null, 0),
-                        buildReview(2L, 10003L, 10002L, 5, 5, 5, null, 0)
-                ));
+        Mockito.when(reviewMapper.calculateAverageScore(10002L)).thenReturn(new BigDecimal("4.7"));
 
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
 

@@ -24,7 +24,7 @@
             p.meeting_point_id AS meetingPointId,
             c.name AS categoryName,
             ca.name AS campusName,
-            mp.name AS meetingPointName,
+            COALESCE(mp.name, p.meeting_point_text) AS meetingPointName,
             u.id AS sellerId,
             <!-- 重命名别名：sellerNickName -> publisherNickName -->
             u.nick_name AS publisherNickName,
@@ -125,6 +125,9 @@
             </when>
             <when test="sortBy == 'price' and order == 'desc'">
                 ORDER BY p.price DESC, p.create_time DESC
+            </when>
+            <when test="sortBy == 'views'">
+                ORDER BY p.view_count DESC, p.create_time DESC
             </when>
             <otherwise>
                 ORDER BY p.create_time DESC

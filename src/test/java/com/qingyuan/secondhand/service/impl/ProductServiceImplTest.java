@@ -276,9 +276,6 @@ class ProductServiceImplTest {
         Mockito.when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
         Mockito.when(valueOperations.setIfAbsent(Mockito.anyString(), Mockito.eq("1"), Mockito.eq(24L), Mockito.any()))
                 .thenReturn(true);
-        Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
-                .thenReturn(List.of("a.png", "b.png"));
-
         UserContext.setCurrentUserId(10001L);
         ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         ProductDetailVO result = service.getProductDetail(1L);
@@ -302,8 +299,6 @@ class ProductServiceImplTest {
         detail.setSellerId(200L);
         detail.setImagesJson("[\"a.png\"]");
         Mockito.when(productMapper.getProductDetailById(1L)).thenReturn(detail);
-        Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
-                .thenReturn(List.of("a.png"));
 
         ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         ProductDetailVO result = service.getProductDetail(1L);
@@ -357,8 +352,6 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.getProductList(Mockito.any(Page.class), Mockito.eq(1L), Mockito.eq(2L), Mockito.eq("手机"),
                 Mockito.eq(new BigDecimal("100")), Mockito.eq(new BigDecimal("500")), Mockito.eq("price_asc")))
                 .thenReturn(pageResult);
-        Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
-                .thenReturn(List.of("1.png", "2.png"));
 
         ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         IPage<ProductListVO> result = service.getProductList(1, 10, 1L, 2L, "手机",
@@ -405,8 +398,6 @@ class ProductServiceImplTest {
         Mockito.when(productMapper.getMyProductList(Mockito.any(Page.class), Mockito.eq(10001L), Mockito.eq(1),
                 Mockito.isNull(), Mockito.isNull(), Mockito.isNull()))
                 .thenReturn(pageResult);
-        Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
-                .thenReturn(List.of("1.png"));
 
         UserContext.setCurrentUserId(10001L);
         ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
@@ -768,12 +759,9 @@ class ProductServiceImplTest {
                 Mockito.isNull(),                  // endTime = null
                 Mockito.isNull()                   // sortBy = null
         )).thenReturn(pageResult);
-        
-        Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
-                .thenReturn(List.of("a.png"));
 
         ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
-        
+
         // Service 方法调用：需要完整的 10 个参数
         // (page, pageSize, status, categoryId, keyword, minPrice, maxPrice, beginTime, endTime, sortBy)
         IPage<AdminProductPageVO> result = service.getAdminProductPage(
@@ -829,9 +817,6 @@ class ProductServiceImplTest {
                 Mockito.eq(""), Mockito.isNull(), Mockito.isNull(),
                 Mockito.isNull(), Mockito.isNull(), Mockito.isNull()
         )).thenReturn(pageResult);
-
-        Mockito.when(objectMapper.readValue(Mockito.anyString(), Mockito.any(com.fasterxml.jackson.core.type.TypeReference.class)))
-                .thenReturn(List.of("a.png"));
 
         ProductServiceImpl service = new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate, productAsyncService, notificationService, null, null, null, null);
         IPage<AdminProductPageVO> result = service.getAdminProductPage(1, 10, null, null, "", null, null, null, null, null);
@@ -939,7 +924,7 @@ class ProductServiceImplTest {
 
         Assertions.assertEquals(1, result.getTotal());
         Assertions.assertEquals("TD20260419224310001", result.getRecords().get(0).getOrderNo());
-        Assertions.assertEquals("待面交", result.getRecords().get(0).getStatusText());
+        Assertions.assertEquals("待接单", result.getRecords().get(0).getStatusText());
         Assertions.assertNull(result.getRecords().get(0).getCancelByText());
     }
 

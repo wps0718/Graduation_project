@@ -34,6 +34,7 @@ import { PRODUCT_STATUS } from '@/utils/constant'
 import { useUserStore } from '@/store'
 import ProductCard from '@/components/product-card/product-card.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
+import { showToast, ensureLogin } from '@/utils/nav'
 
 const userStore = useUserStore()
 
@@ -43,18 +44,6 @@ const pageSize = 20
 const loading = ref(false)
 const loadingMore = ref(false)
 const hasMore = ref(true)
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
-function ensureLogin() {
-  if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login-sub/login/login' })
-    return false
-  }
-  return true
-}
 
 function isDisabled(item) {
   return item && (item.status === PRODUCT_STATUS.OFF_SHELF || item.status === PRODUCT_STATUS.SOLD)

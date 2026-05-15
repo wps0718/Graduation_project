@@ -225,6 +225,7 @@
 import { ref, reactive, nextTick, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete, Search, Refresh, Loading } from '@element-plus/icons-vue'
+import { getImageUrl } from '@/utils/baseUrl'
 import {
   getBannerPage,
   addBanner,
@@ -234,12 +235,6 @@ import {
   uploadBannerImage
 } from '@/api/banner'
 
-// ==================== 工具方法 ====================
-const getImageUrl = (path) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  return `http://localhost:8080${path.startsWith('/') ? '' : '/'}${path}`
-}
 
 // ==================== 校区选项 ====================
 const campusOptions = ref([])

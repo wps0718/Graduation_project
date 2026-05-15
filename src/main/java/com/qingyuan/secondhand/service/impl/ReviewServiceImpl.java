@@ -33,7 +33,7 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review> impleme
     private final NotificationService notificationService;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void submitReview(ReviewSubmitDTO dto) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -154,20 +154,11 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review> impleme
     }
 
     private BigDecimal calculateUserScore(Long targetId) {
-        List<Review> reviews = reviewMapper.selectList(new LambdaQueryWrapper<Review>()
-                .eq(Review::getTargetId, targetId));
-        if (reviews == null || reviews.isEmpty()) {
+        BigDecimal avg = reviewMapper.calculateAverageScore(targetId);
+        if (avg == null) {
             return BigDecimal.valueOf(5.0).setScale(1, RoundingMode.HALF_UP);
         }
-        BigDecimal total = BigDecimal.ZERO;
-        for (Review review : reviews) {
-            BigDecimal sum = BigDecimal.valueOf(review.getScoreDesc())
-                    .add(BigDecimal.valueOf(review.getScoreAttitude()))
-                    .add(BigDecimal.valueOf(review.getScoreExperience()));
-            BigDecimal average = sum.divide(BigDecimal.valueOf(3), 4, RoundingMode.HALF_UP);
-            total = total.add(average);
-        }
-        return total.divide(BigDecimal.valueOf(reviews.size()), 1, RoundingMode.HALF_UP);
+        return avg.setScale(1, RoundingMode.HALF_UP);
     }
 
     private void fillMyReview(ReviewDetailVO vo, Review review) {

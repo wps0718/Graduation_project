@@ -94,14 +94,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onBeforeUnmount } from 'vue'
 import { post } from '@/utils/request'
 import { useUserStore } from '@/store'
+import { showToast, goBack } from '@/utils/nav'
+import { useNavBar } from '@/utils/useNavBar'
 
 const userStore = useUserStore()
 
-const statusBarHeight = ref(0)
-const navBarHeight = ref(44)
+const { statusBarHeight, navBarHeight } = useNavBar()
 
 const phone = ref('')
 const code = ref('')
@@ -114,10 +115,6 @@ const agreed = ref(false)
 function sanitizeDigits(value, maxLen) {
   const digits = String(value || '').replace(/\D/g, '')
   return digits.slice(0, maxLen)
-}
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
 }
 
 function isValidPhone(value) {
@@ -222,9 +219,6 @@ async function onWeChatLogin() {
   await finishLogin(data)
 }
 
-function goBack() {
-  uni.navigateBack()
-}
 
 function goAccountLogin() {
   uni.redirectTo({ url: '/pages/login-sub/login/login' })
@@ -237,20 +231,6 @@ function goAgreement() {
 function goPrivacy() {
   uni.navigateTo({ url: '/pages/login-sub/privacy/privacy' })
 }
-
-onMounted(() => {
-  const info = uni.getSystemInfoSync()
-  statusBarHeight.value = (info && info.statusBarHeight) || 0
-  const menuButton = typeof uni.getMenuButtonBoundingClientRect === 'function'
-    ? uni.getMenuButtonBoundingClientRect()
-    : null
-  if (menuButton && menuButton.top) {
-    const padding = menuButton.top - statusBarHeight.value
-    navBarHeight.value = menuButton.height + padding * 2
-  } else {
-    navBarHeight.value = 44
-  }
-})
 
 onBeforeUnmount(() => {
   stopCountdown()

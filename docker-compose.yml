@@ -1,0 +1,45 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: secondhand-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: secondhand
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  redis:
+    image: redis:7-alpine
+    container_name: secondhand-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build: .
+    container_name: secondhand-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - redis
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SERVER_PORT: 8080
+      DB_URL: jdbc:mysql://db:3306/secondhand?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      DB_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - uploads_data:/app/uploads
+
+volumes:
+  mysql_data:
+  redis_data:
+  uploads_data:

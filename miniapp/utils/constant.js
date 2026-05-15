@@ -1,4 +1,11 @@
-export const BASE_URL = 'http://localhost:8080'
+// #ifdef H5
+const isDev = process.env.NODE_ENV === 'development'
+// #endif
+// #ifndef H5
+const isDev = false
+// #endif
+
+export const BASE_URL = isDev ? 'http://localhost:8080' : 'http://localhost:8080'
 
 export const CONDITION_LEVELS = [
   { value: 1, label: '全新' },

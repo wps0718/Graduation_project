@@ -1,40 +1,6 @@
 <template>
   <view class="chat-detail">
-    <!-- ====== 固定顶部区域 ====== -->
-    <view class="chat-header">
-      <view :style="{ height: `${statusBarHeight}px` }"></view>
-      <view class="chat-nav" :style="{ height: `${navBarHeight}px` }">
-        <view class="chat-nav__left" @click="goBack">
-          <text class="chat-nav__back">‹</text>
-        </view>
-        <view
-          class="chat-nav__center"
-          :style="{ paddingRight: `${navRightGap}px`, '--nav-right-gap': `${navRightGap}px` }"
-        >
-          <view
-            class="chat-nav__capsule"
-            @click="goPeerProfile"
-            @longpress="openMore"
-            @longtap="openMore"
-          >
-            <UserAvatar
-              :avatar-url="peer.avatarUrl"
-              :nick-name="peer.nickName"
-              :auth-status="peer.authStatus"
-              size="sm"
-            />
-            <view class="chat-nav__info">
-              <text class="chat-nav__name">{{ peer.nickName || '对方' }}</text>
-              <text class="chat-nav__status">
-                <text class="status-dot" :class="peerOnline ? 'status-dot--on' : ''"></text>
-                {{ peerStatusText }}
-              </text>
-            </view>
-          </view>
-        </view>
-      </view>
-
-      <!-- 商品信息栏 -->
+    <!-- ====== 顶部商品信息栏 ====== -->
       <view v-if="product" class="chat-product">
         <image class="chat-product__image" :src="product.coverImage" mode="aspectFill" @click="goProductDetail" />
         <view class="chat-product__info" @click="goProductDetail">
@@ -81,7 +47,6 @@
           </view>
         </view>
       </view>
-    </view>
 
     <!-- ====== 消息列表（独立滚动） ====== -->
     <scroll-view
@@ -108,44 +73,20 @@
           <text class="chat-system__text">{{ item.content }}</text>
         </view>
 
-        <view v-else-if="item.type === 'order-card'" class="chat-order-card">
-          <view class="chat-order-card__inner">
-            <text class="chat-order-card__icon">{{ getOrderCardIcon(item) }}</text>
-            <view class="chat-order-card__body">
-              <text class="chat-order-card__title">{{ getOrderCardTitle(item) }}</text>
-              <view class="chat-order-card__details">
-                <text class="chat-order-card__detail">订单号：{{ item.orderNo }}</text>
-                <text class="chat-order-card__detail">成交价：¥{{ item.orderPrice }}</text>
-                <text v-if="item.orderMeetingPoint" class="chat-order-card__detail">面交地点：{{ item.orderMeetingPoint }}</text>
-              </view>
-              <text class="chat-order-card__hint">{{ getOrderCardHint(item) }}</text>
-              <!-- status=1 待接单：卖家确认发货，买家等待 -->
-              <view v-if="item.orderStatus === 1 && item.sellerId === selfId" class="chat-order-card__action" @click="handleConfirmShip(item)">
-                <text class="chat-order-card__action-text">确认发货</text>
-              </view>
-              <view v-else-if="item.orderStatus === 1 && item.buyerId === selfId" class="chat-order-card__waiting">
-                <text class="chat-order-card__waiting-text">⏳ 等待卖家确认发货</text>
-              </view>
-              <!-- status=2 待面交：双方各自确认 -->
-              <view v-else-if="item.orderStatus === 2 && item.sellerId === selfId && !item.sellerConfirmed" class="chat-order-card__action" @click="handleSellerConfirmReceive(item)">
-                <text class="chat-order-card__action-text">已交付</text>
-              </view>
-              <view v-else-if="item.orderStatus === 2 && item.sellerId === selfId && item.sellerConfirmed" class="chat-order-card__waiting">
-                <text class="chat-order-card__waiting-text">✓ 已确认交付，等待买家确认</text>
-              </view>
-              <view v-else-if="item.orderStatus === 2 && item.buyerId === selfId && !item.buyerConfirmed" class="chat-order-card__action" @click="handleBuyerConfirmReceive(item)">
-                <text class="chat-order-card__action-text">完成交易</text>
-              </view>
-              <view v-else-if="item.orderStatus === 2 && item.buyerId === selfId && item.buyerConfirmed" class="chat-order-card__waiting">
-                <text class="chat-order-card__waiting-text">✓ 已确认，等待卖家确认交付</text>
-              </view>
-            </view>
-          </view>
-        </view>
+        <OrderCard
+          v-else-if="item.type === 'order-card'"
+          :item="item"
+          :self-id="selfId"
+          @confirm-ship="handleConfirmShip"
+          @seller-confirm-receive="handleSellerConfirmReceive"
+          @buyer-confirm-receive="handleBuyerConfirmReceive"
+        />
 
         <view v-else class="chat-bubble" :class="{ 'is-self': item.isSelf }">
-          <view v-if="!item.isSelf" class="chat-bubble__avatar" @click="goPeerProfile">
+          <!-- 对方头像列（compact 时隐藏头像但保留占位） -->
+          <view v-if="!item.isSelf" class="chat-bubble__avatar-col" @click="goPeerProfile">
             <UserAvatar
+              v-if="!item.compact"
               :avatar-url="peer.avatarUrl"
               :nick-name="peer.nickName"
               :auth-status="peer.authStatus"
@@ -180,13 +121,16 @@
             </view>
           </view>
 
-          <UserAvatar
-            v-if="item.isSelf"
-            :avatar-url="selfUser.avatarUrl"
-            :nick-name="selfUser.nickName"
-            size="sm"
-            :show-auth="false"
-          />
+          <!-- 自己头像列（仅连续消息的最后一条显示） -->
+          <view v-if="item.isSelf" class="chat-bubble__avatar-col">
+            <UserAvatar
+              v-if="item.selfShowAvatar"
+              :avatar-url="selfUser.avatarUrl"
+              :nick-name="selfUser.nickName"
+              size="sm"
+              :show-auth="false"
+            />
+          </view>
         </view>
       </view>
     </scroll-view>
@@ -234,75 +178,17 @@
       </view>
     </view>
 
-    <!-- ====== 确认购买弹窗 ====== -->
-    <view v-if="showBuyModal" class="modal-mask" @click="closeBuyModal">
-      <view class="modal-content" @click.stop>
-        <view class="modal-header">
-          <text class="modal-title">确认购买</text>
-          <text class="modal-close" @click="closeBuyModal">✕</text>
-        </view>
-
-        <view class="modal-body">
-          <view class="modal-product">
-            <image class="modal-product__image" :src="product.coverImage" mode="aspectFill" />
-            <view class="modal-product__info">
-              <text class="modal-product__title">{{ product.title }}</text>
-              <text class="modal-product__price">原价：¥{{ product.price }}</text>
-            </view>
-          </view>
-
-          <view class="modal-field">
-            <text class="modal-field__label">成交价格</text>
-            <view class="modal-field__input-wrap">
-              <text class="modal-field__prefix">¥</text>
-              <input
-                class="modal-field__input"
-                v-model="buyForm.price"
-                type="digit"
-                placeholder="请输入协商后的价格"
-                placeholder-style="color: #ccc"
-              />
-            </view>
-          </view>
-
-          <view class="modal-field">
-            <text class="modal-field__label">面交地点</text>
-            <picker
-              :value="buyForm.meetingPointIdx"
-              :range="meetingPointNames"
-              @change="onMeetingPointChange"
-            >
-              <view class="modal-field__picker">
-                <text :class="{ 'is-placeholder': !buyForm.meetingPointText }">
-                  {{ buyForm.meetingPointText || '请选择面交地点' }}
-                </text>
-                <text class="modal-field__picker-arrow">▼</text>
-              </view>
-            </picker>
-          </view>
-
-          <view class="modal-field">
-            <text class="modal-field__label">备注说明</text>
-            <textarea
-              class="modal-field__textarea"
-              v-model="buyForm.remark"
-              placeholder="如约定的面交时间等"
-              placeholder-style="color: #ccc"
-              :maxlength="200"
-            />
-          </view>
-        </view>
-
-        <view class="modal-footer">
-          <view class="modal-btn modal-btn--cancel" @click="closeBuyModal">
-            <text>取消</text>
-          </view>
-          <view class="modal-btn modal-btn--confirm" :class="{ 'is-loading': submitting }" @click="submitBuy">
-            <text>{{ submitting ? '提交中...' : '确认购买' }}</text>
-          </view>
-        </view>
-      </view>
-    </view>
+    <BuyModal
+      :visible="showBuyModal"
+      :product="product"
+      :meeting-points="meetingPoints"
+      :form="buyForm"
+      :submitting="submitting"
+      @close="closeBuyModal"
+      @submit="submitBuy"
+      @meeting-point-change="onMeetingPointChange"
+      @update:form="buyForm = $event"
+    />
   </view>
 </template>
 
@@ -315,12 +201,14 @@ import { useUserStore } from '@/store'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import Price from '@/components/price/price.vue'
 import StatusTag from '@/components/status-tag/status-tag.vue'
+import { showToast, ensureLogin } from '@/utils/nav'
+import { connect as wsConnect, disconnect as wsDisconnect } from '@/utils/websocket'
+import { shouldShowTime, formatMessageTime, formatLastActive, parseActiveTime } from '@/utils/chat-time'
+import BuyModal from './buy-modal.vue'
+import OrderCard from './order-card.vue'
 
 const userStore = useUserStore()
 
-const statusBarHeight = ref(0)
-const navBarHeight = ref(44)
-const navRightGap = ref(0)
 const scrollHeight = ref(400)
 
 const peer = ref({})
@@ -331,7 +219,6 @@ const messages = ref([])
 const scrollIntoView = ref('')
 const inputValue = ref('')
 const orderCreated = ref(false)
-const pollingTimer = ref(null)
 const quickVisible = ref(true)
 
 // 确认购买弹窗
@@ -344,8 +231,6 @@ const buyForm = ref({
   meetingPointText: '',
   remark: ''
 })
-
-const meetingPointNames = computed(() => meetingPoints.value.map(m => m.name))
 
 const isBuyer = computed(() => {
   if (!product.value || !selfId.value) return false
@@ -407,111 +292,24 @@ const lastSelfMsgId = computed(() => {
 const displayMessages = computed(() => {
   const list = []
   let prev = null
-  messages.value.forEach((item) => {
+  const raw = messages.value
+  raw.forEach((item, index) => {
     const showTime = shouldShowTime(item, prev) ? formatMessageTime(item.time) : ''
     const showReadStatus = item.isSelf && item.id === lastSelfMsgId.value
-    // 紧凑模式：同一发送者且无时间标签
     const compact = prev && !showTime && item.from === prev.from
+    const next = raw[index + 1]
+    const selfShowAvatar = item.isSelf ? (!next || next.from !== item.from) : false
     list.push({
       ...item,
       showTime,
       showReadStatus,
-      compact
+      compact,
+      selfShowAvatar
     })
     prev = item
   })
   return list
 })
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
-function ensureLogin() {
-  if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login-sub/login/login' })
-    return false
-  }
-  return true
-}
-
-// 时间显示 + 发送者变化判断
-function shouldShowTime(current, prev) {
-  if (!prev) return true
-  if (current.from !== prev.from) return true
-  return current.time - prev.time > 5 * 60 * 1000
-}
-
-function formatMessageTime(timestamp) {
-  if (!timestamp) return ''
-  const time = new Date(timestamp)
-  const now = new Date()
-  const hour = `${time.getHours()}`.padStart(2, '0')
-  const minute = `${time.getMinutes()}`.padStart(2, '0')
-  const hm = `${hour}:${minute}`
-
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const yesterday = new Date(today.getTime() - 86400000)
-  const msgDay = new Date(time.getFullYear(), time.getMonth(), time.getDate())
-
-  if (msgDay >= today) return hm
-  if (msgDay >= yesterday) return `昨天 ${hm}`
-  if (time.getFullYear() === now.getFullYear()) {
-    return `${time.getMonth() + 1}月${time.getDate()}日 ${hm}`
-  }
-  return `${time.getFullYear()}年${time.getMonth() + 1}月${time.getDate()}日 ${hm}`
-}
-
-function formatLastActive(value) {
-  const time = typeof value === 'number' ? value : parseActiveTime(value)
-  if (!time) return '最近在线'
-  const diff = Date.now() - time
-  if (diff < 2 * 60 * 1000) return '刚刚在线'
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 60) return `最近在线 ${minutes}分钟`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `最近在线 ${hours}小时`
-  const days = Math.floor(hours / 24)
-  return `最近在线 ${days}天`
-}
-
-function parseActiveTime(value) {
-  if (!value) return 0
-  if (typeof value === 'number') return value
-  return new Date(String(value).replace(/-/g, '/')).getTime()
-}
-
-function goBack() {
-  const pages = getCurrentPages()
-  if (!pages || pages.length <= 1) {
-    uni.switchTab({ url: '/pages/chat/list/list' })
-    return
-  }
-  uni.navigateBack()
-}
-
-function openMore() {
-  uni.showActionSheet({
-    itemList: ['举报用户', '分享会话'],
-    success: (res) => {
-      if (!res) return
-      if (res.tapIndex === 0 && peer.value && peer.value.id) {
-        uni.navigateTo({ url: `/pages/login-sub/report/report?targetType=2&targetId=${peer.value.id}` })
-        return
-      }
-      if (res.tapIndex === 1) shareChat()
-    }
-  })
-}
-
-function shareChat() {
-  if (typeof uni.showShareMenu === 'function') {
-    uni.showShareMenu({ withShareTicket: true })
-    showToast('请使用系统分享')
-    return
-  }
-  showToast('当前环境不支持分享')
-}
 
 function goPeerProfile() {
   if (!peer.value || !peer.value.id) return
@@ -546,7 +344,7 @@ function onMessageLongpress(item) {
 
 function goProductDetail() {
   if (!product.value) return
-  uni.navigateTo({ url: `/pages/product/detail/detail?id=${product.value.id}` })
+  uni.navigateTo({ url: `/pages/product-sub/detail/detail?id=${product.value.id}` })
 }
 
 function openBuyModal() {
@@ -642,24 +440,6 @@ async function submitBuy() {
   } finally {
     submitting.value = false
   }
-}
-
-function getOrderCardIcon(item) {
-  const iconMap = { 1: '📋', 2: '📦', 3: '✅', 5: '❌' }
-  return iconMap[item.orderStatus] || '📋'
-}
-
-function getOrderCardTitle(item) {
-  const titleMap = { 1: '订单已创建', 2: '待面交', 3: '交易完成', 5: '订单已取消' }
-  return titleMap[item.orderStatus] || '订单'
-}
-
-function getOrderCardHint(item) {
-  if (item.orderStatus === 1) return '⏰ 72小时内面交有效，请及时联系对方'
-  if (item.orderStatus === 2) return '📦 面交后双方各自确认，都确认即完成交易'
-  if (item.orderStatus === 3) return '🎉 交易已完成'
-  if (item.orderStatus === 5) return '订单已取消'
-  return ''
 }
 
 async function handleConfirmShip(item) {
@@ -800,6 +580,7 @@ async function fetchPeer(id) {
   try {
     const data = await get(`/mini/user/profile/${id}`, {}, { showLoading: false })
     if (data) {
+      uni.setNavigationBarTitle({ title: data.nickName || '聊天' })
       peerProfile.value = data
       peer.value = {
         id: data.id,
@@ -820,6 +601,7 @@ async function fetchProduct(id) {
   try {
     const data = await get(`/mini/product/detail/${id}`, {}, { showLoading: false })
     if (data) {
+      uni.setNavigationBarTitle({ title: data.nickName || '聊天' })
       product.value = {
         ...data,
         coverImage: data.coverImage || (data.images && data.images[0]),
@@ -993,31 +775,19 @@ async function sendProductCard() {
 // 计算滚动区域高度
 function calcScrollHeight() {
   const info = uni.getSystemInfoSync()
-  const statusH = info.statusBarHeight || 0
-  const navH = 44
-  // 商品栏或用户卡片高度
   let topExtra = 0
   if (product.value) {
-    topExtra = 110 // 商品栏大约 110rpx → 约 55px
+    topExtra = 110
   } else if (peerProfile.value) {
     topExtra = 120
   }
-  const topPx = statusH + navH + topExtra * info.windowWidth / 750
-  // 底部：快捷回复约 60px + 输入栏约 60px + 安全区域
+  const topPx = topExtra * info.windowWidth / 750
   const bottomPx = 120 + (info.safeAreaInsets?.bottom || 0)
   scrollHeight.value = info.windowHeight - topPx - bottomPx
 }
 
 onLoad(async (options = {}) => {
   if (!ensureLogin()) return
-  const info = uni.getSystemInfoSync()
-  statusBarHeight.value = info.statusBarHeight || 0
-  navBarHeight.value = 44
-  if (typeof uni.getMenuButtonBoundingClientRect === 'function') {
-    const rect = uni.getMenuButtonBoundingClientRect()
-    const gap = rect && rect.left ? info.windowWidth - rect.left + 8 : 0
-    navRightGap.value = Math.max(0, gap)
-  }
 
   sessionKey.value = options.sessionKey || ''
   const peerId = options.peerId ? Number(options.peerId) : null
@@ -1041,9 +811,15 @@ onLoad(async (options = {}) => {
     await sendProductCard()
   }
 
-  pollingTimer.value = setInterval(() => {
-    fetchMessages()
-  }, 10000)
+  // 通过 WebSocket 接收新消息，替代轮询
+  wsConnect((msg) => {
+    if (msg.type === 'chat' || msg.type === 'read_ack') {
+      fetchMessages()
+    }
+    if (msg.type === 'force_offline') {
+      wsDisconnect()
+    }
+  })
 })
 
 import { onUnload, onHide, onShow } from '@dcloudio/uni-app'
@@ -1055,17 +831,11 @@ onShow(() => {
 })
 
 onHide(() => {
-  if (pollingTimer.value) {
-    clearInterval(pollingTimer.value)
-    pollingTimer.value = null
-  }
+  wsDisconnect()
 })
 
 onUnload(() => {
-  if (pollingTimer.value) {
-    clearInterval(pollingTimer.value)
-    pollingTimer.value = null
-  }
+  wsDisconnect()
 })
 
 onShareAppMessage(() => {
@@ -1073,7 +843,7 @@ onShareAppMessage(() => {
   const userId = (peer.value && peer.value.id) || ''
   return {
     title: `与${name}的聊天`,
-    path: `/pages/chat/detail/detail?userId=${userId}`
+    path: `/pages/chat-sub/detail/detail?userId=${userId}`
   }
 })
 </script>
@@ -1087,84 +857,14 @@ onShareAppMessage(() => {
   overflow: hidden;
 }
 
-/* ====== 固定顶部 ====== */
-.chat-header {
-  flex-shrink: 0;
-  background-color: var(--bg-white);
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
-  z-index: 10;
-}
-
-.chat-nav {
-  display: flex;
-  align-items: center;
-  padding: 0 var(--spacing-md);
-}
-
-.chat-nav__left,
-.chat-nav__right {
-  width: 120rpx;
-  display: flex;
-  align-items: center;
-}
-.chat-nav__right { justify-content: flex-end; }
-
-.chat-nav__back {
-  font-size: 44rpx;
-  color: var(--text-primary);
-}
-
-.chat-nav__center {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.chat-nav__capsule {
-  position: relative;
-  left: calc((var(--nav-right-gap, 0px)) / -2);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: 8rpx 18rpx 8rpx 10rpx;
-  border-radius: 999rpx;
-  background-color: var(--bg-grey);
-  border: 1rpx solid var(--border-light);
-}
-
-.chat-nav__info { display: flex; flex-direction: column; }
-.chat-nav__name {
-  font-size: var(--font-md);
-  color: var(--text-primary);
-  font-weight: 600;
-}
-.chat-nav__status {
-  font-size: var(--font-xs);
-  color: var(--text-secondary);
-  margin-top: 2rpx;
-  display: flex;
-  align-items: center;
-  gap: 6rpx;
-}
-
-.status-dot {
-  display: inline-block;
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background-color: #ccc;
-}
-.status-dot--on { background-color: #52c41a; }
-
-/* ====== 商品栏（优化后） ====== */
+/* ====== 商品栏 ====== */
 .chat-product {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: 12rpx var(--spacing-md);
-  border-bottom: 1rpx solid #e5e5e5;
+  padding: 16rpx var(--spacing-md);
+  border-bottom: 2rpx solid #f0f0f0;
+  background-color: var(--bg-white);
 }
 
 .chat-product__image {
@@ -1334,22 +1034,42 @@ onShareAppMessage(() => {
 .chat-bubble {
   display: flex;
   align-items: flex-end;
-  gap: var(--spacing-sm);
+  gap: 16rpx;
 }
 .chat-bubble.is-self {
   justify-content: flex-end;
 }
 
+/* 头像列 —— 固定宽度撑开布局，无头像时保留占位 */
+.chat-bubble__avatar-col {
+  width: 60rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+}
+
 .chat-bubble__content {
   max-width: 480rpx;
-  padding: 18rpx 24rpx;
-  border-radius: 20rpx;
-  background-color: var(--bg-white);
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx 16rpx 16rpx 4rpx;
+  background-color: #fff;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
   position: relative;
+  word-break: break-word;
 }
 .chat-bubble.is-self .chat-bubble__content {
-  background-color: var(--primary-bg);
+  background-color: var(--primary-color);
+  border-radius: 16rpx 16rpx 4rpx 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(74, 144, 217, 0.15);
+}
+
+.chat-bubble__text {
+  font-size: var(--font-md);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+.chat-bubble.is-self .chat-bubble__text {
+  color: #fff;
 }
 
 /* ====== 商品卡片消息 ====== */
@@ -1400,12 +1120,6 @@ onShareAppMessage(() => {
   border-radius: 4rpx;
 }
 
-/* ====== 头像 ====== */
-.chat-bubble__avatar {
-  display: flex;
-  align-items: center;
-}
-
 /* ====== 已读状态（仅最后一条自己的消息） ====== */
 .chat-bubble__read {
   display: flex;
@@ -1418,96 +1132,6 @@ onShareAppMessage(() => {
   &.is-read {
     color: var(--primary-color);
   }
-}
-
-/* ====== 订单卡片消息 ====== */
-.chat-order-card {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 16rpx;
-}
-
-.chat-order-card__inner {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-sm);
-  background-color: #fffbf0;
-  border: 1rpx solid #ffe58f;
-  border-radius: var(--radius-md);
-  padding: 20rpx 24rpx;
-  max-width: 540rpx;
-}
-
-.chat-order-card__icon {
-  font-size: 36rpx;
-  flex-shrink: 0;
-}
-
-.chat-order-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-}
-
-.chat-order-card__title {
-  font-size: var(--font-md);
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.chat-order-card__details {
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.chat-order-card__detail {
-  font-size: var(--font-sm);
-  color: var(--text-regular);
-}
-
-.chat-order-card__hint {
-  font-size: 22rpx;
-  color: #ff9800;
-  margin-top: 4rpx;
-}
-
-.chat-order-card__action {
-  display: flex;
-  justify-content: center;
-  margin-top: 16rpx;
-  width: 100%;
-}
-
-.chat-order-card__action-text {
-  width: 100%;
-  height: 72rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28rpx;
-  color: #fff;
-  background-color: var(--primary-color);
-  border-radius: 36rpx;
-}
-
-.chat-order-card__waiting {
-  display: flex;
-  justify-content: center;
-  margin-top: 16rpx;
-  width: 100%;
-}
-
-.chat-order-card__waiting-text {
-  width: 100%;
-  height: 72rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26rpx;
-  color: #999;
-  background-color: #f5f5f5;
-  border-radius: 36rpx;
 }
 
 /* ====== 快捷回复 ====== */
@@ -1527,19 +1151,19 @@ onShareAppMessage(() => {
 }
 .chat-quick__list {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: 20rpx;
   padding: 8rpx 0;
 }
 .chat-quick__item {
-  padding: 10rpx 20rpx;
+  padding: 14rpx 30rpx;
   border-radius: 999rpx;
-  background-color: var(--bg-white);
-  border: 1rpx solid var(--border-light);
+  background-color: var(--primary-bg);
   flex-shrink: 0;
 }
 .chat-quick__text {
-  font-size: var(--font-sm);
-  color: var(--text-regular);
+  font-size: 26rpx;
+  color: var(--text-primary);
+  white-space: nowrap;
 }
 .chat-quick__toggle {
   width: 48rpx;
@@ -1582,14 +1206,18 @@ onShareAppMessage(() => {
 .chat-input__field {
   flex: 1;
   height: 72rpx;
-  padding: 0 var(--spacing-md);
+  padding: 0 28rpx;
   border-radius: 999rpx;
-  background-color: var(--bg-grey);
-  font-size: var(--font-sm);
+  background-color: #f0f0f0;
+  font-size: 28rpx;
   color: var(--text-primary);
 }
+.chat-input__placeholder {
+  color: #bbb;
+  font-size: 28rpx;
+}
 .chat-input__send {
-  min-width: 120rpx;
+  min-width: 124rpx;
   height: 72rpx;
   border-radius: 999rpx;
   background-color: var(--primary-color);
@@ -1604,192 +1232,5 @@ onShareAppMessage(() => {
   font-size: var(--font-sm);
   color: var(--text-white);
   font-weight: 600;
-}
-
-/* ====== 确认购买弹窗 ====== */
-.modal-mask {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  width: 620rpx;
-  max-height: 80vh;
-  background-color: #fff;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-md);
-  border-bottom: 1rpx solid var(--border-light);
-}
-
-.modal-title {
-  font-size: var(--font-lg);
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.modal-close {
-  font-size: 32rpx;
-  color: var(--text-secondary);
-  padding: 4rpx 12rpx;
-}
-
-.modal-body {
-  padding: var(--spacing-md);
-  overflow-y: auto;
-  flex: 1;
-}
-
-.modal-product {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm);
-  background-color: var(--bg-grey);
-  border-radius: var(--radius-sm);
-  margin-bottom: var(--spacing-md);
-}
-
-.modal-product__image {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-}
-
-.modal-product__info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.modal-product__title {
-  font-size: var(--font-sm);
-  color: var(--text-primary);
-  font-weight: 500;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
-.modal-product__price {
-  font-size: var(--font-xs);
-  color: var(--text-secondary);
-}
-
-.modal-field {
-  margin-bottom: var(--spacing-md);
-}
-
-.modal-field__label {
-  font-size: var(--font-sm);
-  color: var(--text-primary);
-  font-weight: 500;
-  margin-bottom: 8rpx;
-  display: block;
-}
-
-.modal-field__input-wrap {
-  display: flex;
-  align-items: center;
-  border: 1rpx solid var(--border-light);
-  border-radius: var(--radius-sm);
-  padding: 0 var(--spacing-sm);
-}
-
-.modal-field__prefix {
-  font-size: var(--font-md);
-  color: var(--primary-color);
-  font-weight: 600;
-  margin-right: 4rpx;
-}
-
-.modal-field__input {
-  flex: 1;
-  height: 80rpx;
-  font-size: var(--font-md);
-  color: var(--text-primary);
-}
-
-.modal-field__picker {
-  height: 80rpx;
-  border: 1rpx solid var(--border-light);
-  border-radius: var(--radius-sm);
-  padding: 0 var(--spacing-sm);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: var(--font-sm);
-  color: var(--text-primary);
-}
-
-.modal-field__picker .is-placeholder {
-  color: #ccc;
-}
-
-.modal-field__picker-arrow {
-  font-size: 20rpx;
-  color: var(--text-secondary);
-}
-
-.modal-field__textarea {
-  width: 100%;
-  height: 120rpx;
-  border: 1rpx solid var(--border-light);
-  border-radius: var(--radius-sm);
-  padding: var(--spacing-sm);
-  font-size: var(--font-sm);
-  color: var(--text-primary);
-  box-sizing: border-box;
-}
-
-.modal-footer {
-  display: flex;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md);
-  border-top: 1rpx solid var(--border-light);
-}
-
-.modal-btn {
-  flex: 1;
-  height: 80rpx;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-md);
-  font-weight: 600;
-}
-
-.modal-btn--cancel {
-  background-color: var(--bg-grey);
-  color: var(--text-regular);
-}
-
-.modal-btn--confirm {
-  background-color: var(--primary-color);
-  color: #fff;
-}
-
-.modal-btn--confirm.is-loading {
-  opacity: 0.6;
 }
 </style>

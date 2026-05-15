@@ -356,6 +356,8 @@ import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useAppStore } from '@/store/app'
 import { get } from '@/utils/request'
 import { normalizeProductCardData, resolveImageUrl } from '@/utils/image'
+import { goBack } from '@/utils/nav'
+import { useNavBar } from '@/utils/useNavBar'
 
 const appStore = useAppStore()
 
@@ -373,8 +375,7 @@ const total = ref(0)
 const loading = ref(false)
 const loadError = ref(false)
 const capsuleRightPadding = ref(0)
-const statusBarHeight = ref(0)
-const navBarHeight = ref(44)
+const { statusBarHeight, navBarHeight } = useNavBar()
 
 // 筛选
 const filters = ref({
@@ -529,17 +530,6 @@ onLoad(async (query) => {
     const menu = uni.getMenuButtonBoundingClientRect()
     const sys = uni.getSystemInfoSync()
     if (menu && sys) {
-      if (sys.statusBarHeight) {
-        statusBarHeight.value = sys.statusBarHeight
-      }
-
-      if (menu.top) {
-        const padding = menu.top - statusBarHeight.value
-        navBarHeight.value = menu.height + padding * 2
-      } else {
-        navBarHeight.value = 44
-      }
-
       capsuleRightPadding.value = sys.windowWidth - menu.right + 20
     }
   } catch(e) {}
@@ -705,9 +695,6 @@ function resetFilters() {
   loadProducts(true)
 }
 
-function goBack() {
-  uni.navigateBack()
-}
 
 function goSearch() {
   uni.navigateTo({
@@ -718,7 +705,7 @@ function goSearch() {
 function goDetail(item) {
   if (!item || !item.id) return
   uni.navigateTo({
-    url: `/pages/product/detail/detail?id=${item.id}`
+    url: `/pages/product-sub/detail/detail?id=${item.id}`
   })
 }
 

@@ -41,7 +41,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { get, post } from '@/utils/request'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
@@ -55,6 +55,9 @@ const isRefreshing = ref(false)
 
 onMounted(() => {
   fetchReplies()
+})
+
+onUnmounted(() => {
   markRead()
 })
 
@@ -105,7 +108,7 @@ function loadMore() {
 }
 
 function goToProduct(productId) {
-  uni.navigateTo({ url: `/pages/product/detail/detail?id=${productId}` })
+  uni.navigateTo({ url: `/pages/product-sub/detail/detail?id=${productId}` })
 }
 
 function formatTime(timeStr) {

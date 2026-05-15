@@ -42,7 +42,7 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
     private final StringRedisTemplate stringRedisTemplate;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void submitAuth(AuthSubmitDTO dto) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -226,7 +226,7 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void approveAuth(Long id) {
         if (id == null) {
             throw new BusinessException("认证记录ID不能为空");
@@ -291,7 +291,7 @@ public class CampusAuthServiceImpl extends ServiceImpl<CampusAuthMapper, CampusA
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void rejectAuth(Long id, String rejectReason) {
         if (id == null) {
             throw new BusinessException("认证记录ID不能为空");

@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -44,6 +43,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static com.qingyuan.secondhand.common.util.ImageJsonUtil.parseCoverImage;
+import static com.qingyuan.secondhand.common.util.ImageJsonUtil.parseImages;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -58,7 +60,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     private final ChatMessageMapper chatMessageMapper;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public OrderCreateVO createOrder(OrderCreateDTO dto) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -181,7 +183,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void confirmOrder(Long orderId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -230,7 +232,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void sellerConfirmReceive(Long orderId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -279,7 +281,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void confirmShip(Long orderId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -317,7 +319,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void cancelOrder(Long orderId, String cancelReason) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -436,23 +438,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         detail.setProductImages(parseImages(detail.getProductImagesJson()));
         detail.setCurrentRole(null);
         return detail;
-    }
-
-    private List<String> parseImages(String imagesJson) {
-        if (!StringUtils.hasText(imagesJson)) {
-            return null;
-        }
-        try {
-            return objectMapper.readValue(imagesJson, new TypeReference<List<String>>() {
-            });
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private String parseCoverImage(String imagesJson) {
-        List<String> images = parseImages(imagesJson);
-        return images == null || images.isEmpty() ? null : images.get(0);
     }
 
     private void updateOrderCardMessageStatus(Long orderId, Integer newStatus, Integer sellerConfirmed, Integer buyerConfirmed) {

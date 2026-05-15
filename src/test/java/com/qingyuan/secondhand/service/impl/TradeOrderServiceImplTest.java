@@ -318,8 +318,6 @@ class TradeOrderServiceImplTest {
 
         OrderDetailVO detail = buildOrderDetail();
         Mockito.when(tradeOrderMapper.getOrderDetail(1L)).thenReturn(detail);
-        Mockito.when(objectMapper.readValue(Mockito.eq(detail.getProductImagesJson()), Mockito.any(TypeReference.class)))
-            .thenReturn(List.of("url1", "url2"));
 
         UserContext.setCurrentUserId(10000L);
         TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
@@ -361,6 +359,7 @@ class TradeOrderServiceImplTest {
 
         TradeOrder order = buildOrder(1L, 10001L, 10002L, 2, 1L);
         order.setOrderNo("TD202602230001");
+        order.setSellerConfirmed(1);
         Product product = buildProduct(1L, 10002L, 1);
         product.setTitle("测试商品");
         Mockito.when(tradeOrderMapper.selectById(1L)).thenReturn(order);
@@ -408,7 +407,7 @@ class TradeOrderServiceImplTest {
         TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.confirmOrder(1L));
-        Assertions.assertEquals("只有买家可以确认收货", ex.getMsg());
+        Assertions.assertEquals("只有买家可以确认完成交易", ex.getMsg());
     }
 
     @Test
@@ -427,7 +426,7 @@ class TradeOrderServiceImplTest {
         TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.confirmOrder(1L));
-        Assertions.assertEquals("订单状态不正确，请等待卖家确认发货后再收货", ex.getMsg());
+        Assertions.assertEquals("订单状态不正确，等待面交后才能确认", ex.getMsg());
     }
 
     @Test

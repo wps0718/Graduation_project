@@ -60,6 +60,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { get, post, uploadFile } from '@/utils/request'
 import { resolveImageUrl } from '@/utils/image'
 import { useUserStore } from '@/store'
+import { showToast, ensureLogin } from '@/utils/nav'
 
 const userStore = useUserStore()
 
@@ -84,18 +85,6 @@ const genderLabel = computed(() => genderOptions[genderIndex.value] || '保密')
 const canSave = computed(() => {
   return !!form.value.nickName
 })
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
-function ensureLogin() {
-  if (!userStore.isLogin) {
-    uni.navigateTo({ url: '/pages/login-sub/login/login' })
-    return false
-  }
-  return true
-}
 
 function onNameInput(e) {
   form.value.nickName = String((e && e.detail && e.detail.value) || '').trim()

@@ -167,11 +167,13 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { onLoad, onReachBottom, onPullDownRefresh } from '@dcloudio/uni-app'
 import { get } from '@/utils/request'
 import ProductCard from '@/components/product-card/product-card.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
+import { goBack } from '@/utils/nav'
+import { useNavBar } from '@/utils/useNavBar'
 
 // 常量定义
 const SEARCH_HISTORY_KEY = 'searchHistory'
@@ -191,8 +193,7 @@ const noMore = ref(false)
 const searchInputRef = ref(null)
 const inputFocused = ref(false)
 const lastSearchedKeyword = ref('')
-const statusBarHeight = ref(0)
-const navBarHeight = ref(44)
+const { statusBarHeight, navBarHeight } = useNavBar()
 
 // 筛选条件
 const categories = ref([])
@@ -250,9 +251,6 @@ const headerStyle = computed(() => ({
 }))
 
 // 方法
-function goBack() {
-  uni.navigateBack()
-}
 
 function handleInput() {
   const current = keyword.value.trim()
@@ -519,21 +517,6 @@ onPullDownRefresh(() => {
   }
 })
 
-onMounted(() => {
-  const info = uni.getSystemInfoSync()
-  if (info && info.statusBarHeight) {
-    statusBarHeight.value = info.statusBarHeight
-  }
-  const menuButton = typeof uni.getMenuButtonBoundingClientRect === 'function'
-    ? uni.getMenuButtonBoundingClientRect()
-    : null
-  if (menuButton && menuButton.top) {
-    const padding = menuButton.top - statusBarHeight.value
-    navBarHeight.value = menuButton.height + padding * 2
-  } else {
-    navBarHeight.value = 44
-  }
-})
 </script>
 
 <style lang="scss" scoped>

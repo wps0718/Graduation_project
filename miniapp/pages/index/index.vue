@@ -158,8 +158,8 @@ const CATEGORY_ICON_BY_ID = {
   7: '/static/svg/bicycle.svg'
 }
 const LOCAL_BANNERS = [
-  { id: 'local-nhb', image: '/static/pic/推广（南海北）.webp' },
-  { id: 'local-gz', image: '/static/pic/推广（广州）.webp' }
+  { id: 'local-nhb', image: '/static/pic/推广（南海北）.png' },
+  { id: 'local-gz', image: '/static/pic/推广（广州）.png' }
 ]
 const remoteBannerList = ref([])
 const useRemoteBanners = ref(false)
@@ -362,7 +362,7 @@ function handleBannerClick(item) {
   if (!item.linkUrl) return
 
   if (item.linkType === 1) {
-    uni.navigateTo({ url: `/pages/product/detail/detail?id=${item.linkUrl}` })
+    uni.navigateTo({ url: `/pages/product-sub/detail/detail?id=${item.linkUrl}` })
   } else if (item.linkType === 2) {
     // 活动页：如果是外部链接则用 web-view，否则内部跳转
     if (/^https?:\/\//i.test(item.linkUrl)) {

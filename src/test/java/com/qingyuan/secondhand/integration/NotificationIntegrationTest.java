@@ -71,7 +71,8 @@ class NotificationIntegrationTest {
             DataSourceAutoConfiguration.class,
             DataSourceTransactionManagerAutoConfiguration.class,
             com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.class,
-            WebMvcAutoConfiguration.class
+            WebMvcAutoConfiguration.class,
+            org.springdoc.core.configuration.SpringDocConfiguration.class
     })
     @Import(TestConfig.class)
     static class TestApp {
@@ -407,6 +408,7 @@ class NotificationIntegrationTest {
         order.setBuyerId(70001L);
         order.setSellerId(70002L);
         order.setStatus(2);
+        order.setSellerConfirmed(1);
         Product product = new Product();
         product.setId(511L);
         product.setIsDeleted(0);

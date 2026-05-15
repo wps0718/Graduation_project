@@ -22,7 +22,7 @@ export function buildSharePayload(detail) {
     ''
   return {
     title,
-    path: `/pages/product/detail/detail?id=${id}`,
+    path: `/pages/product-sub/detail/detail?id=${id}`,
     imageUrl
   }
 }

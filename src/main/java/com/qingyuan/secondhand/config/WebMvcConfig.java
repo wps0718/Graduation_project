@@ -30,6 +30,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/mini/**")
                 .excludePathPatterns(
+                        // Swagger
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
                         // 登录相关
                         "/mini/user/login",
                         "/mini/user/wx-login",
@@ -58,7 +62,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         registry.addInterceptor(adminJwtInterceptor)
                 .addPathPatterns("/admin/**")
-                .excludePathPatterns("/admin/login", "/admin/employee/login", "/admin/common/**");
+                .excludePathPatterns(
+                        // Swagger
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        // 登录
+                        "/admin/login", "/admin/employee/login", "/admin/common/**");
     }
 
     @Override

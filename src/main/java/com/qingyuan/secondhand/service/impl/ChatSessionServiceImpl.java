@@ -2,6 +2,7 @@ package com.qingyuan.secondhand.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import static com.qingyuan.secondhand.common.util.ImageJsonUtil.parseCoverImage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.constant.RedisConstant;
 import com.qingyuan.secondhand.common.context.UserContext;
@@ -33,7 +34,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     private final ObjectMapper objectMapper;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ChatSessionVO createSession(ChatSessionCreateDTO dto) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -97,7 +98,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deleteSession(Long sessionId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -125,7 +126,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void toggleTop(Long sessionId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -180,7 +181,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void ensureSessionExists(Long userA, Long userB, Long productId) {
         if (userA == null || userB == null) {
             throw new BusinessException("用户ID不能为空");
@@ -203,7 +204,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updateSessionLastMsg(Long userId, Long peerId, Long productId, String lastMsg, Integer lastMsgType) {
         if (userId == null || peerId == null) {
             throw new BusinessException("用户ID不能为空");
@@ -214,7 +215,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void incrementUnread(Long userId, Long peerId, Long productId) {
         if (userId == null || peerId == null) {
             throw new BusinessException("用户ID不能为空");
@@ -227,7 +228,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void resetUnread(Long userId, Long peerId, Long productId) {
         if (userId == null || peerId == null) {
             throw new BusinessException("用户ID不能为空");
@@ -350,22 +351,6 @@ public class ChatSessionServiceImpl implements ChatSessionService {
             return targetProductId == null;
         }
         return productId.equals(targetProductId);
-    }
-
-    private String parseCoverImage(String imagesJson) {
-        if (!StringUtils.hasText(imagesJson)) {
-            return null;
-        }
-        try {
-            List<String> images = objectMapper.readValue(imagesJson, new TypeReference<List<String>>() {
-            });
-            if (images == null || images.isEmpty()) {
-                return null;
-            }
-            return images.get(0);
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     private void clearUnreadCache(Long userId) {

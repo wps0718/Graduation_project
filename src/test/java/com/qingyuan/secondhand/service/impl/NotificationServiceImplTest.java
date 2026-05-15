@@ -132,7 +132,11 @@ class NotificationServiceImplTest {
         NotificationServiceImpl service = new NotificationServiceImpl(notificationMapper);
 
         UserContext.setCurrentUserId(10001L);
-        Mockito.when(notificationMapper.selectCount(Mockito.any())).thenReturn(5L, 2L, 3L);
+        UnreadCountVO mockVO = new UnreadCountVO();
+        mockVO.setTotal(5L);
+        mockVO.setTrade(2L);
+        mockVO.setSystem(3L);
+        Mockito.when(notificationMapper.selectUnreadCountByUserId(10001L)).thenReturn(mockVO);
 
         UnreadCountVO count = service.getUnreadCount();
 

@@ -11,6 +11,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "公共接口")
 @RestController
 @RequestMapping("/common")
 @RequiredArgsConstructor

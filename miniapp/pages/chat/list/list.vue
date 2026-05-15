@@ -1,50 +1,32 @@
 <template>
   <view class="page">
-    <!-- 状态栏 -->
-    <view :style="{ height: `${statusBarHeight}px` }"></view>
-
-    <!-- 导航栏 -->
-    <view class="nav" :style="{ height: `${navBarHeight}px` }">
-      <view class="nav__left" @click="goBack">
-        <image class="nav__back" src="/static/svg/back.svg" mode="aspectFit" />
-      </view>
-      <text class="nav__title">消息</text>
-      <view class="nav__right">
-        <text
-          class="nav__read-all"
-          :class="{ disabled: totalUnread === 0 }"
-          @click="clearAllRead"
-        >全部已读</text>
-        <text class="nav__gear" @click="goToMessageSettings">⚙</text>
-        <view class="nav__more" @click="showMoreMenu">
-          <image class="nav__more-img" src="/static/svg/more.svg" mode="aspectFit" />
-        </view>
-      </view>
-    </view>
-
-    <!-- 顶部快捷入口（三个） -->
+    <!-- 顶部快捷入口 -->
     <view class="quick-entry">
-      <view class="quick-entry__item" @click="goToReplyInbox">
-        <view class="quick-icon quick-icon--blue">
-          <text class="quick-icon__inner">💬</text>
-          <text v-if="unreadMessageCount > 0" class="quick-badge">{{ unreadMessageCount > 99 ? '99+' : unreadMessageCount }}</text>
+      <view class="quick-entry__icons">
+        <view class="quick-entry__item" @click="goToReplyInbox">
+          <view class="quick-icon quick-icon--blue">
+            <text class="quick-icon__inner">💬</text>
+            <text v-if="unreadMessageCount > 0" class="quick-badge">{{ unreadMessageCount > 99 ? '99+' : unreadMessageCount }}</text>
+          </view>
+          <text class="quick-label">收到回复</text>
         </view>
-        <text class="quick-label">收到回复</text>
-      </view>
-      <view class="quick-entry__item" @click="goToReceivedFavorites">
-        <view class="quick-icon quick-icon--red">
-          <text class="quick-icon__inner">❤</text>
-          <text v-if="unreadFavoriteCount > 0" class="quick-badge">{{ unreadFavoriteCount > 99 ? '99+' : unreadFavoriteCount }}</text>
+        <view class="quick-entry__item" @click="goToReceivedFavorites">
+          <view class="quick-icon quick-icon--red">
+            <text class="quick-icon__inner">❤</text>
+            <text v-if="unreadFavoriteCount > 0" class="quick-badge">{{ unreadFavoriteCount > 99 ? '99+' : unreadFavoriteCount }}</text>
+          </view>
+          <text class="quick-label">收到收藏</text>
         </view>
-        <text class="quick-label">收到收藏</text>
-      </view>
-      <view class="quick-entry__item" @click="goToNotifications('follow')">
-        <view class="quick-icon quick-icon--green">
-          <text class="quick-icon__inner">👤</text>
-          <text v-if="unreadFollowCount > 0" class="quick-badge">{{ unreadFollowCount > 99 ? '99+' : unreadFollowCount }}</text>
+        <view class="quick-entry__item" @click="goToNotifications('follow')">
+          <view class="quick-icon quick-icon--green">
+            <text class="quick-icon__inner">👤</text>
+            <text v-if="unreadFollowCount > 0" class="quick-badge">{{ unreadFollowCount > 99 ? '99+' : unreadFollowCount }}</text>
+          </view>
+          <text class="quick-label">新增关注</text>
         </view>
-        <text class="quick-label">新增关注</text>
       </view>
+      <view class="quick-entry__divider"></view>
+      <text class="quick-read-all" :class="{ disabled: totalUnread === 0 }" @click="clearAllRead">✓ 全部已读</text>
     </view>
 
     <!-- 间隔 -->
@@ -115,7 +97,7 @@
                   <image
                     v-else
                     class="chat-avatar-img"
-                    :src="item.raw.avatarUrl || '/static/pic/default-avatar.png'"
+                    :src="item.raw.avatarUrl || '/static/pic/校徽.png'"
                     mode="aspectFill"
                   />
                 </view>
@@ -200,7 +182,7 @@
               >
                 <image
                   class="interact-avatar"
-                  :src="item.raw.fromAvatarUrl || '/static/pic/default-avatar.png'"
+                  :src="item.raw.fromAvatarUrl || '/static/pic/校徽.png'"
                   mode="aspectFill"
                 />
                 <view class="interact-info">
@@ -245,30 +227,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
 import { useUserStore } from '@/store'
+import { showToast } from '@/utils/nav'
 
 const userStore = useUserStore()
-
-// ====== 导航栏 ======
-const statusBarHeight = ref(0)
-const navBarHeight = ref(44)
-
-onMounted(() => {
-  const info = uni.getSystemInfoSync()
-  statusBarHeight.value = (info && info.statusBarHeight) || 0
-  const menuButton = typeof uni.getMenuButtonBoundingClientRect === 'function'
-    ? uni.getMenuButtonBoundingClientRect()
-    : null
-  if (menuButton && menuButton.top) {
-    const padding = menuButton.top - statusBarHeight.value
-    navBarHeight.value = menuButton.height + padding * 2
-  } else {
-    navBarHeight.value = 44
-  }
-})
 
 // ====== 数据状态 ======
 const sessions = ref([])
@@ -416,30 +381,18 @@ function formatListTimeByTimestamp(timestamp) {
   return `${time.getFullYear()}-${mm}-${dd}`
 }
 
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
 function ensureLoginSilent() {
   return !!userStore.isLogin
 }
 
 // ====== 导航 ======
-function goBack() {
-  const pages = getCurrentPages()
-  if (!pages || pages.length <= 1) {
-    uni.switchTab({ url: '/pages/index/index' })
-    return
-  }
-  uni.navigateBack()
-}
 
 function goHome() {
   uni.switchTab({ url: '/pages/index/index' })
 }
 
 function goToMessageSettings() {
-  uni.navigateTo({ url: '/pages/chat/settings/settings' })
+  uni.navigateTo({ url: '/pages/chat-sub/settings/settings' })
 }
 
 function goToNotifications(entry) {
@@ -459,23 +412,12 @@ function goToReceivedFavorites() {
   uni.navigateTo({ url: '/pages/notification-sub/notification/received-favorites' })
 }
 
-function showMoreMenu() {
-  uni.showActionSheet({
-    itemList: ['通讯录', '消息通知设置'],
-    success: (res) => {
-      if (!res) return
-      if (res.tapIndex === 0) showToast('通讯录开发中')
-      else if (res.tapIndex === 1) showToast('消息通知设置开发中')
-    }
-  })
-}
-
 // ====== 点击事件 ======
 function openSession(item) {
   if (item.offsetX) { item.offsetX = 0; return }
   if (item.unread) item.unread = 0
   const params = [`sessionKey=${item.sessionKey}`, `peerId=${item.userId}`, item.productId ? `productId=${item.productId}` : ''].filter(Boolean).join('&')
-  uni.navigateTo({ url: `/pages/chat/detail/detail?${params}` })
+  uni.navigateTo({ url: `/pages/chat-sub/detail/detail?${params}` })
 }
 
 function onSystemClick(raw) {
@@ -484,7 +426,7 @@ function onSystemClick(raw) {
   const rt = Number(raw.relatedType || 0)
   const rid = raw.relatedId
   if ((rt === 1 || rt === 2) && rid) {
-    uni.navigateTo({ url: `/pages/product/detail/detail?id=${rid}` })
+    uni.navigateTo({ url: `/pages/product-sub/detail/detail?id=${rid}` })
   } else if (rt === 3) {
     uni.navigateTo({ url: '/pages/auth-sub/auth/auth' })
   } else if (rt === 4) {
@@ -501,7 +443,7 @@ function onInteractClick(raw) {
   if (followTypes.includes(t)) {
     uni.navigateTo({ url: '/pages/notification-sub/notification/follower' })
   } else if (raw.relatedId) {
-    uni.navigateTo({ url: `/pages/product/detail/detail?id=${raw.relatedId}` })
+    uni.navigateTo({ url: `/pages/product-sub/detail/detail?id=${raw.relatedId}` })
   }
 }
 
@@ -560,7 +502,10 @@ function onLongpress(item) {
 }
 
 // ====== 操作函数 ======
-function markRead(item) {
+async function markRead(item) {
+  if (item.sessionKey) {
+    await post('/mini/chat/read', { sessionKey: item.sessionKey }, { showLoading: false }).catch(() => {})
+  }
   item.unread = 0
   item.offsetX = 0
   showToast('已标为已读')
@@ -732,76 +677,49 @@ onReachBottom(() => { loadMore() })
   flex-direction: column;
 }
 
-/* ====== 导航栏 ====== */
-.nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 32rpx;
-  background-color: #fff;
-}
-.nav__left {
-  width: 140rpx;
-  display: flex;
-  align-items: center;
-}
-.nav__back {
-  width: 44rpx;
-  height: 44rpx;
-}
-.nav__title {
-  font-size: 34rpx;
-  color: #333;
-  font-weight: 600;
-}
-.nav__right {
-  width: 280rpx;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 16rpx;
-}
-.nav__read-all {
-  font-size: 26rpx;
-  color: #1890ff;
-  font-weight: 500;
-  flex-shrink: 0;
-}
-.nav__read-all.disabled {
-  color: #ccc;
-}
-.nav__gear {
-  font-size: 36rpx;
-  flex-shrink: 0;
-}
-.nav__more {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 18rpx;
-  background-color: #f5f5f5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.nav__more-img {
-  width: 34rpx;
-  height: 34rpx;
-}
-
 /* ====== 快捷入口 ====== */
 .quick-entry {
   display: flex;
-  padding: 32rpx 32rpx;
+  align-items: center;
+  padding: 28rpx 32rpx;
   background: #fff;
+}
+.quick-entry__icons {
+  display: flex;
+  flex: 1;
   justify-content: space-around;
+  gap: 8rpx;
 }
 .quick-entry__item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12rpx;
-  flex: 1;
+  gap: 10rpx;
+}
+.quick-entry__divider {
+  width: 2rpx;
+  height: 64rpx;
+  background: #eee;
+  flex-shrink: 0;
+  margin: 0 12rpx;
+}
+.quick-read-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 4rpx;
+  font-size: 24rpx;
+  color: #4A90D9;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 10rpx 22rpx;
+  border-radius: 999rpx;
+  background: #EBF3FB;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.quick-read-all.disabled {
+  color: #ccc;
+  background: #f5f5f5;
 }
 .quick-icon {
   width: 96rpx;

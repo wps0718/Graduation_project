@@ -58,7 +58,7 @@ function goDetail() {
     return
   }
   uni.navigateTo({
-    url: `/pages/product/detail/detail?id=${props.product.id}`
+    url: `/pages/product-sub/detail/detail?id=${props.product.id}`
   })
 }
 </script>

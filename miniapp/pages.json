@@ -5,52 +5,110 @@
 			"style": {
 				"navigationBarTitleText": "轻院二手"
 			}
+		},
+		{
+			"path": "pages/product/publish/publish",
+			"style": {
+				"navigationBarTitleText": "发布商品"
+			}
+		},
+		{
+			"path": "pages/chat/list/list",
+			"style": {
+				"navigationBarTitleText": "消息"
+			}
+		},
+		{
+			"path": "pages/user/user",
+			"style": {
+				"navigationBarTitleText": "我的"
+			}
 		}
 	],
 	"subPackages": [
 		{
-			"root": "login-sub",
+			"root": "pages/login-sub",
 			"name": "login",
 			"pages": [
-				"login/login",
-				"sms-login",
-				"search/search",
-				"report/report",
-				"agreement/agreement",
-				"privacy/privacy",
-				"help/help"
+				{"path": "login/login"},
+				{"path": "login/sms-login"},
+				{"path": "search/search"},
+				{"path": "report/report"},
+				{"path": "agreement/agreement"},
+				{"path": "privacy/privacy"},
+				{"path": "help/help"}
 			]
 		},
 		{
-			"root": "user-sub",
+			"root": "pages/user-sub",
 			"name": "user",
 			"pages": [
-				"favorite/favorite",
-				"footprint/footprint",
-				"review/review",
-				"settings/settings",
-				"settings/edit-profile",
-				"settings/about",
-				"seller/profile"
+				{"path": "favorite/favorite"},
+				{"path": "footprint/footprint"},
+				{"path": "review/review"},
+				{"path": "settings/settings"},
+				{"path": "settings/edit-profile"},
+				{"path": "settings/about"},
+				{"path": "seller/profile"}
 			]
 		},
 		{
-			"root": "notification-sub",
+			"root": "pages/notification-sub",
 			"name": "notifications",
 			"pages": [
-				"notification/notification",
-				"notification/received-replies",
-				"notification/received-favorites",
-				"notification/follower"
+				{"path": "notification/notification", "style": {"navigationBarTitleText": "消息"}},
+				{"path": "notification/received-replies"},
+				{"path": "notification/received-favorites"},
+				{"path": "notification/follower"}
 			]
 		},
 		{
-			"root": "chat",
+			"root": "pages/auth-sub",
+			"name": "auth",
+			"pages": [
+				{"path": "auth/auth"},
+				{"path": "history/list"},
+				{"path": "history/detail"},
+				{"path": "history/compare"}
+			]
+		},
+		{
+			"root": "pages/product-sub",
+			"name": "product",
+			"pages": [
+				{"path": "detail/detail"},
+				{"path": "my-list/my-list"},
+				{"path": "edit/edit"}
+			]
+		},
+		{
+			"root": "pages/order",
+			"name": "order",
+			"pages": [
+				{"path": "list/list"},
+				{"path": "detail/detail"}
+			]
+		},
+		{
+			"root": "pages/chat-sub",
 			"name": "chat",
 			"pages": [
-				"detail/detail",
-				"list/list",
-				"settings/settings"
+				{"path": "detail/detail", "style": {"navigationBarTitleText": "聊天"}},
+				{"path": "settings/settings"}
+			]
+		},
+		{
+			"root": "pages/category-detail",
+			"name": "category",
+			"pages": [
+				{"path": "category-detail"}
+			]
+		},
+		{
+			"root": "pages/common",
+			"name": "common",
+			"pages": [
+				{"path": "web-view/web-view"}
 			]
 		}
 	],

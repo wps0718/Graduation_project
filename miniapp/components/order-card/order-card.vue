@@ -3,7 +3,7 @@
     <view class="order-card__main">
       <view class="order-card__image">
         <image
-          :src="order.productImage"
+          :src="imageUrl"
           class="order-card__image-inner"
           mode="aspectFill"
         />
@@ -17,19 +17,18 @@
         </view>
         <view class="order-card__user">
           <UserAvatar
-            :avatar-url="order.otherUser && order.otherUser.avatarUrl"
-            :nick-name="order.otherUser && order.otherUser.nickName"
+            :avatar-url="avatarUrl"
+            :nick-name="order.otherUserNickName"
             :auth-status="2"
             size="sm"
           />
           <text class="order-card__user-name">
-            {{ order.otherUser && order.otherUser.nickName }}
+            {{ order.otherUserNickName }}
           </text>
-          <text class="order-card__campus">{{ order.campusName }}</text>
         </view>
         <view class="order-card__bottom">
           <Price :price="order.price" size="md" />
-          <text class="order-card__time">{{ order.createTime }}</text>
+          <text class="order-card__time">{{ formattedTime }}</text>
         </view>
       </view>
     </view>
@@ -51,7 +50,34 @@ import { computed } from 'vue'
 import Price from '@/components/price/price.vue'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import StatusTag from '@/components/status-tag/status-tag.vue'
-import { ORDER_STATUS } from '@/utils/constant'
+import { ORDER_STATUS, BASE_URL } from '@/utils/constant'
+
+function resolveImageUrl(url) {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  return BASE_URL + url
+}
+
+function formatTime(timeStr) {
+  if (!timeStr) return ''
+  const date = new Date(timeStr)
+  if (isNaN(date.getTime())) return timeStr
+  const now = new Date()
+  const diff = now - date
+  const oneDay = 24 * 60 * 60 * 1000
+
+  if (diff < oneDay && date.getDate() === now.getDate()) {
+    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+  }
+  const yesterday = new Date(now - oneDay)
+  if (diff < 2 * oneDay && date.getDate() === yesterday.getDate()) {
+    return `昨天 ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+  }
+  if (date.getFullYear() === now.getFullYear()) {
+    return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+  }
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
 
 const props = defineProps({
   order: {
@@ -65,6 +91,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['action'])
+
+const imageUrl = computed(() => resolveImageUrl(props.order.productCoverImage))
+const avatarUrl = computed(() => resolveImageUrl(props.order.otherUserAvatar))
+const formattedTime = computed(() => formatTime(props.order.createTime))
 
 const actions = computed(() => {
   const list = []

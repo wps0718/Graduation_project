@@ -21,6 +21,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "小程序-用户")
 @RestController
 @RequestMapping("/mini/user")
 @RequiredArgsConstructor

@@ -27,6 +27,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "管理端-商品")
 @RestController
 @RequestMapping("/admin/product")
 @RequiredArgsConstructor

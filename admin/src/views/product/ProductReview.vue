@@ -442,6 +442,7 @@ import {
   getPublisherInfo
 } from '@/api/product'
 import { getOrderDetail } from '@/api/order'
+import { getImageUrl, getPreviewImages } from '@/utils/baseUrl'
 
 // ========== 查询参数 ==========
 const query = ref({
@@ -523,19 +524,6 @@ const getAuthStatusType = (status) => {
   return map[status]
 }
 
-// ========== 图片URL处理 ==========
-const getImageUrl = (path) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  const baseUrl = 'http://localhost:8080'
-  return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`
-}
-
-// ========== 获取预览图片列表 ==========
-const getPreviewImages = (images) => {
-  if (!images || !Array.isArray(images)) return []
-  return images.map(img => getImageUrl(img))
-}
 
 // ========== 时间格式化（东八区） ==========
 const formatTime = (value) => {

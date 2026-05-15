@@ -100,6 +100,7 @@ import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import StatusTag from '@/components/status-tag/status-tag.vue'
 import ProductCard from '@/components/product-card/product-card.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
+import { showToast } from '@/utils/nav'
 
 const userStore = useUserStore()
 
@@ -136,10 +137,6 @@ const bioText = computed(() => {
   }
   return `${bio.slice(0, 36)}...`
 })
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
 
 function safeBack() {
   const pages = getCurrentPages()
@@ -220,7 +217,7 @@ async function onChat() {
     
     if (data && data.sessionKey) {
       uni.navigateTo({
-        url: `/pages/chat/detail/detail?sessionKey=${data.sessionKey}&peerId=${sellerId.value}`
+        url: `/pages/chat-sub/detail/detail?sessionKey=${data.sessionKey}&peerId=${sellerId.value}`
       })
     }
   } catch (error) {

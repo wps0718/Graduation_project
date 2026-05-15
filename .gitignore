@@ -8,6 +8,9 @@ target/
 .project
 .settings/
 
+# 生产环境配置（含密钥，不可提交）
+src/main/resources/application-prod.yml
+
 # IntelliJ
 .idea/
 *.iml

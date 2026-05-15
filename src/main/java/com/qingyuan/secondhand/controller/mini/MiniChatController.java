@@ -20,6 +20,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "小程序-聊天")
 @RestController
 @RequestMapping("/mini/chat")
 @Slf4j

@@ -457,6 +457,7 @@ import { Picture, User, Search } from '@element-plus/icons-vue'
 import { getProductDetail, getProductPage, batchForceOffShelf, exportProduct, forceOffShelf, getRelatedOrders } from '@/api/product'
 import { getCategoryList } from '@/api/category'
 import { getOrderDetail } from '@/api/order'
+import { getImageUrl, getPreviewImages } from '@/utils/baseUrl'
 
 const router = useRouter()
 
@@ -541,17 +542,6 @@ const cancelByText = (cancelBy, buyerId, sellerId) => {
   return '未知'
 }
 
-const getImageUrl = (path) => {
-  if (!path) return ''
-  if (path.startsWith('http')) return path
-  return `http://localhost:8080${path.startsWith('/') ? '' : '/'}${path}`
-}
-
-const getPreviewImages = (images) => {
-  if (!images || !Array.isArray(images)) return []
-  return images.map(img => getImageUrl(img))
-}
-
 const getConditionText = (level) => {
   const map = { 1: '全新', 2: '几乎全新', 3: '9成新', 4: '8成新', 5: '7成新及以下' }
   return map[level] || '未知'
@@ -625,6 +615,7 @@ const onSearch = () => {
 
 const onFilterChange = () => {
   queryParams.value.page = 1
+  loadList()
 }
 
 const onQuery = () => {

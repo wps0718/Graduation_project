@@ -53,9 +53,9 @@ import { ref, onMounted } from 'vue'
 import { post, get } from '@/utils/request'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
+import { useNavBar } from '@/utils/useNavBar'
 
-const statusBarHeight = ref(0)
-const navBarHeight = ref(44)
+const { statusBarHeight, navBarHeight } = useNavBar()
 
 const favorites = ref([])
 const page = ref(1)
@@ -65,17 +65,6 @@ const hasMore = ref(true)
 const isRefreshing = ref(false)
 
 onMounted(() => {
-  const info = uni.getSystemInfoSync()
-  statusBarHeight.value = (info && info.statusBarHeight) || 0
-  const menuButton = typeof uni.getMenuButtonBoundingClientRect === 'function'
-    ? uni.getMenuButtonBoundingClientRect()
-    : null
-  if (menuButton && menuButton.top) {
-    const padding = menuButton.top - statusBarHeight.value
-    navBarHeight.value = menuButton.height + padding * 2
-  } else {
-    navBarHeight.value = 44
-  }
   fetchFavorites()
 })
 
@@ -94,7 +83,7 @@ function goToProduct(item) {
     if (!item.isRead) {
       markAsRead(item.id)
     }
-    uni.navigateTo({ url: `/pages/product/detail/detail?id=${item.productId}` })
+    uni.navigateTo({ url: `/pages/product-sub/detail/detail?id=${item.productId}` })
   }
 }
 

@@ -126,6 +126,7 @@ import { onMounted, ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Picture } from '@element-plus/icons-vue'
 import { approveAuth, getAuthDetail, getAuthHistory, getAuthPage, rejectAuth } from '@/api/auth'
+import { getImageUrl } from '@/utils/baseUrl'
 
 const query = ref({ page: 1, size: 10, status: null, keyword: '' })
 const total = ref(0)
@@ -164,19 +165,6 @@ const formatTime = (value) => {
   return String(value).replace('T', ' ').slice(0, 19)
 }
 
-/**
- * 获取认证材料图片完整URL
- * @param {string} path - 图片相对路径
- * @returns {string} 完整URL
- */
-const getImageUrl = (path) => {
-  if (!path) return ''
-  // 如果已经是完整URL则直接返回
-  if (path.startsWith('http')) return path
-  // 拼接后端基础URL
-  const baseUrl = 'http://localhost:8080'
-  return `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`
-}
 
 const loadList = async () => {
   const res = await getAuthPage({ 

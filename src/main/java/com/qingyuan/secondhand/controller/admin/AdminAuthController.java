@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+@Tag(name = "管理端-认证")
 @RestController
 @RequestMapping("/admin/auth")
 @RequiredArgsConstructor

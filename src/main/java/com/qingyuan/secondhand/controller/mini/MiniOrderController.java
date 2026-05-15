@@ -9,6 +9,7 @@ import com.qingyuan.secondhand.service.TradeOrderService;
 import com.qingyuan.secondhand.vo.OrderCreateVO;
 import com.qingyuan.secondhand.vo.OrderDetailVO;
 import com.qingyuan.secondhand.vo.OrderListVO;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "小程序-订单")
 @RestController
 @RequestMapping("/mini/order")
 @RequiredArgsConstructor

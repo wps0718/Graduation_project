@@ -143,6 +143,7 @@ import { ORDER_STATUS } from '@/utils/constant'
 import { useUserStore } from '@/store'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import StatusTag from '@/components/status-tag/status-tag.vue'
+import { showToast } from '@/utils/nav'
 
 const userStore = useUserStore()
 
@@ -232,10 +233,6 @@ const showContactBtn = computed(() => {
   return order.value && order.value.status === ORDER_STATUS.PENDING
 })
 
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
-
 function formatTime(value) {
   if (!value) return ''
   const d = new Date(String(value).replace(/-/g, '/'))
@@ -250,7 +247,7 @@ function formatTime(value) {
 
 function goProductDetail() {
   if (!order.value || !order.value.productId) return
-  uni.navigateTo({ url: `/pages/product/detail/detail?id=${order.value.productId}` })
+  uni.navigateTo({ url: `/pages/product-sub/detail/detail?id=${order.value.productId}` })
 }
 
 function goOtherProfile() {
@@ -260,7 +257,7 @@ function goOtherProfile() {
 
 function contactOther() {
   if (!otherUser.value.id) return
-  uni.navigateTo({ url: `/pages/chat/detail/detail?peerId=${otherUser.value.id}` })
+  uni.navigateTo({ url: `/pages/chat-sub/detail/detail?peerId=${otherUser.value.id}` })
 }
 
 function confirmReceive() {

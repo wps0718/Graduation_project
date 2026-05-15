@@ -15,8 +15,8 @@ async function run() {
   const { resolveImageUrl, normalizeProductCardData } = await import('../utils/image.js')
 
   runTest('resolveImageUrl keeps static assets path', () => {
-    const result = resolveImageUrl('/static/pic/高数教材.png')
-    assert.strictEqual(result, '/static/pic/高数教材.png')
+    const result = resolveImageUrl('/static/pic/placeholder.png')
+    assert.strictEqual(result, '/static/pic/placeholder.png')
   })
 
   runTest('resolveImageUrl converts relative upload path to absolute url', () => {

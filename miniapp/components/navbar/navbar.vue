@@ -21,6 +21,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { goBack } from '@/utils/nav'
+import { useNavBar } from '@/utils/useNavBar'
 
 const props = defineProps({
   title: {
@@ -33,26 +35,16 @@ const props = defineProps({
   }
 })
 
-const statusBarHeight = ref(20)
-const navBarHeight = ref(44)
+const { statusBarHeight, navBarHeight } = useNavBar()
 const sideWidth = ref(120)
 
 onMounted(() => {
   const info = uni.getSystemInfoSync()
-  if (info && info.statusBarHeight) {
-    statusBarHeight.value = info.statusBarHeight
-  }
   const menuButton = typeof uni.getMenuButtonBoundingClientRect === 'function'
     ? uni.getMenuButtonBoundingClientRect()
     : null
-  if (menuButton && menuButton.top) {
-    const padding = menuButton.top - statusBarHeight.value
-    navBarHeight.value = menuButton.height + padding * 2
-    if (info && info.windowWidth) {
-      sideWidth.value = info.windowWidth - menuButton.left
-    }
-  } else {
-    navBarHeight.value = 44
+  if (menuButton && menuButton.top && info && info.windowWidth) {
+    sideWidth.value = info.windowWidth - menuButton.left
   }
 })
 
@@ -68,14 +60,6 @@ const sideStyle = computed(() => ({
   width: `${sideWidth.value}px`
 }))
 
-function goBack() {
-  const pages = getCurrentPages()
-  if (!pages || pages.length <= 1) {
-    uni.switchTab({ url: '/pages/index/index' })
-    return
-  }
-  uni.navigateBack()
-}
 </script>
 
 <style lang="scss" scoped>

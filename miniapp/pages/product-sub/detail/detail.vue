@@ -222,6 +222,7 @@ import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import StatusTag from '@/components/status-tag/status-tag.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
 import { buildMenuOptions, buildSharePayload } from '@/utils/product-detail-helpers'
+import { showToast } from '@/utils/nav'
 
 const FOOTPRINT_KEY = 'footprint_list'
 const FOOTPRINT_MAX = 50
@@ -320,10 +321,6 @@ const actionButtonText = computed(() => {
   if (isOffShelf.value) return '已下架'
   return '我想要'
 })
-
-function showToast(title) {
-  uni.showToast({ title, icon: 'none' })
-}
 
 function normalizeFootprints(list) {
   const now = Date.now()
@@ -520,7 +517,7 @@ async function handleMenuAction(action) {
   if (!detail.value || !detail.value.id) return
   const id = detail.value.id
   if (action === 'edit') {
-    uni.navigateTo({ url: `/pages/product/edit/edit?id=${id}` })
+    uni.navigateTo({ url: `/pages/product-sub/edit/edit?id=${id}` })
     return
   }
   if (action === 'share') {
@@ -596,7 +593,7 @@ async function onWant() {
     
     if (data && data.sessionKey) {
       uni.navigateTo({
-        url: `/pages/chat/detail/detail?sessionKey=${data.sessionKey}&productId=${detail.value.id}&peerId=${seller.value.id}`
+        url: `/pages/chat-sub/detail/detail?sessionKey=${data.sessionKey}&productId=${detail.value.id}&peerId=${seller.value.id}`
       })
     }
   } catch (error) {

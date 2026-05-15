@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qingyuan.secondhand.common.context.UserContext;
 import com.qingyuan.secondhand.common.enums.ProductStatus;
@@ -33,6 +32,9 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.qingyuan.secondhand.common.util.ImageJsonUtil.parseCoverImage;
+import static com.qingyuan.secondhand.common.util.ImageJsonUtil.parseImages;
+
 @Service
 @RequiredArgsConstructor
 public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> implements ReportService {
@@ -56,20 +58,22 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
         if (!Integer.valueOf(1).equals(dto.getTargetType()) && !Integer.valueOf(2).equals(dto.getTargetType())) {
             throw new BusinessException("目标类型不正确");
         }
+        Product cachedProduct = null;
+        User cachedUser = null;
         if (Integer.valueOf(1).equals(dto.getTargetType())) {
-            Product product = productMapper.selectById(dto.getTargetId());
-            if (product == null || Integer.valueOf(1).equals(product.getIsDeleted())) {
+            cachedProduct = productMapper.selectById(dto.getTargetId());
+            if (cachedProduct == null || Integer.valueOf(1).equals(cachedProduct.getIsDeleted())) {
                 throw new BusinessException("举报目标不存在");
             }
-            if (currentUserId.equals(product.getUserId())) {
+            if (currentUserId.equals(cachedProduct.getUserId())) {
                 throw new BusinessException("不能举报自己");
             }
         } else {
             if (currentUserId.equals(dto.getTargetId())) {
                 throw new BusinessException("不能举报自己");
             }
-            User targetUser = userMapper.selectById(dto.getTargetId());
-            if (targetUser == null) {
+            cachedUser = userMapper.selectById(dto.getTargetId());
+            if (cachedUser == null) {
                 throw new BusinessException("举报目标不存在");
             }
         }
@@ -87,18 +91,16 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
         report.setReasonType(dto.getReasonType());
         report.setDescription(dto.getDescription());
         report.setStatus(0);
-        // 保存被举报目标快照
+        // 保存被举报目标快照（复用验证阶段的查询结果）
         if (Integer.valueOf(1).equals(dto.getTargetType())) {
-            Product product = productMapper.selectById(dto.getTargetId());
-            if (product != null) {
-                report.setTargetTitle(product.getTitle());
-                report.setTargetCoverImage(parseCoverImage(product.getImages()));
+            if (cachedProduct != null) {
+                report.setTargetTitle(cachedProduct.getTitle());
+                report.setTargetCoverImage(parseCoverImage(cachedProduct.getImages()));
             }
         } else {
-            User targetUser = userMapper.selectById(dto.getTargetId());
-            if (targetUser != null) {
-                report.setTargetTitle(targetUser.getNickName());
-                report.setTargetCoverImage(targetUser.getAvatarUrl());
+            if (cachedUser != null) {
+                report.setTargetTitle(cachedUser.getNickName());
+                report.setTargetCoverImage(cachedUser.getAvatarUrl());
             }
         }
         int inserted = reportMapper.insert(report);
@@ -158,7 +160,7 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void handleReport(ReportHandleDTO dto, Long handlerId) {
         if (handlerId == null) {
             throw new BusinessException("未登录");
@@ -262,34 +264,33 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
             throw new BusinessException("封禁用户失败");
         }
         userMapper.offShelfAllProducts(targetUserId);
-        List<TradeOrder> orders = tradeOrderMapper.selectList(new LambdaQueryWrapper<TradeOrder>()
+        // 批量取消用户的活跃订单（3N+1 → 4 查询）
+        tradeOrderMapper.update(null, new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<TradeOrder>()
                 .eq(TradeOrder::getStatus, 1)
-                .and(wrapper -> wrapper.eq(TradeOrder::getBuyerId, targetUserId)
+                .and(w -> w.eq(TradeOrder::getBuyerId, targetUserId)
                         .or()
-                        .eq(TradeOrder::getSellerId, targetUserId)));
-        if (orders != null) {
-            for (TradeOrder order : orders) {
-                TradeOrder updateOrder = new TradeOrder();
-                updateOrder.setId(order.getId());
-                updateOrder.setStatus(5);
-                updateOrder.setCancelBy(handlerId);
-                updateOrder.setCancelReason("用户被封禁，订单自动取消");
-                updateOrder.setUpdateTime(now);
-                int updatedOrder = tradeOrderMapper.updateById(updateOrder);
-                if (updatedOrder <= 0) {
-                    throw new BusinessException("取消订单失败");
-                }
-                Product product = productMapper.selectById(order.getProductId());
-                if (product != null && Integer.valueOf(0).equals(product.getIsDeleted())) {
-                    Product productUpdate = new Product();
-                    productUpdate.setId(product.getId());
-                    productUpdate.setStatus(ProductStatus.ON_SALE.getCode());
-                    int updatedProduct = productMapper.updateById(productUpdate);
-                    if (updatedProduct <= 0) {
-                        throw new BusinessException("恢复商品状态失败");
-                    }
-                }
-            }
+                        .eq(TradeOrder::getSellerId, targetUserId))
+                .set(TradeOrder::getStatus, 5)
+                .set(TradeOrder::getCancelBy, handlerId)
+                .set(TradeOrder::getCancelReason, "用户被封禁，订单自动取消")
+                .set(TradeOrder::getUpdateTime, now));
+        // 批量恢复相关商品为在售状态
+        List<Long> productIds = tradeOrderMapper.selectList(new LambdaQueryWrapper<TradeOrder>()
+                        .select(TradeOrder::getProductId)
+                        .eq(TradeOrder::getStatus, 5)
+                        .eq(TradeOrder::getCancelBy, handlerId)
+                        .and(w -> w.eq(TradeOrder::getBuyerId, targetUserId)
+                                .or()
+                                .eq(TradeOrder::getSellerId, targetUserId)))
+                .stream()
+                .map(TradeOrder::getProductId)
+                .distinct()
+                .collect(java.util.stream.Collectors.toList());
+        if (!productIds.isEmpty()) {
+            productMapper.update(null, new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Product>()
+                    .in(Product::getId, productIds)
+                    .eq(Product::getIsDeleted, 0)
+                    .set(Product::getStatus, ProductStatus.ON_SALE.getCode()));
         }
         report.setStatus(1);
         report.setHandleResult(StringUtils.hasText(dto.getHandleResult()) ? dto.getHandleResult() : "用户已封禁");
@@ -325,23 +326,6 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
             return report.getTargetId();
         }
         return null;
-    }
-
-    private List<String> parseImages(String imagesJson) {
-        if (!StringUtils.hasText(imagesJson)) {
-            return List.of();
-        }
-        try {
-            return objectMapper.readValue(imagesJson, new TypeReference<List<String>>() {
-            });
-        } catch (Exception e) {
-            return List.of();
-        }
-    }
-
-    private String parseCoverImage(String imagesJson) {
-        List<String> images = parseImages(imagesJson);
-        return images.isEmpty() ? null : images.get(0);
     }
 
     private String toJson(List<String> list) {

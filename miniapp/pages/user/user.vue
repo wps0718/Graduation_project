@@ -108,6 +108,7 @@ import { onShow } from '@dcloudio/uni-app'
 import { get } from '@/utils/request'
 import { useUserStore } from '@/store'
 import { AUTH_STATUS } from '@/utils/constant'
+import { ensureLogin } from '@/utils/nav'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import StatusTag from '@/components/status-tag/status-tag.vue'
 
@@ -156,14 +157,6 @@ function handleAuthClick() {
   }
 }
 
-function ensureLogin() {
-  if (!isLogin.value) {
-    uni.navigateTo({ url: '/pages/login-sub/login/login' })
-    return false
-  }
-  return true
-}
-
 function goFavorite() {
   if (!ensureLogin()) return
   uni.navigateTo({ url: '/pages/user-sub/favorite/favorite' })
@@ -197,7 +190,7 @@ function goFootprint() {
 function goMyProducts(status) {
   if (!ensureLogin()) return
   uni.navigateTo({
-    url: `/pages/product/my-list/my-list?status=${status}`
+    url: `/pages/product-sub/my-list/my-list?status=${status}`
   })
 }
 
