@@ -24,6 +24,9 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -47,12 +50,30 @@ public class OrderAutoConfirmTask {
         try {
             LambdaQueryWrapper<TradeOrder> wrapper = new LambdaQueryWrapper<>();
             wrapper.lt(TradeOrder::getConfirmDeadline, LocalDateTime.now())
-                    .in(TradeOrder::getStatus, OrderStatus.PENDING_ACCEPT.getCode(), OrderStatus.PENDING_MEET.getCode());
+                    .in(TradeOrder::getStatus, OrderStatus.PENDING_ACCEPT.getCode(), OrderStatus.PENDING_MEET.getCode())
+                    .last("LIMIT 500");
             List<TradeOrder> orders = tradeOrderMapper.selectList(wrapper);
             if (orders == null || orders.isEmpty()) {
                 log.info("[订单自动确认任务] 无需自动确认的订单");
                 return;
             }
+
+            // 批量查询所有相关订单的聊天消息
+            List<Long> orderIds = orders.stream().map(TradeOrder::getId).collect(Collectors.toList());
+            List<ChatMessage> orderMessages = chatMessageMapper.selectList(
+                    new LambdaQueryWrapper<ChatMessage>()
+                            .in(ChatMessage::getOrderId, orderIds)
+                            .eq(ChatMessage::getMsgType, 3)
+            );
+            Map<Long, ChatMessage> messageMap = orderMessages.stream()
+                    .collect(Collectors.toMap(ChatMessage::getOrderId, Function.identity(), (a, b) -> a));
+
+            // 批量查询所有涉及的商品
+            List<Long> productIds = orders.stream().map(TradeOrder::getProductId).distinct().collect(Collectors.toList());
+            List<Product> products = productMapper.selectBatchIds(productIds);
+            Map<Long, Product> productMap = products.stream()
+                    .collect(Collectors.toMap(Product::getId, Function.identity()));
+
             for (TradeOrder order : orders) {
                 try {
                     TradeOrder update = new TradeOrder();
@@ -64,11 +85,7 @@ public class OrderAutoConfirmTask {
 
                     // 同步更新聊天消息中的订单状态
                     try {
-                        ChatMessage orderMsg = chatMessageMapper.selectOne(
-                                new LambdaQueryWrapper<ChatMessage>()
-                                        .eq(ChatMessage::getOrderId, order.getId())
-                                        .eq(ChatMessage::getMsgType, 3)
-                        );
+                        ChatMessage orderMsg = messageMap.get(order.getId());
                         if (orderMsg != null && orderMsg.getContent() != null) {
                             JsonNode root = objectMapper.readTree(orderMsg.getContent());
                             if (root.isObject()) {
@@ -83,7 +100,7 @@ public class OrderAutoConfirmTask {
                         log.error("[订单自动确认任务] 更新聊天消息状态失败，订单ID：{}", order.getId(), e);
                     }
 
-                    Product product = productMapper.selectById(order.getProductId());
+                    Product product = productMap.get(order.getProductId());
                     if (product != null && Integer.valueOf(0).equals(product.getIsDeleted())) {
                         Product productUpdate = new Product();
                         productUpdate.setId(product.getId());

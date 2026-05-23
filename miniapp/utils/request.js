@@ -108,9 +108,8 @@ function realRequest(url, method, data, options) {
     requestData = {}
   }
 
-  // 调试日志（生产环境可删除）
-  console.log('📍 [Request]', method, url, cleanData)
-  console.log('Token:', token ? '✅ 已携带' : '❌ 无')
+  // 调试日志
+  console.log('📍 [Request]', method, url)
 
   return new Promise((resolve, reject) => {
     uni.request({
@@ -125,7 +124,6 @@ function realRequest(url, method, data, options) {
         if (showLoading) {
           uni.hideLoading()
         }
-        console.log('📍 [Response]', url, res.data)
         const response = res.data || {}
         handleResponse(response, resolve, reject)
       },

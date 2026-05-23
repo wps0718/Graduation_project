@@ -2,8 +2,8 @@
   <view class="user-avatar" :class="sizeClass">
     <view class="user-avatar__image-wrapper">
       <image
-        v-if="avatarUrl"
-        :src="avatarUrl"
+        v-if="resolvedAvatar"
+        :src="resolvedAvatar"
         class="user-avatar__image"
         mode="aspectFill"
       />
@@ -20,6 +20,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { resolveImageUrl } from '@/utils/image'
 
 const props = defineProps({
   avatarUrl: {
@@ -50,6 +51,8 @@ const initial = computed(() => {
   }
   return ''
 })
+
+const resolvedAvatar = computed(() => resolveImageUrl(props.avatarUrl))
 
 const sizeClass = computed(() => `user-avatar--${props.size}`)
 </script>

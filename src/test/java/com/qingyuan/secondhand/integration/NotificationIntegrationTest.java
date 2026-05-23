@@ -23,6 +23,7 @@ import com.qingyuan.secondhand.mapper.ReportMapper;
 import com.qingyuan.secondhand.mapper.ReviewMapper;
 import com.qingyuan.secondhand.mapper.TradeOrderMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
+import com.qingyuan.secondhand.service.BrowseHistoryService;
 import com.qingyuan.secondhand.service.CampusAuthService;
 import com.qingyuan.secondhand.service.FavoriteService;
 import com.qingyuan.secondhand.service.NotificationService;
@@ -80,6 +81,12 @@ class NotificationIntegrationTest {
 
     @TestConfiguration
     static class TestConfig {
+
+        @Bean
+        BrowseHistoryService browseHistoryService() {
+            return Mockito.mock(BrowseHistoryService.class);
+        }
+
         @Bean
         CampusAuthService campusAuthService(CampusAuthMapper campusAuthMapper,
                                             CollegeMapper collegeMapper,
@@ -98,10 +105,11 @@ class NotificationIntegrationTest {
                                       TradeOrderMapper tradeOrderMapper,
                                       UserMapper userMapper,
                                       CampusAuthMapper campusAuthMapper,
-                                      CollegeMapper collegeMapper) {
+                                      CollegeMapper collegeMapper,
+                                      BrowseHistoryService browseHistoryService) {
             return new ProductServiceImpl(productMapper, objectMapper, stringRedisTemplate,
                     productAsyncService, notificationService,
-                    tradeOrderMapper, userMapper, campusAuthMapper, collegeMapper);
+                    tradeOrderMapper, userMapper, campusAuthMapper, collegeMapper, browseHistoryService);
         }
 
         @Bean

@@ -1,9 +1,9 @@
 /**
  * 后端基础 URL
- * 开发环境: .env.development → http://localhost:8080
+ * 开发环境: .env.development → http://qb66788d.natappfree.cc
  * 生产环境: .env.production → /
  */
-export const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:8080'
+export const BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:3576'
 
 /**
  * 将相对路径拼接为完整图片 URL

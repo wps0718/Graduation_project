@@ -216,6 +216,7 @@ import { onLoad, onShareAppMessage } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
 import { isLogin } from '@/utils/auth'
 import { PRODUCT_STATUS } from '@/utils/constant'
+import { resolveImageUrl } from '@/utils/image'
 import { useUserStore } from '@/store'
 import Price from '@/components/price/price.vue'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
@@ -223,10 +224,6 @@ import StatusTag from '@/components/status-tag/status-tag.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
 import { buildMenuOptions, buildSharePayload } from '@/utils/product-detail-helpers'
 import { showToast } from '@/utils/nav'
-
-const FOOTPRINT_KEY = 'footprint_list'
-const FOOTPRINT_MAX = 50
-const FOOTPRINT_EXPIRE = 7 * 24 * 60 * 60 * 1000
 
 const detail = ref(null)
 const loading = ref(false)
@@ -253,10 +250,11 @@ const imageList = computed(() => {
   if (!detail.value) return []
   const images = detail.value.images || []
   if (Array.isArray(images) && images.length > 0) {
-    return images
+    return images.map((url) => resolveImageUrl(url)).filter(Boolean)
   }
   if (detail.value.coverImage) {
-    return [detail.value.coverImage]
+    const resolved = resolveImageUrl(detail.value.coverImage)
+    return resolved ? [resolved] : []
   }
   return []
 })
@@ -282,7 +280,8 @@ const seller = computed(() => {
   if (fromObject && typeof fromObject === 'object') {
     return {
       ...fromObject,
-      status: fromObject.status ?? fromObject.userStatus
+      avatarUrl: resolveImageUrl(fromObject.avatarUrl),
+      status: fromObject.status != null ? fromObject.status : fromObject.userStatus
     }
   }
   const id = detail.value.sellerId
@@ -290,7 +289,7 @@ const seller = computed(() => {
   return {
     id,
     nickName: detail.value.publisherNickName,
-    avatarUrl: detail.value.publisherAvatarUrl,
+    avatarUrl: resolveImageUrl(detail.value.publisherAvatarUrl),
     score: detail.value.publisherScore,
     authStatus: detail.value.publisherAuthStatus,
     status: detail.value.sellerStatus
@@ -322,28 +321,6 @@ const actionButtonText = computed(() => {
   return '我想要'
 })
 
-function normalizeFootprints(list) {
-  const now = Date.now()
-  const items = Array.isArray(list) ? list : []
-  const filtered = items.filter(item => item && item.id && item.viewedAt && now - item.viewedAt <= FOOTPRINT_EXPIRE)
-  filtered.sort((a, b) => (b.viewedAt || 0) - (a.viewedAt || 0))
-  if (filtered.length > FOOTPRINT_MAX) {
-    return filtered.slice(0, FOOTPRINT_MAX)
-  }
-  return filtered
-}
-
-function saveFootprint(product) {
-  if (!product || !product.id) return
-  const list = normalizeFootprints(uni.getStorageSync(FOOTPRINT_KEY))
-  const next = list.filter(item => item.id !== product.id)
-  next.unshift({ ...product, viewedAt: Date.now() })
-  if (next.length > FOOTPRINT_MAX) {
-    next.length = FOOTPRINT_MAX
-  }
-  uni.setStorageSync(FOOTPRINT_KEY, next)
-}
-
 function promptLogin() {
   showToast('请先登录')
   setTimeout(() => {
@@ -359,9 +336,9 @@ async function fetchDetail(id) {
     detail.value = data
     isFavorited.value = !!(data && data.isFavorited)
     currentIndex.value = 0
-    saveFootprint(data)
     if (isLogin()) {
       await checkFavorite(id)
+      post(`/mini/footprint/record?productId=${id}`).catch(() => {})
     }
     fetchComments(id)
   } catch (error) {

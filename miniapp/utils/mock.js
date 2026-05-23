@@ -432,8 +432,8 @@ const myProducts = sellerProducts(currentUser.id).map((item, index) => {
 
 const buildProfileData = (seller, stats = {}) => {
   const list = sellerProducts(seller.id)
-  const onSaleCount = stats.onSaleCount ?? list.length
-  const soldCount = stats.soldCount ?? 0
+  const onSaleCount = stats.onSaleCount != null ? stats.onSaleCount : list.length
+  const soldCount = stats.soldCount != null ? stats.soldCount : 0
   return {
     id: seller.id,
     nickName: seller.nickName,
@@ -819,7 +819,7 @@ export const mockData = {
       { keyword: '升本政治' }
     ]
   },
-  'POST /common/upload': {
+  'POST /mini/common/upload': {
     code: 1,
     msg: 'success',
     data: {

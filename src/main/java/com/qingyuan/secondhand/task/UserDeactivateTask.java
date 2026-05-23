@@ -31,7 +31,8 @@ public class UserDeactivateTask {
             LocalDateTime deadline = LocalDateTime.now().minusDays(30);
             LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(User::getStatus, UserStatus.DEREGISTERING.getCode())
-                    .lt(User::getDeactivateTime, deadline);
+                    .lt(User::getDeactivateTime, deadline)
+                    .last("LIMIT 500");
             List<User> users = userMapper.selectList(wrapper);
             if (users == null || users.isEmpty()) {
                 log.info("[用户注销清理任务] 无需清理的用户");

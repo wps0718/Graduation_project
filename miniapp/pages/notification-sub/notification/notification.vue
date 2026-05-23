@@ -30,7 +30,14 @@
             class="notification-item__icon-wrap"
             :style="{ backgroundColor: getConfig(item.type).bgColor }"
           >
-            <view class="notification-item__icon">
+            <image
+              v-if="!svgErrorTypes[item.type] && getIconSrc(item.type)"
+              class="notification-item__svg"
+              :src="getIconSrc(item.type)"
+              mode="aspectFit"
+              @error="handleSvgLoadError(item.type)"
+            />
+            <view v-else class="notification-item__icon">
               <text class="notification-item__icon-text">{{ getConfig(item.type).emoji }}</text>
             </view>
             <view
@@ -71,6 +78,30 @@ import EmptyState from '@/components/empty-state/empty-state.vue'
 import { showToast, ensureLogin } from '@/utils/nav'
 
 const userStore = useUserStore()
+
+// 通知类型 → SVG 图标映射
+const notificationIconMap = {
+  1: '/static/svg/Transaction_Successful.svg',
+  2: '/static/svg/New Message.svg',
+  3: '/static/svg/Approved.svg',
+  4: '/static/svg/Transaction_failed.svg',
+  6: '/static/svg/Received Favorite.svg',
+  7: '/static/svg/Order_Cancellation.svg',
+  8: '/static/svg/Approved.svg',
+  9: '/static/svg/Transaction_failed.svg',
+  10: '/static/svg/Transaction_Details.svg',
+  11: '/static/svg/New Follower.svg',
+}
+
+const svgErrorTypes = ref({})
+
+function handleSvgLoadError(type) {
+  svgErrorTypes.value = { ...svgErrorTypes.value, [type]: true }
+}
+
+function getIconSrc(type) {
+  return notificationIconMap[Number(type)] || ''
+}
 
 const tabs = [
   { label: '全部', value: 0 },
@@ -139,7 +170,7 @@ async function fetchNotifications(targetPage, refresh = false) {
       { showLoading: refresh || targetPage === 1 }
     )
     const records = Array.isArray(data) ? data : (data.records || [])
-    const total = Array.isArray(data) ? records.length : (data.total ?? records.length)
+    const total = Array.isArray(data) ? records.length : (data.total != null ? data.total : records.length)
     const filtered = applyTypeFilter(applyCategoryFilter(records, activeTab.value))
     const isServerPaged = !Array.isArray(data) && typeof data.total === 'number' && data.total > records.length
     if (isServerPaged) {
@@ -355,6 +386,12 @@ onReachBottom(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.notification-item__svg {
+  width: 48rpx;
+  height: 48rpx;
+  display: block;
 }
 
 .notification-item__icon {

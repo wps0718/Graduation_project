@@ -6,25 +6,25 @@
     <select id="countTodayNewUsers" resultType="java.lang.Integer">
         SELECT COUNT(*)
         FROM user
-        WHERE DATE(create_time) = CURDATE()
+        WHERE create_time >= CURDATE() AND create_time &lt; CURDATE() + INTERVAL 1 DAY
     </select>
 
     <select id="countTodayNewProducts" resultType="java.lang.Integer">
         SELECT COUNT(*)
         FROM product
-        WHERE DATE(create_time) = CURDATE() AND is_deleted = 0
+        WHERE create_time >= CURDATE() AND create_time &lt; CURDATE() + INTERVAL 1 DAY AND is_deleted = 0
     </select>
 
     <select id="countTodayOrders" resultType="java.lang.Integer">
         SELECT COUNT(*)
         FROM trade_order
-        WHERE DATE(complete_time) = CURDATE() AND status IN (3, 4)
+        WHERE complete_time >= CURDATE() AND complete_time &lt; CURDATE() + INTERVAL 1 DAY AND status IN (3, 4)
     </select>
 
     <select id="sumTodayGmv" resultType="java.math.BigDecimal">
         SELECT COALESCE(SUM(price), 0)
         FROM trade_order
-        WHERE DATE(complete_time) = CURDATE() AND status IN (3, 4)
+        WHERE complete_time >= CURDATE() AND complete_time &lt; CURDATE() + INTERVAL 1 DAY AND status IN (3, 4)
     </select>
 
     <select id="countTotalUsers" resultType="java.lang.Integer">
@@ -90,19 +90,19 @@
         LEFT JOIN (
             SELECT DATE(create_time) AS date, COUNT(*) AS newUsers
             FROM user
-            WHERE DATE(create_time) &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+            WHERE create_time &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
             GROUP BY DATE(create_time)
         ) AS u ON d.date = u.date
         LEFT JOIN (
             SELECT DATE(create_time) AS date, COUNT(*) AS newProducts
             FROM product
-            WHERE DATE(create_time) &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY) AND is_deleted = 0
+            WHERE create_time &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY) AND is_deleted = 0
             GROUP BY DATE(create_time)
         ) AS p ON d.date = p.date
         LEFT JOIN (
             SELECT DATE(complete_time) AS date, COUNT(*) AS orders, SUM(price) AS gmv
             FROM trade_order
-            WHERE DATE(complete_time) &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY) AND status IN (3, 4)
+            WHERE complete_time &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY) AND status IN (3, 4)
             GROUP BY DATE(complete_time)
         ) AS o ON d.date = o.date
         ORDER BY d.date ASC
@@ -158,5 +158,26 @@
             GROUP BY p.category_id
         ) AS o ON cat.id = o.category_id
         ORDER BY cat.id ASC
+    </select>
+
+    <select id="getOverviewAggregates" resultType="java.util.HashMap">
+        SELECT
+            (SELECT COUNT(*) FROM user WHERE create_time >= CURDATE() AND create_time &lt; CURDATE() + INTERVAL 1 DAY) AS todayNewUsers,
+            (SELECT COUNT(*) FROM product WHERE create_time >= CURDATE() AND create_time &lt; CURDATE() + INTERVAL 1 DAY AND is_deleted = 0) AS todayNewProducts,
+            (SELECT COUNT(*) FROM trade_order WHERE complete_time >= CURDATE() AND complete_time &lt; CURDATE() + INTERVAL 1 DAY AND status IN (3, 4)) AS todayNewOrders,
+            (SELECT COALESCE(SUM(price), 0) FROM trade_order WHERE complete_time >= CURDATE() AND complete_time &lt; CURDATE() + INTERVAL 1 DAY AND status IN (3, 4)) AS todayGmv,
+            (SELECT COUNT(*) FROM user) AS totalUsers,
+            (SELECT COUNT(*) FROM product WHERE is_deleted = 0) AS totalProducts,
+            (SELECT COUNT(*) FROM trade_order WHERE status IN (3, 4)) AS totalOrders,
+            (SELECT COALESCE(SUM(price), 0) FROM trade_order WHERE status IN (3, 4)) AS totalAmount
+        FROM dual
+    </select>
+
+    <select id="getPendingCounts" resultType="java.util.HashMap">
+        SELECT
+            (SELECT COUNT(*) FROM product WHERE status = 0 AND is_deleted = 0) AS pendingProductCount,
+            (SELECT COUNT(*) FROM campus_auth WHERE status = 0) AS pendingAuthCount,
+            (SELECT COUNT(*) FROM report WHERE status = 0) AS pendingReports
+        FROM dual
     </select>
 </mapper>

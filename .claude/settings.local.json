@@ -120,7 +120,31 @@
       "PowerShell(New-Item *)",
       "Bash(git mv *)",
       "Bash(cp -r /g/Code/Graduation_project/miniapp/pages/product /g/Code/Graduation_project/miniapp/pages/product-sub)",
-      "Bash(cp -r /g/Code/Graduation_project/miniapp/pages/chat /g/Code/Graduation_project/miniapp/pages/chat-sub)"
+      "Bash(cp -r /g/Code/Graduation_project/miniapp/pages/chat /g/Code/Graduation_project/miniapp/pages/chat-sub)",
+      "Bash(mvn clean *)",
+      "Bash(\"C:/Program Files/Git/bin/git.exe\" diff -- miniapp/pages/notification-sub/notification/notification.vue)",
+      "Bash(\"C:/Program Files \\(x86\\)/Git/bin/git.exe\" diff -- miniapp/pages/notification-sub/notification/notification.vue)",
+      "Bash(\"C:/Program Files/Git/bin/git.exe\" show HEAD:miniapp/pages/notification-sub/notification/notification.vue、)",
+      "Bash(where node.exe)",
+      "Bash(powershell.exe -Command \"Get-Command node\")",
+      "Bash(openssl version *)",
+      "Bash(curl --version)",
+      "WebFetch(domain:zh.wikipedia.org)",
+      "WebFetch(domain:baike.baidu.com)",
+      "WebFetch(domain:www.gdqy.edu.cn)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:www.linkedin.com)",
+      "PowerShell(mvn test *)",
+      "PowerShell(cmd /c \"where mvn\" 2>&1)",
+      "PowerShell(& \"D:\\\\Maven\\\\apache-maven-3.9.8-bin\\\\apache-maven-3.9.8\\\\bin\\\\mvn.cmd\" test 2>&1 | Select-Object -Last 60)",
+      "PowerShell($env:JAVA_HOME)",
+      "PowerShell($env:JAVA_HOME = \"D:\\\\java17\\\\install\"; $env:PATH = \"$env:JAVA_HOME\\\\bin;$env:PATH\"; & \"D:\\\\Maven\\\\apache-maven-3.9.8-bin\\\\apache-maven-3.9.8\\\\bin\\\\mvn.cmd\" test 2>&1 | Select-Object -Last 80)",
+      "PowerShell(mvn clean *)",
+      "PowerShell(& \"D:\\\\Maven\\\\apache-maven-3.9.8-bin\\\\apache-maven-3.9.8\\\\bin\\\\mvn.cmd\" clean compile -DskipTests -q 2>&1 | Select-Object -Last 30)",
+      "PowerShell(Select-String *)",
+      "PowerShell(cmd /c \"dir /s /b D:\\\\java17\\\\java.exe 2>nul\"; cmd /c \"dir /s /b D:\\\\java\\\\java.exe 2>nul\")",
+      "PowerShell($env:JAVA_HOME = \"D:\\\\java17\"; & \"D:\\\\Maven\\\\apache-maven-3.9.8-bin\\\\apache-maven-3.9.8\\\\bin\\\\mvn.cmd\" -version 2>&1)",
+      "PowerShell($env:JAVA_HOME = \"D:\\\\java\"; & \"D:\\\\Maven\\\\apache-maven-3.9.8-bin\\\\apache-maven-3.9.8\\\\bin\\\\mvn.cmd\" -version 2>&1)"
     ]
   }
 }

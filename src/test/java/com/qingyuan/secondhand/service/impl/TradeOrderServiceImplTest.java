@@ -153,9 +153,14 @@ class TradeOrderServiceImplTest {
         TradeOrderMapper tradeOrderMapper = Mockito.mock(TradeOrderMapper.class);
         ProductMapper productMapper = Mockito.mock(ProductMapper.class);
         StringRedisTemplate redisTemplate = Mockito.mock(StringRedisTemplate.class);
+        ValueOperations<String, String> valueOperations = Mockito.mock(ValueOperations.class);
         ObjectMapper objectMapper = Mockito.mock(ObjectMapper.class);
         NotificationService notificationService = Mockito.mock(NotificationService.class);
         UserMapper userMapper = Mockito.mock(UserMapper.class);
+
+        Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        Mockito.when(valueOperations.setIfAbsent(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(), Mockito.any()))
+            .thenReturn(true);
 
         Product product = buildProduct(1L, 20001L, 0);
         Mockito.when(productMapper.selectById(1L)).thenReturn(product);
@@ -164,7 +169,8 @@ class TradeOrderServiceImplTest {
         TradeOrderServiceImpl service = new TradeOrderServiceImpl(tradeOrderMapper, productMapper, redisTemplate, notificationService, userMapper, objectMapper, chatMessageMapper);
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.createOrder(buildCreateDTO()));
-        Assertions.assertEquals("商品未在售", ex.getMsg());
+        Assertions.assertEquals("商品已被购买或下架", ex.getMsg());
+        Mockito.verify(redisTemplate).execute(Mockito.any(DefaultRedisScript.class), Mockito.anyList(), Mockito.anyString());
     }
 
     @Test

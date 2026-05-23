@@ -55,23 +55,12 @@ export const deleteBanner = (id) => {
 }
 
 /**
- * 获取校区列表（用于下拉框）
- * @returns {Promise}
- */
-export const getCampusListForBanner = () => {
-  return request({
-    url: '/admin/campus/list',
-    method: 'get'
-  })
-}
-
-/**
  * 上传图片
  * @param {FormData} formData - 包含 file 字段的 FormData
  * @returns {Promise}
  */
 export const uploadBannerImage = (formData) => {
-  return request.post('/common/upload', formData, {
+  return request.post('/admin/common/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
 }

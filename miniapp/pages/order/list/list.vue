@@ -1,6 +1,5 @@
 <template>
   <view class="order-page">
-    <Navbar title="交易记录" />
     <view class="order-tabs">
       <view
         v-for="item in tabs"
@@ -36,7 +35,6 @@ import { ref } from 'vue'
 import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
 import { useUserStore } from '@/store'
-import Navbar from '@/components/navbar/navbar.vue'
 import OrderCard from '@/components/order-card/order-card.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
 import { showToast, ensureLogin } from '@/utils/nav'
@@ -94,7 +92,7 @@ async function fetchOrders(targetPage, refresh = false) {
     const isArray = Array.isArray(data)
     const records = isArray ? data : (data.records || [])
     const isRoleAware = records.some((item) => item && item.buyerId && item.sellerId)
-    let total = isArray ? records.length : (data.total ?? records.length)
+    let total = isArray ? records.length : (data.total != null ? data.total : records.length)
     let nextList = records
     if (isRoleAware) {
       const roleData = buildRoleOrders(records, activeTab.value, targetPage)

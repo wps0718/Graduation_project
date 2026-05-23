@@ -25,6 +25,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Value("${upload.url-prefix}")
     private String urlPrefix;
 
+    @Value("${cors.allowed-origins:http://localhost:3000,http://localhost:5173}")
+    private String allowedOrigins;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(jwtInterceptor)
@@ -41,7 +44,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/mini/user/sms-login",
                         // 用户公开接口
                         "/mini/user/profile/**",
-                        "/mini/common/**",
                         // 校区相关（首页必需）
                         "/mini/campus/list",
                         "/mini/campus/meeting-points/**",
@@ -84,16 +86,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                // 允许的源（前端地址）- 生产环境建议配置具体域名
-                .allowedOrigins("http://localhost:3000", "http://127.0.0.1:3000",
-                        "http://localhost:5173", "http://127.0.0.1:5173")
-                // 允许的 HTTP 方法
+                .allowedOrigins(allowedOrigins.split(","))
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                // 允许的请求头
                 .allowedHeaders("*")
-                // 允许携带凭证（cookies、authorization header）
                 .allowCredentials(true)
-                // 预检请求缓存时间（秒）
                 .maxAge(3600);
     }
 }

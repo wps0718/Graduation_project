@@ -22,6 +22,9 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -44,12 +47,30 @@ public class OrderExpireTask {
         try {
             LambdaQueryWrapper<TradeOrder> wrapper = new LambdaQueryWrapper<>();
             wrapper.lt(TradeOrder::getExpireTime, LocalDateTime.now())
-                    .in(TradeOrder::getStatus, OrderStatus.PENDING_ACCEPT.getCode(), OrderStatus.PENDING_MEET.getCode());
+                    .in(TradeOrder::getStatus, OrderStatus.PENDING_ACCEPT.getCode(), OrderStatus.PENDING_MEET.getCode())
+                    .last("LIMIT 500");
             List<TradeOrder> orders = tradeOrderMapper.selectList(wrapper);
             if (orders == null || orders.isEmpty()) {
                 log.info("[订单超时取消任务] 无超时订单");
                 return;
             }
+
+            // 批量查询所有相关订单的聊天消息
+            List<Long> orderIds = orders.stream().map(TradeOrder::getId).collect(Collectors.toList());
+            List<ChatMessage> orderMessages = chatMessageMapper.selectList(
+                    new LambdaQueryWrapper<ChatMessage>()
+                            .in(ChatMessage::getOrderId, orderIds)
+                            .eq(ChatMessage::getMsgType, 3)
+            );
+            Map<Long, ChatMessage> messageMap = orderMessages.stream()
+                    .collect(Collectors.toMap(ChatMessage::getOrderId, Function.identity(), (a, b) -> a));
+
+            // 批量查询所有涉及的商品
+            List<Long> productIds = orders.stream().map(TradeOrder::getProductId).distinct().collect(Collectors.toList());
+            List<Product> products = productMapper.selectBatchIds(productIds);
+            Map<Long, Product> productMap = products.stream()
+                    .collect(Collectors.toMap(Product::getId, Function.identity()));
+
             for (TradeOrder order : orders) {
                 try {
                     TradeOrder update = new TradeOrder();
@@ -62,11 +83,7 @@ public class OrderExpireTask {
 
                     // 同步更新聊天消息中的订单状态
                     try {
-                        ChatMessage orderMsg = chatMessageMapper.selectOne(
-                                new LambdaQueryWrapper<ChatMessage>()
-                                        .eq(ChatMessage::getOrderId, order.getId())
-                                        .eq(ChatMessage::getMsgType, 3)
-                        );
+                        ChatMessage orderMsg = messageMap.get(order.getId());
                         if (orderMsg != null && orderMsg.getContent() != null) {
                             JsonNode root = objectMapper.readTree(orderMsg.getContent());
                             if (root.isObject()) {
@@ -81,13 +98,11 @@ public class OrderExpireTask {
                         log.error("[订单超时取消任务] 更新聊天消息状态失败，订单ID：{}", order.getId(), e);
                     }
 
-                    Product product = productMapper.selectById(order.getProductId());
+                    Product product = productMap.get(order.getProductId());
                     if (product != null && Integer.valueOf(0).equals(product.getIsDeleted())) {
                         if (ProductStatus.ON_SALE.getCode().equals(product.getStatus())) {
-                            // 商品状态正常为在售，无需变更
                             log.info("订单[{}]超时取消，商品[{}]状态正常在售", order.getId(), product.getId());
                         } else {
-                            // 商品状态已被变更（如管理员强制下架），记录警告但跳过
                             log.warn("订单[{}]超时取消时商品[{}]状态已变更为{}，跳过状态同步",
                                      order.getId(), product.getId(), product.getStatus());
                         }

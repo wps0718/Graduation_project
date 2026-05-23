@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface StatsMapper {
@@ -38,4 +39,8 @@ public interface StatsMapper {
     List<StatsCampusVO> getCampusStats();
 
     List<StatsCategoryVO> getCategoryStats();
+
+    Map<String, Object> getOverviewAggregates();
+
+    Map<String, Object> getPendingCounts();
 }

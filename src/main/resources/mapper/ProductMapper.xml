@@ -46,6 +46,7 @@
             p.id,
             p.title,
             p.price,
+            p.original_price AS originalPrice,
             p.condition_level AS conditionLevel,
             p.view_count AS viewCount,
             p.favorite_count AS favoriteCount,

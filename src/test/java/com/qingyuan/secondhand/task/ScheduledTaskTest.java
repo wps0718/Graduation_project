@@ -45,7 +45,8 @@ class ScheduledTaskTest {
         Product product = buildProduct(11L, 31L, ProductStatus.ON_SALE.getCode(), 0);
 
         Mockito.when(tradeOrderMapper.selectList(Mockito.any())).thenReturn(List.of(order));
-        Mockito.when(productMapper.selectById(11L)).thenReturn(product);
+        Mockito.when(productMapper.selectBatchIds(Mockito.anyCollection())).thenReturn(List.of(product));
+        Mockito.when(chatMessageMapper.selectList(Mockito.any())).thenReturn(List.of());
         Mockito.when(tradeOrderMapper.updateById(Mockito.any(TradeOrder.class))).thenReturn(1);
 
         task.execute();
@@ -79,7 +80,8 @@ class ScheduledTaskTest {
         Product product = buildProduct(12L, 32L, ProductStatus.ON_SALE.getCode(), 0);
 
         Mockito.when(tradeOrderMapper.selectList(Mockito.any())).thenReturn(List.of(order));
-        Mockito.when(productMapper.selectById(12L)).thenReturn(product);
+        Mockito.when(productMapper.selectBatchIds(Mockito.anyCollection())).thenReturn(List.of(product));
+        Mockito.when(chatMessageMapper.selectList(Mockito.any())).thenReturn(List.of());
         Mockito.when(tradeOrderMapper.updateById(Mockito.any(TradeOrder.class))).thenReturn(1);
         Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
 
@@ -151,7 +153,7 @@ class ScheduledTaskTest {
 
         Mockito.when(tradeOrderMapper.selectList(Mockito.any())).thenReturn(List.of(order));
         Mockito.when(reviewMapper.selectList(Mockito.any())).thenReturn(List.of());
-        Mockito.when(productMapper.selectById(14L)).thenReturn(product);
+        Mockito.when(productMapper.selectBatchIds(Mockito.anyCollection())).thenReturn(List.of(product));
 
         task.execute();
 

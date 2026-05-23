@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "公共接口")
 @RestController
-@RequestMapping("/common")
+@RequestMapping("/mini/common")
 @RequiredArgsConstructor
 public class CommonController {
 

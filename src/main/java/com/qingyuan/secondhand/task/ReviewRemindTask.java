@@ -21,6 +21,9 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -45,21 +48,35 @@ public class ReviewRemindTask {
             LocalDateTime fourDaysAgo = now.minusDays(4);
             LambdaQueryWrapper<TradeOrder> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(TradeOrder::getStatus, OrderStatus.COMPLETED.getCode())
-                    .between(TradeOrder::getCompleteTime, fourDaysAgo, threeDaysAgo);
+                    .between(TradeOrder::getCompleteTime, fourDaysAgo, threeDaysAgo)
+                    .last("LIMIT 500");
             List<TradeOrder> orders = tradeOrderMapper.selectList(wrapper);
             if (orders == null || orders.isEmpty()) {
                 log.info("[评价提醒任务] 无需提醒的订单");
                 return;
             }
+
+            // 批量查询所有订单的评价记录
+            List<Long> orderIds = orders.stream().map(TradeOrder::getId).collect(Collectors.toList());
+            List<Review> allReviews = reviewMapper.selectList(
+                    new LambdaQueryWrapper<Review>().in(Review::getOrderId, orderIds)
+            );
+            // 按 orderId 分组
+            Map<Long, List<Review>> reviewMap = allReviews.stream()
+                    .collect(Collectors.groupingBy(Review::getOrderId));
+
+            // 批量查询所有涉及的商品
+            Set<Long> productIds = orders.stream().map(TradeOrder::getProductId).collect(Collectors.toSet());
+            List<Product> products = productMapper.selectBatchIds(productIds);
+            Map<Long, Product> productMap = products.stream()
+                    .collect(Collectors.toMap(Product::getId, Function.identity()));
+
             for (TradeOrder order : orders) {
                 try {
-                    List<Review> reviews = reviewMapper.selectList(
-                            new LambdaQueryWrapper<Review>()
-                                    .eq(Review::getOrderId, order.getId())
-                    );
+                    List<Review> reviews = reviewMap.get(order.getId());
                     boolean buyerReviewed = hasReviewed(reviews, order.getBuyerId());
                     boolean sellerReviewed = hasReviewed(reviews, order.getSellerId());
-                    Product product = productMapper.selectById(order.getProductId());
+                    Product product = productMap.get(order.getProductId());
                     String productName = product != null && StringUtils.hasText(product.getTitle()) ? product.getTitle() : "商品";
                     Map<String, String> params = Map.of("productName", productName);
 

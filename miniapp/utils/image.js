@@ -6,6 +6,20 @@ function isAbsoluteUrl(url) {
   return /^(https?:)?\/\//i.test(url)
 }
 
+// 从绝对 URL 中提取路径部分（兼容数据库中已存储的 localhost 绝对路径）
+function extractPath(url) {
+  try {
+    // 处理 http://localhost:8080/uploads/... 这种情况
+    if (url.includes('localhost:') || url.includes('127.0.0.1:')) {
+      const idx = url.indexOf('/uploads/')
+      if (idx >= 0) return url.substring(idx)
+    }
+  } catch (e) {
+    // ignore
+  }
+  return null
+}
+
 function joinBaseUrl(path) {
   const base = String(BASE_URL || '').replace(/\/+$/, '')
   const normalizedPath = path.startsWith('/') ? path : `/${path}`
@@ -34,6 +48,11 @@ export function resolveImageUrl(url, options = {}) {
     return raw
   }
   if (isAbsoluteUrl(raw)) {
+    // 兼容数据库中已存储的 localhost 绝对路径，转换为当前 BASE_URL
+    const path = extractPath(raw)
+    if (path) {
+      return appendVersion(joinBaseUrl(path), version)
+    }
     return appendVersion(raw, version)
   }
   return appendVersion(joinBaseUrl(raw), version)

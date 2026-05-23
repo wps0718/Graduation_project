@@ -49,7 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ThreadLocalRandom;
+import java.security.SecureRandom;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Service
@@ -170,7 +170,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException("今日发送次数已达上限");
         }
 
-        String code = String.format("%06d", ThreadLocalRandom.current().nextInt(1000000));
+        String code = String.format("%06d", new SecureRandom().nextInt(1000000));
 
         stringRedisTemplate.opsForValue().set(codeKey, code, 5, TimeUnit.MINUTES);
         stringRedisTemplate.opsForValue().set(limitKey, "1", 60, TimeUnit.SECONDS);
@@ -180,7 +180,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             stringRedisTemplate.expire(dailyKey, 24, TimeUnit.HOURS);
         }
 
-        log.info("发送验证码到{}：{}", phone, code);
+        log.info("发送验证码到{}", phone);
     }
 
     @Override
@@ -303,6 +303,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateUserInfo(UserUpdateDTO dto) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -477,6 +478,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void acceptAgreement() {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -545,6 +547,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void restoreAccount() {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -601,6 +604,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void banUser(Long userId, String banReason) {
         if (userId == null) {
             throw new BusinessException("用户ID不能为空");
@@ -630,6 +634,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void unbanUser(Long userId) {
         if (userId == null) {
             throw new BusinessException("用户ID不能为空");

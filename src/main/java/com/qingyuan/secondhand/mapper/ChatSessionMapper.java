@@ -10,6 +10,12 @@ import java.util.List;
 public interface ChatSessionMapper extends BaseMapper<ChatSession> {
     List<ChatSessionVO> selectSessionListByUserId(@Param("userId") Long userId);
 
+    ChatSessionVO selectSessionByUserAndPeer(@Param("userId") Long userId,
+                                             @Param("peerId") Long peerId,
+                                             @Param("productId") Long productId);
+
+    int sumUnreadByUserId(@Param("userId") Long userId);
+
     int incrementUnread(@Param("userId") Long userId,
                         @Param("peerId") Long peerId,
                         @Param("productId") Long productId);

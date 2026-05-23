@@ -1,16 +1,5 @@
 <template>
   <view class="follower-page">
-    <view :style="{ height: `${statusBarHeight}px` }"></view>
-    <view class="follower-nav" :style="{ height: `${navBarHeight}px` }">
-      <view class="follower-nav__left" @click="goBack">
-        <text class="follower-nav__back">‹</text>
-      </view>
-      <text class="follower-nav__title">新增粉丝</text>
-      <view class="follower-nav__right" @click="goSettings">
-        <text class="follower-nav__icon">⚙</text>
-      </view>
-    </view>
-
     <view class="follower-content">
       <view v-if="followerList.length" class="follower-list">
         <view
@@ -59,12 +48,9 @@ import { get, post } from '@/utils/request'
 import { useUserStore } from '@/store'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
-import { showToast, goBack } from '@/utils/nav'
+import { showToast } from '@/utils/nav'
 
 const userStore = useUserStore()
-
-const statusBarHeight = ref(0)
-const navBarHeight = ref(44)
 
 const followerList = ref([])
 const page = ref(1)
@@ -74,8 +60,6 @@ const loading = ref(false)
 const loadingMore = ref(false)
 
 onLoad(() => {
-  const systemInfo = uni.getSystemInfoSync()
-  statusBarHeight.value = systemInfo.statusBarHeight || 0
   fetchFollowers(1, true)
 })
 
@@ -90,10 +74,6 @@ onReachBottom(() => {
   }
 })
 
-
-function goSettings() {
-  uni.navigateTo({ url: '/pages/user-sub/settings/settings' })
-}
 
 function goProfile(userId) {
   uni.navigateTo({ url: `/pages/user-sub/seller/profile?id=${userId}` })
@@ -173,35 +153,6 @@ async function toggleFollow(item) {
 .follower-page {
   min-height: 100vh;
   background-color: #fff;
-}
-
-.follower-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 30rpx;
-  background-color: #fff;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  border-bottom: 1rpx solid #f8f8f8;
-}
-
-.follower-nav__back {
-  font-size: 56rpx;
-  color: #333;
-  font-weight: 300;
-}
-
-.follower-nav__title {
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.follower-nav__icon {
-  font-size: 44rpx;
-  color: #333;
 }
 
 .follower-content {

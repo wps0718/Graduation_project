@@ -584,7 +584,7 @@ async function loadNotifications(targetPage, refresh = false) {
   try {
     const data = await get('/mini/notification/list', { page: targetPage, pageSize }, { showLoading: refresh && targetPage === 1 })
     const records = Array.isArray(data) ? data : (data.records || [])
-    const total = Array.isArray(data) ? records.length : (data.total ?? records.length)
+    const total = Array.isArray(data) ? records.length : (data.total != null ? data.total : records.length)
     if (refresh) notifications.value = records
     else notifications.value = notifications.value.concat(records)
     notificationPage.value = targetPage

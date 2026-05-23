@@ -1,3 +1,9 @@
+// ============================================
+// API 基础地址配置
+// 开发时修改 SERVER_DOMAIN 为你的服务器地址
+// ============================================
+const SERVER_DOMAIN = 'your-server-domain.com'
+
 // #ifdef H5
 const isDev = process.env.NODE_ENV === 'development'
 // #endif
@@ -5,7 +11,7 @@ const isDev = process.env.NODE_ENV === 'development'
 const isDev = false
 // #endif
 
-export const BASE_URL = isDev ? 'http://localhost:8080' : 'http://localhost:8080'
+export const BASE_URL = isDev ? 'http://localhost:3576' : `https://${SERVER_DOMAIN}`
 
 export const CONDITION_LEVELS = [
   { value: 1, label: '全新' },

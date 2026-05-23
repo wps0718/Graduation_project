@@ -54,6 +54,11 @@ import { ORDER_STATUS, BASE_URL } from '@/utils/constant'
 
 function resolveImageUrl(url) {
   if (!url) return ''
+  // 兼容数据库中已存储的 localhost 绝对路径
+  if (url.includes('localhost:') || url.includes('127.0.0.1:')) {
+    const idx = url.indexOf('/uploads/')
+    if (idx >= 0) return BASE_URL + url.substring(idx)
+  }
   if (url.startsWith('http')) return url
   return BASE_URL + url
 }

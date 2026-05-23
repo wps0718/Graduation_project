@@ -173,7 +173,6 @@ import { get } from '@/utils/request'
 import ProductCard from '@/components/product-card/product-card.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
 import { goBack } from '@/utils/nav'
-import { useNavBar } from '@/utils/useNavBar'
 
 // 常量定义
 const SEARCH_HISTORY_KEY = 'searchHistory'
@@ -193,7 +192,6 @@ const noMore = ref(false)
 const searchInputRef = ref(null)
 const inputFocused = ref(false)
 const lastSearchedKeyword = ref('')
-const { statusBarHeight, navBarHeight } = useNavBar()
 
 // 筛选条件
 const categories = ref([])
@@ -245,10 +243,7 @@ const selectedSortLabel = computed(() => {
   return sortOptions[selectedSortIndex.value]?.label || '最新发布'
 })
 
-const headerStyle = computed(() => ({
-  height: `${navBarHeight.value + statusBarHeight.value}px`,
-  paddingTop: `${statusBarHeight.value}px`
-}))
+const headerStyle = computed(() => ({}))
 
 // 方法
 

@@ -29,38 +29,38 @@ public class JwtInterceptor implements HandlerInterceptor {
 
         // 放行 OPTIONS 预检请求
         if ("OPTIONS".equals(request.getMethod())) {
-            log.debug("📍 [JWT拦截器] OPTIONS 请求放行: {}", uri);
+            log.debug("[JWT拦截器] OPTIONS 请求放行: {}", uri);
             return true;
         }
 
         String authHeader = request.getHeader("Authorization");
-        log.info("📍 [JWT拦截器] URI: {}, Authorization: {}", uri, authHeader != null ? "已携带" : "❌ 未携带");
+        log.debug("[JWT拦截器] URI: {}, Authorization: {}", uri, authHeader != null ? "已携带" : "未携带");
 
         // 检查 Token 是否存在
         if (!StringUtils.hasText(authHeader) || !authHeader.startsWith("Bearer ")) {
-            log.error("❌ [JWT拦截器] Token 格式错误或不存在");
+            log.warn("[JWT拦截器] Token 格式错误或不存在");
             writeUnauthorized(response, "未登录");
             return false;
         }
 
         // 提取 Token
         String token = authHeader.substring(7);
-        log.debug("📍 [JWT拦截器] 提取的 Token: {}...", token.substring(0, Math.min(30, token.length())));
 
         try {
             // 解析 Token
             Claims claims = jwtUtil.parseToken(token);
 
-            // 获取 Token 类型（可能为 null）
+            // 获取 Token 类型
             String type = claims.get("type", String.class);
             if (type == null) {
-                type = "mini"; // 默认为小程序端
-                log.warn("⚠️ [JWT拦截器] Token 中未包含 type 字段，默认设置为 mini");
+                log.warn("[JWT拦截器] Token 中未包含 type 字段");
+                writeUnauthorized(response, "Token 无效");
+                return false;
             }
 
             // 验证是否为小程序端 Token
             if (!"mini".equals(type)) {
-                log.error("❌ [JWT拦截器] Token 类型错误: {}, 期望: mini", type);
+                log.warn("[JWT拦截器] Token 类型错误: {}, 期望: mini", type);
                 writeUnauthorized(response, "Token 类型错误");
                 return false;
             }
@@ -68,13 +68,13 @@ public class JwtInterceptor implements HandlerInterceptor {
             // 获取用户 ID
             String subject = claims.getSubject();
             if (subject == null) {
-                log.error("❌ [JWT拦截器] Token 中缺少 subject（用户ID）");
+                log.warn("[JWT拦截器] Token 中缺少 subject（用户ID）");
                 writeUnauthorized(response, "Token 无效");
                 return false;
             }
 
             Long userId = Long.parseLong(subject);
-            log.info("✅ [JWT拦截器] Token 解析成功，用户ID: {}, 类型: {}", userId, type);
+            log.debug("[JWT拦截器] Token 解析成功，用户ID: {}, 类型: {}", userId, type);
 
             // 设置上下文
             UserContext.setCurrentUserId(userId);
@@ -82,11 +82,11 @@ public class JwtInterceptor implements HandlerInterceptor {
             return true;
 
         } catch (NumberFormatException e) {
-            log.error("❌ [JWT拦截器] 用户ID格式错误: {}", e.getMessage());
+            log.warn("[JWT拦截器] 用户ID格式错误: {}", e.getMessage());
             writeUnauthorized(response, "Token 无效");
             return false;
         } catch (Exception e) {
-            log.error("❌ [JWT拦截器] Token 解析失败: {}", e.getMessage(), e);
+            log.warn("[JWT拦截器] Token 解析失败: {}", e.getMessage());
             writeUnauthorized(response, "登录已过期");
             return false;
         }

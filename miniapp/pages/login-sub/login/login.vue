@@ -21,10 +21,14 @@
         <text class="login__brand">轻院二手</text>
       </view>
 
+      <view class="login__divider">
+        <view class="login__divider-line"></view>
+      </view>
+
       <view class="login__section">
         <text class="login__section-title">账号登录</text>
 
-        <view class="login__field">
+        <view class="login__field" :class="{ 'is-focus': focusField === 'phone' }">
           <image class="login__field-icon" src="/static/svg/phone.svg" mode="aspectFit" />
           <input
             class="login__input"
@@ -34,19 +38,26 @@
             placeholder="请输入手机号"
             placeholder-class="login__placeholder"
             @input="onAccountPhoneInput"
+            @focus="focusField = 'phone'"
+            @blur="focusField = ''"
           />
         </view>
 
-        <view class="login__field">
+        <view class="login__field" :class="{ 'is-focus': focusField === 'password' }">
           <image class="login__field-icon" src="/static/svg/password.svg" mode="aspectFit" />
           <input
             class="login__input"
             :value="password"
-            password
+            :password="!showPassword"
             placeholder="请输入密码"
             placeholder-class="login__placeholder"
             @input="onPasswordInput"
+            @focus="focusField = 'password'"
+            @blur="focusField = ''"
           />
+          <view class="login__eye" @click="showPassword = !showPassword">
+            <text class="login__eye-icon">{{ showPassword ? '' : '' }}</text>
+          </view>
         </view>
 
         <view class="login__submit" :class="{ 'is-disabled': !canAccountSubmit }" @click="onAccountLogin">
@@ -56,18 +67,20 @@
         <text class="login__hint">未注册的手机号验证通过后会自动创建账号</text>
       </view>
 
+      <view class="login__or">
+        <view class="login__or-line"></view>
+        <text class="login__or-text">或</text>
+        <view class="login__or-line"></view>
+      </view>
+
       <view class="login__other">
-        <view class="login__other-item" @click="onWeChatLogin">
-          <view class="login__other-icon-wrap">
-            <image class="login__other-icon" src="/static/svg/wechat.svg" mode="aspectFit" />
-          </view>
+        <view class="login__other-card" @click="onWeChatLogin">
+          <image class="login__other-icon" src="/static/svg/wechat.svg" mode="aspectFit" />
           <text class="login__other-text">微信登录</text>
         </view>
-        <view class="login__other-item" @click="goSmsLogin">
-          <view class="login__other-icon-wrap">
-            <image class="login__other-icon" src="/static/svg/sms-login.svg" mode="aspectFit" />
-          </view>
-          <text class="login__other-text">短信验证码登录</text>
+        <view class="login__other-card" @click="goSmsLogin">
+          <image class="login__other-icon" src="/static/svg/sms-login.svg" mode="aspectFit" />
+          <text class="login__other-text">短信登录</text>
         </view>
       </view>
 
@@ -99,6 +112,8 @@ const { statusBarHeight, navBarHeight } = useNavBar()
 
 const accountPhone = ref('')
 const password = ref('')
+const showPassword = ref(false)
+const focusField = ref('')
 
 const agreed = ref(false)
 
@@ -198,9 +213,10 @@ function goSmsLogin() {
 </script>
 
 <style lang="scss" scoped>
+/* 1. 页面渐变背景 */
 .login {
   min-height: 100vh;
-  background-color: var(--bg-page);
+  background: linear-gradient(180deg, #3B82F6 0%, #3B82F6 12%, #f0f5ff 28%, #f5f7fa 100%);
   padding: 5rpx var(--spacing-md) var(--spacing-lg);
   box-sizing: border-box;
   display: flex;
@@ -232,87 +248,126 @@ function goSmsLogin() {
 .login__header-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: var(--login-text-strong);
+  color: #fff;
 }
 
 .login__header-sub {
   margin-top: 6rpx;
-  font-size: 28rpx;
-  color: var(--login-text-muted);
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
 }
 
+/* 4. 品牌卡片阴影加深 + 10. 入场动画 */
 .login__card {
-  background-color: var(--bg-white);
+  background-color: #fff;
   border-radius: 24rpx;
-  padding: 44rpx 40rpx 32rpx;
+  padding: 48rpx 40rpx 36rpx;
   width: 100%;
   max-width: 580rpx;
   margin: 20rpx auto;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.08);
+  animation: slideUp 0.4s ease;
 }
 
-.login__brand-wrap {
-  text-align: center;
-  margin-top: 20rpx;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
+/* 5. Logo 增加质感 */
 .login__hero {
   display: flex;
   justify-content: center;
 }
 
 .login__hero-bg {
-  width: 203rpx;
-  height: 203rpx;
-  border-radius: 20rpx;
-  background-color: var(--bg-white);
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #3B82F6, #60A5FA);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 var(--spacing-md);
+  box-shadow: 0 4rpx 24rpx rgba(59, 130, 246, 0.25);
 }
 
 .login__hero-img {
-  width: 200rpx;
-  height: 200rpx;
+  width: 88rpx;
+  height: 88rpx;
+}
+
+.login__brand-wrap {
+  text-align: center;
+  margin-top: 16rpx;
+  margin-bottom: 16rpx;
 }
 
 .login__brand {
-  font-size: 40rpx;
+  font-size: 36rpx;
   font-weight: 700;
   color: var(--login-text-strong);
+  letter-spacing: 2rpx;
 }
 
+/* 品牌与表单之间装饰分隔线 */
+.login__divider {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 32rpx;
+}
+
+.login__divider-line {
+  width: 48rpx;
+  height: 4rpx;
+  background: linear-gradient(90deg, #3B82F6, #93C5FD);
+  border-radius: 2rpx;
+}
 
 .login__section {
-  margin-top: 26rpx;
+  margin-top: 0;
 }
 
 .login__section-title {
-  font-size: 22rpx;
-  font-weight: 700;
-  color: var(--login-text-muted);
-  letter-spacing: 1rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  color: var(--login-text-placeholder);
+  text-align: center;
+  margin-bottom: 24rpx;
 }
 
+/* 2. 输入框圆角卡片式 + 聚焦态 */
 .login__field {
   height: 94rpx;
-  border-radius: 24rpx;
-  border: 2rpx solid var(--login-border);
+  border-radius: 16rpx;
+  background-color: #f5f5f5;
+  border: 2rpx solid transparent;
   display: flex;
   align-items: center;
-  padding: 0 26rpx;
-  margin-top: 18rpx;
+  padding: 0 28rpx;
+  margin-bottom: 20rpx;
+  transition: border-color 0.3s, background-color 0.3s;
+}
+
+.login__field.is-focus {
+  border-color: #3B82F6;
+  background-color: #fff;
 }
 
 .login__field-icon {
-  width: 34rpx;
-  height: 34rpx;
-  margin-right: 16rpx;
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 18rpx;
 }
 
 .login__input {
   flex: 1;
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: var(--login-text-strong);
 }
 
@@ -320,24 +375,54 @@ function goSmsLogin() {
   color: var(--login-text-placeholder);
 }
 
-.login__submit {
-  height: 94rpx;
-  border-radius: 24rpx;
-  background-color: var(--login-primary);
+/* 9. 密码显示/隐藏 */
+.login__eye {
+  width: 56rpx;
+  height: 56rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 24rpx;
+  margin-left: 4rpx;
+}
+
+.login__eye-icon {
+  font-size: 36rpx;
+  color: #999;
+}
+
+/* 3. 登录按钮颜色强化 */
+.login__submit {
+  height: 88rpx;
+  border-radius: 44rpx;
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8rpx;
+  width: 100%;
+  box-shadow: 0 6rpx 20rpx rgba(59, 130, 246, 0.35);
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.login__submit:active {
+  transform: scale(0.98);
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
 }
 
 .login__submit.is-disabled {
-  background-color: var(--login-muted-bg);
+  background: #F1F5F9;
+  box-shadow: none;
+}
+
+.login__submit.is-disabled:active {
+  transform: none;
 }
 
 .login__submit-text {
-  color: var(--text-white);
-  font-size: 30rpx;
+  color: #fff;
+  font-size: 32rpx;
   font-weight: 600;
+  letter-spacing: 2rpx;
 }
 
 .login__submit.is-disabled .login__submit-text {
@@ -346,65 +431,87 @@ function goSmsLogin() {
 
 .login__hint {
   margin-top: 16rpx;
-  font-size: 22rpx;
-  color: var(--login-text-hint);
+  font-size: 24rpx;
+  color: #999;
   text-align: center;
 }
 
-.login__other {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 34rpx;
-}
-
-.login__other-item {
-  width: 50%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.login__other-icon-wrap {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 48rpx;
-  background-color: var(--login-surface);
+/* "或"分隔线 */
+.login__or {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 24rpx 0;
+}
+
+.login__or-line {
+  width: 80rpx;
+  height: 1rpx;
+  background-color: #e0e0e0;
+}
+
+.login__or-text {
+  font-size: 24rpx;
+  color: #bbb;
+  margin: 0 24rpx;
+}
+
+/* 6. 社交登录：圆角卡片式 */
+.login__other {
+  display: flex;
+  gap: 24rpx;
+}
+
+.login__other-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  background-color: #f5f5f5;
+  border-radius: 16rpx;
+  padding: 28rpx 0;
+  transition: background-color 0.15s;
+}
+
+.login__other-card:active {
+  background-color: #e8e8e8;
 }
 
 .login__other-icon {
-  width: 44rpx;
-  height: 44rpx;
+  width: 40rpx;
+  height: 40rpx;
 }
 
 .login__other-text {
-  margin-top: 14rpx;
-  font-size: 24rpx;
-  color: var(--login-text-muted);
+  font-size: 26rpx;
+  color: #333;
+  font-weight: 500;
 }
 
+/* 8. 协议区域 */
 .login__agreement {
-  margin-top: 26rpx;
+  margin-top: 32rpx;
 }
 
 .login__agree-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
+  justify-content: center;
+  line-height: 1.6;
 }
 
 .login__agree-text {
-  font-size: 22rpx;
-  color: var(--login-text-muted);
+  font-size: 24rpx;
+  color: #999;
   margin-left: 8rpx;
 }
 
 .login__agree-link {
-  font-size: 22rpx;
-  color: var(--login-primary);
+  font-size: 24rpx;
+  color: #3B82F6;
   margin-left: 8rpx;
+  text-decoration: underline;
 }
 </style>

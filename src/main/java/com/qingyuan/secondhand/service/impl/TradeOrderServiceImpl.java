@@ -73,9 +73,6 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         if (product == null || Integer.valueOf(1).equals(product.getIsDeleted())) {
             throw new BusinessException("商品不存在");
         }
-        if (!Integer.valueOf(1).equals(product.getStatus())) {
-            throw new BusinessException("商品未在售");
-        }
         if (userId.equals(product.getUserId())) {
             throw new BusinessException("不能购买自己的商品");
         }
@@ -89,6 +86,14 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
         }
 
         try {
+            // 锁内重新检查商品状态，防止竞态条件
+            Product lockedProduct = productMapper.selectById(dto.getProductId());
+            if (lockedProduct == null || Integer.valueOf(1).equals(lockedProduct.getIsDeleted())) {
+                throw new BusinessException("商品不存在");
+            }
+            if (!Integer.valueOf(1).equals(lockedProduct.getStatus())) {
+                throw new BusinessException("商品已被购买或下架");
+            }
             Long count = tradeOrderMapper.selectCount(new LambdaQueryWrapper<TradeOrder>()
                     .eq(TradeOrder::getProductId, dto.getProductId())
                     .in(TradeOrder::getStatus, 1, 2));
@@ -99,13 +104,13 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
             order.setOrderNo(OrderNoUtil.generate());
             order.setProductId(dto.getProductId());
             order.setBuyerId(userId);
-            order.setSellerId(product.getUserId());
-            order.setPrice(dto.getPrice() != null ? dto.getPrice() : product.getPrice());
-            order.setCampusId(product.getCampusId());
+            order.setSellerId(lockedProduct.getUserId());
+            order.setPrice(dto.getPrice() != null ? dto.getPrice() : lockedProduct.getPrice());
+            order.setCampusId(lockedProduct.getCampusId());
             order.setMeetingPoint(
                 dto.getMeetingPointText() != null
                     ? dto.getMeetingPointText()
-                    : product.getMeetingPointText()
+                    : lockedProduct.getMeetingPointText()
             );
             order.setRemark(dto.getRemark());
             order.setStatus(1);
@@ -121,7 +126,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
                     order.getSellerId(),
                     2,
                     "您有新的订单",
-                    "买家对您的商品《" + product.getTitle() + "》下单了",
+                    "买家对您的商品《" + lockedProduct.getTitle() + "》下单了",
                     order.getId(),
                     2,
                     1
@@ -377,6 +382,7 @@ public class TradeOrderServiceImpl extends ServiceImpl<TradeOrderMapper, TradeOr
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteOrder(Long orderId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {

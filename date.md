@@ -133,10 +133,10 @@
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
-| GET | `/admin/stats/overview` | 总览数据 | — | `Result<StatsOverviewVO>` |
-| GET | `/admin/stats/trend` | 趋势数据 | `days`(可选) | `Result<List<StatsTrendVO>>` |
-| GET | `/admin/stats/campus` | 各校区统计 | — | `Result<List<StatsCampusVO>>` |
-| GET | `/admin/stats/category` | 各分类统计 | — | `Result<List<StatsCategoryVO>>` |
+| GET | `/admin/stats/overview` | 总览数据 | — | `Result<StatsOverviewVO>` (todayNewUsers, todayNewProducts, todayNewOrders, todayGmv, totalUsers, totalProducts, totalOrders, totalAmount, pendingProductCount, pendingAuthCount, pendingReports) |
+| GET | `/admin/stats/trend` | 趋势数据 | `days`(可选，默认7，最大30) | `Result<List<StatsTrendVO>>` (date, newUsers, newProducts, orders, gmv) |
+| GET | `/admin/stats/campus` | 各校区统计 | — | `Result<List<StatsCampusVO>>` (campusId, campusName, productCount, orderCount, userCount) |
+| GET | `/admin/stats/category` | 各分类统计 | — | `Result<List<StatsCategoryVO>>` (categoryId, categoryName, productCount, orderCount) |
 
 
 ---
@@ -202,18 +202,30 @@
 | POST | `/mini/order/create` | 创建订单 | `OrderCreateDTO` | `Result<OrderCreateVO>` |
 | GET | `/mini/order/list` | 订单列表 | `role`(buyer/seller), `status`(可选), `page`(默认1), `pageSize`(默认10) | `Result<IPage<OrderListVO>>` |
 | GET | `/mini/order/detail/{id}` | 订单详情 | `id`(path) | `Result<OrderDetailVO>` |
-| POST | `/mini/order/confirm` | 确认收货 | `OrderIdDTO`(orderId) | `Result<Void>` |
+| POST | `/mini/order/confirm` | 确认收货（买家） | `OrderIdDTO`(orderId) | `Result<Void>` |
+| POST | `/mini/order/confirm-ship` | 确认发货（买家） | `OrderIdDTO`(orderId) | `Result<Void>` |
+| POST | `/mini/order/seller-confirm-receive` | 卖家确认交付 | `OrderIdDTO`(orderId) | `Result<Void>` |
 | POST | `/mini/order/cancel` | 取消订单 | `OrderCancelDTO`(orderId, cancelReason) | `Result<Void>` |
 | POST | `/mini/order/delete` | 删除订单记录 | `OrderIdDTO`(orderId) | `Result<Void>` |
 
-### 3.6 评价 `/mini/review`
+### 3.6 足迹 `/mini/footprint`
+
+| 方法 | 路径 | 说明 | 参数 | 返回 |
+|------|------|------|------|------|
+| GET | `/mini/footprint/list` | 足迹列表 | `page`(默认1), `pageSize`(默认20), `categoryId`(可选), `beginTime`(可选), `endTime`(可选) | `Result<FootprintListVO>` |
+| POST | `/mini/footprint/delete` | 删除指定足迹 | `FootprintDeleteDTO` | `Result<Void>` |
+| POST | `/mini/footprint/clear` | 清空所有足迹 | — | `Result<Void>` |
+| GET | `/mini/footprint/count` | 足迹总数 | — | `Result<Long>` |
+| POST | `/mini/footprint/record` | 记录浏览 | `productId`(query) | `Result<Void>` |
+
+### 3.7 评价 `/mini/review`
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
 | POST | `/mini/review/submit` | 提交评价 | `ReviewSubmitDTO` | `Result<Void>` |
 | GET | `/mini/review/detail/{orderId}` | 查看订单评价 | `orderId`(path) | `Result<ReviewDetailVO>` |
 
-### 3.7 收藏 `/mini/favorite`
+### 3.8 收藏 `/mini/favorite`
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
@@ -222,7 +234,7 @@
 | GET | `/mini/favorite/list` | 收藏列表 | `page`(默认1), `pageSize`(默认10) | `Result<IPage<FavoriteListVO>>` |
 | GET | `/mini/favorite/check/{productId}` | 是否已收藏 | `productId`(path) | `Result<Boolean>` |
 
-### 3.8 关注 `/mini/follow`
+### 3.9 关注 `/mini/follow`
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
@@ -231,7 +243,7 @@
 | GET | `/mini/follow/check/{userId}` | 是否已关注 | `userId`(path) | `Result<Boolean>` |
 | GET | `/mini/follow/stats/{userId}` | 关注/粉丝统计 | `userId`(path) | `Result<FollowStatsVO>` |
 
-### 3.9 消息通知 `/mini/notification`
+### 3.10 消息通知 `/mini/notification`
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
@@ -244,7 +256,7 @@
 | POST | `/mini/notification/read-all` | 全部已读 | — | `Result<Void>` |
 | GET | `/mini/notification/unread-count` | 未读数量 | — | `Result<UnreadCountVO>` |
 
-### 3.10 聊天 `/mini/chat`
+### 3.11 聊天 `/mini/chat`
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
@@ -259,39 +271,39 @@
 | POST | `/mini/chat/read` | 标记会话已读 | `{sessionKey}`(body) | `Result<Void>` |
 | POST | `/mini/chat/message/send` | 发送消息 | `ChatMessageSendDTO` | `Result<Long>` |
 
-### 3.11 举报 `/mini/report`
+### 3.12 举报 `/mini/report`
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
 | POST | `/mini/report/submit` | 提交举报 | `ReportSubmitDTO` | `Result<Void>` |
 | GET | `/mini/report/detail/{id}` | 举报详情 | `id`(path) | `Result<ReportDetailVO>` |
 
-### 3.12 搜索 `/mini/search`
+### 3.13 搜索 `/mini/search`
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
 | GET | `/mini/search/hot-keywords` | 热门搜索词 | — | `Result<List<HotKeywordVO>>` |
 
-### 3.13 分类 `/mini/category`
+### 3.14 分类 `/mini/category`
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
 | GET | `/mini/category/list` | 分类列表 | — | `Result<List<CategoryVO>>` |
 
-### 3.14 校区 `/mini/campus`
+### 3.15 校区 `/mini/campus`
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
 | GET | `/mini/campus/list` | 校区列表 | — | `Result<List<CampusVO>>` |
 | GET | `/mini/campus/meeting-points/{campusId}` | 校区交易点列表 | `campusId`(path) | `Result<List<MeetingPointVO>>` |
 
-### 3.15 学院 `/mini/college`
+### 3.16 学院 `/mini/college`
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
 | GET | `/mini/college/list` | 学院列表 | — | `Result<List<CollegeVO>>` |
 
-### 3.16 轮播图 `/mini/banner`
+### 3.17 轮播图 `/mini/banner`
 
 | 方法 | 路径 | 说明 | 参数 | 返回 |
 |------|------|------|------|------|
@@ -309,9 +321,9 @@
 | `user.auth_status` | 0/1/2/3 | 未认证/审核中/已认证/已驳回 |
 | `product.status` | 0/1/2/3/4 | 待审核/在售/已下架/已售出/审核驳回 |
 | `product.condition_level` | 1/2/3/4/5 | 全新/几乎全新/9成新/8成新/7成新及以下 |
-| `trade_order.status` | 1/3/4/5 | 待面交/已完成/已评价/已取消 |
+| `trade_order.status` | 1/2/3/4/5 | 待接单/待面交/已完成/已评价/已取消 |
 | `campus_auth.status` | 0/1/2 | 待审核/通过/驳回 |
-| `notification.type` | 1-11 | 交易成功/新消息/审核通过/审核驳回/系统公告/被收藏/订单取消/认证通过/认证驳回/评价提醒/新增关注 |
+| `notification.type` | 1-12 | 交易成功/新消息/审核通过/审核驳回/系统公告/被收藏/订单取消/认证通过/认证驳回/评价提醒/新增关注/卖家已发货 |
 | `notification.category` | 1/2 | 交易/系统 |
 | `report.target_type` | 1/2 | 商品/用户 |
 | `report.reason_type` | 1/2/3/4/5 | 虚假商品/违禁物品/诈骗信息/不当内容/其他 |
@@ -328,5 +340,5 @@
 |------|--------|
 | 公共 (common) | 1 |
 | 管理端 (admin) | 55 |
-| 小程序端 (mini) | 72 |
-| **合计** | **128** |
+| 小程序端 (mini) | 80 |
+| **合计** | **136** |

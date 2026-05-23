@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingyuan.secondhand.mapper.BrowseHistoryMapper">
+
+    <resultMap id="FootprintItemMap" type="com.qingyuan.secondhand.vo.FootprintItemVO">
+        <result column="id" property="id"/>
+        <result column="product_id" property="productId"/>
+        <result column="title" property="title"/>
+        <result column="cover_image" property="coverImage"/>
+        <result column="price" property="price"/>
+        <result column="original_price" property="originalPrice"/>
+        <result column="campus_name" property="campusName"/>
+        <result column="seller_name" property="sellerName"/>
+        <result column="status" property="status"/>
+        <result column="browse_time" property="browseTime"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="category_name" property="categoryName"/>
+    </resultMap>
+
+    <select id="getFootprintList" resultMap="FootprintItemMap">
+        SELECT
+            bh.id,
+            bh.product_id,
+            p.title,
+            p.images AS cover_image,
+            p.price,
+            p.original_price,
+            c.name AS campus_name,
+            u.nick_name AS seller_name,
+            p.status,
+            bh.create_time AS browse_time,
+            p.category_id,
+            cat.name AS category_name
+        FROM browse_history bh
+        INNER JOIN product p ON bh.product_id = p.id AND p.is_deleted = 0
+        LEFT JOIN campus c ON p.campus_id = c.id
+        LEFT JOIN user u ON p.user_id = u.id
+        LEFT JOIN category cat ON p.category_id = cat.id
+        WHERE bh.user_id = #{userId}
+          AND bh.is_deleted = 0
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
+        <if test="beginTime != null">
+            AND bh.create_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND bh.create_time &lt;= #{endTime}
+        </if>
+        ORDER BY bh.create_time DESC
+    </select>
+
+    <!-- 修复：带筛选条件的足迹总数查询，与 getFootprintListForGroup 保持相同的 WHERE 条件 -->
+    <select id="getFootprintCountFiltered" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM browse_history bh
+        INNER JOIN product p ON bh.product_id = p.id AND p.is_deleted = 0
+        WHERE bh.user_id = #{userId}
+          AND bh.is_deleted = 0
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
+        <if test="beginTime != null">
+            AND bh.create_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND bh.create_time &lt;= #{endTime}
+        </if>
+    </select>
+
+    <select id="getFootprintListForGroup" resultMap="FootprintItemMap">
+        SELECT
+            bh.id,
+            bh.product_id,
+            p.title,
+            p.images AS cover_image,
+            p.price,
+            p.original_price,
+            c.name AS campus_name,
+            u.nick_name AS seller_name,
+            p.status,
+            bh.create_time AS browse_time,
+            p.category_id,
+            cat.name AS category_name
+        FROM browse_history bh
+        INNER JOIN product p ON bh.product_id = p.id AND p.is_deleted = 0
+        LEFT JOIN campus c ON p.campus_id = c.id
+        LEFT JOIN user u ON p.user_id = u.id
+        LEFT JOIN category cat ON p.category_id = cat.id
+        WHERE bh.user_id = #{userId}
+          AND bh.is_deleted = 0
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
+        <if test="beginTime != null">
+            AND bh.create_time &gt;= #{beginTime}
+        </if>
+        <if test="endTime != null">
+            AND bh.create_time &lt;= #{endTime}
+        </if>
+        ORDER BY bh.create_time DESC
+    </select>
+
+</mapper>

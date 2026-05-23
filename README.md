@@ -58,8 +58,11 @@ Graduation_project/
 │   └── package.json
 ├── miniapp/                        # 小程序前端（uni-app）
 │   ├── components/                # 公共组件
-│   ├── pages/                     # 页面
-│   ├── static/                    # 静态资源
+│   ├── pages/                     # 页面（含 notification-sub/follower 关注列表、user-sub/footprint 足迹）
+│   ├── static/
+│   │   ├── svg/                   # SVG 图标（含通知类型专用图标：渐变填充风格）
+│   │   └── pic/                   # 图片资源
+│   ├── utils/                     # 工具函数（含 notification-config 通知图标配置）
 │   ├── App.vue
 │   ├── main.js
 │   ├── manifest.json
@@ -80,8 +83,8 @@ Graduation_project/
 │   │   │   │   ├── admin/       # 管理端接口
 │   │   │   │   ├── common/      # 公共接口
 │   │   │   │   └── mini/        # 小程序端接口
-│   │   │   ├── dto/             # 请求参数对象
-│   │   │   ├── entity/          # 实体类
+│   │   │   ├── dto/             # 请求参数对象（含 FootprintDeleteDTO）
+│   │   │   ├── entity/          # 实体类（含 BrowseHistory）
 │   │   │   ├── mapper/          # Mapper 接口
 │   │   │   ├── service/         # Service 接口
 │   │   │   │   └── impl/        # Service 实现
@@ -135,10 +138,10 @@ Graduation_project/
 | **订单管理** | 创建订单、订单状态流转、确认收货、取消交易 | P0 | V1.0 |
 | **评价系统** | 交易后互评、三维度评分、用户综合评分计算 | P1 | V1.0 |
 | **收藏** | 收藏/取消收藏、我的收藏列表 | P0 | V1.0 |
-| **足迹** | 浏览历史记录、我的足迹列表 | P2 | 规划中 |
+| **足迹** | 浏览历史记录（按天分组）、删除/清空足迹 | P2 | V1.0 |
 | **举报** | 商品举报、举报分类、后台处理 | P1 | V1.0 |
 | **个人中心** | 用户信息、统计数据、功能入口、设置、账号注销 | P0 | V1.0 |
-| **消息中心** | 交易通知、系统通知、审核通知、收藏提醒、全部已读 | P0 | V1.0 |
+| **消息中心** | 交易通知、系统通知、审核通知、关注通知、收藏提醒、全部已读（SVG渐变图标 + emoji兜底） | P0 | V1.0 |
 | **后台管理** | 商品审核、认证审核、举报处理、数据统计、Banner/分类/校区/学院/公告管理 | P0 | V1.0 |
 
 
@@ -275,11 +278,21 @@ Graduation_project/
 -- 关键字段：session_key, sender_id, receiver_id, msg_type, content, is_read
 ```
 
+#### 7. 浏览历史表（browse_history）
+```sql
+-- 浏览历史记录表，同一用户浏览同一商品只保留一条最近记录
+-- 关键字段：user_id, product_id, create_time(浏览时间)
+-- 唯一约束：uk_user_product(user_id, product_id)
+-- 逻辑删除：is_deleted(@TableLogic)
+-- 用途：足迹页面按天分组展示
+```
+
 ### 数据库关系图
 ```
 user(用户) ──1:N──→ product(商品)
 user(用户) ──1:N──→ trade_order(订单) ←──N:1── product(商品)
 user(用户) ──1:N──→ favorite(收藏) ←──N:1── product(商品)
+user(用户) ──1:N──→ browse_history(浏览历史) ←──N:1── product(商品)
 user(用户) ──1:1──→ campus_auth(校园认证) ──N:1──→ college(学院)
 trade_order(订单) ──1:2──→ review(评价)
 campus(校区) ──1:N──→ meeting_point(面交地点)
@@ -302,6 +315,8 @@ chat_session(会话) ──1:N──→ chat_message(消息)
 | 8 | 校园认证通过 | 恭喜您，您的校园认证已通过审核！ |
 | 9 | 校园认证被驳回 | 您的校园认证未通过审核，驳回原因：{reason} |
 | 10 | 评价提醒 | 你购买的「{productName}」交易已完成3天，还未评价哦 |
+| 11 | 新增关注 | {nickName}关注了你 |
+| 12 | 卖家已确认发货 | 卖家已确认发货，订单「{productName}」请尽快前往面交 |
 
 #### 2. NotificationCategory（通知分类）
 | code | description |
@@ -431,8 +446,14 @@ chat_session(会话) ──1:N──→ chat_message(消息)
 #### 搜索模块（/mini/search）
 - `GET /mini/search/hot-keywords` - 热门搜索词
 
+#### 足迹模块（/mini/footprint）
+- `GET /mini/footprint/list` - 足迹列表（按天分组，支持分类/时间筛选）
+- `POST /mini/footprint/delete` - 删除指定足迹（请求参数：ids[]）
+- `POST /mini/footprint/clear` - 清空全部足迹
+- `GET /mini/footprint/count` - 足迹总数
+
 #### 消息中心模块（/mini/notification）
-- `GET /mini/notification/list` - 通知列表（分页，支持 category 筛选）
+- `GET /mini/notification/list` - 通知列表（分页，支持 category/type 筛选）
 - `POST /mini/notification/read` - 标记单条已读（请求参数：id）
 - `POST /mini/notification/read-all` - 全部标记已读
 - `GET /mini/notification/unread-count` - 未读数（总数/交易/系统）
@@ -603,6 +624,7 @@ mysql -u root -p secondhand < sql/update/2026-02-21_f19_notification.sql
 mysql -u root -p secondhand < sql/update/2026-02-21_f21_banner_search.sql
 mysql -u root -p secondhand < sql/update/2026-02-22_f_im_02_chat_session.sql
 mysql -u root -p secondhand < sql/update/2026-02-23_f_im_03_chat_message.sql
+mysql -u root -p secondhand < sql/update/2026-05-17_f11_browse_history.sql
 ```
 
 3. 初始化基础数据
@@ -1217,6 +1239,14 @@ public void incrementViewCount(Long productId) {
 }
 ```
 
+#### 浏览记录异步写入
+```java
+@Async
+public void asyncRecordBrowseHistory(Long userId, Long productId) {
+    browseHistoryService.recordBrowse(userId, productId);
+}
+```
+
 #### 通知发送
 ```java
 @Async
@@ -1345,9 +1375,9 @@ A: 当前代码实现为：申请注销后30天内可恢复；超过30天后由 
 
 ---
 
-**最后更新时间**：2026-03-15  
-**文档版本**：V1.1  
-**项目状态**：开发中
+**最后更新时间**：2026-05-17  
+**文档版本**：V2.0  
+**项目状态**：开发完成（毕业设计完结）
 
 ---
 

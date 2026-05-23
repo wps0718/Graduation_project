@@ -235,7 +235,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
-import { isLoggedIn } from '@/utils/auth'
+import { isLogin } from '@/utils/auth'
 
 // ====== 状态 Tab ======
 const statusTabs = [
@@ -590,7 +590,7 @@ function onRefresh() {
 
 // ====== 生命周期 ======
 onLoad((options) => {
-  if (!isLoggedIn()) {
+  if (!isLogin()) {
     uni.showModal({
       title: '提示',
       content: '请先登录',
@@ -608,7 +608,7 @@ onLoad((options) => {
 })
 
 onShow(() => {
-  if (isLoggedIn() && productList.value.length === 0) {
+  if (isLogin() && productList.value.length === 0) {
     loadList(true)
   }
 })

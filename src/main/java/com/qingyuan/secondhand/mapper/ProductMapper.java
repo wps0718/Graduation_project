@@ -62,4 +62,10 @@ public interface ProductMapper extends BaseMapper<Product> {
 
     @Update("UPDATE product SET view_count = view_count + 1, update_time = NOW() WHERE id = #{productId} AND is_deleted = 0")
     int incrementViewCount(@Param("productId") Long productId);
+
+    @Update("UPDATE product SET favorite_count = favorite_count + 1, update_time = NOW() WHERE id = #{productId}")
+    int incrementFavoriteCount(@Param("productId") Long productId);
+
+    @Update("UPDATE product SET favorite_count = GREATEST(favorite_count - 1, 0), update_time = NOW() WHERE id = #{productId}")
+    int decrementFavoriteCount(@Param("productId") Long productId);
 }

@@ -1,18 +1,11 @@
 <template>
   <view class="page">
     <view class="sticky-header">
-      <status-bar />
     <!-- 顶部导航栏 -->
-    <view class="navbar" :style="navbarStyle">
-      <view class="nav-back" @tap="goBack">
-        <image src="/static/svg/back.svg" class="nav-icon nav-icon-light" />
-      </view>
+    <view class="navbar">
       <view class="search-wrapper" @tap="goSearch">
         <image src="/static/svg/search.svg" class="search-icon" />
         <text class="search-placeholder">搜索{{ categoryName || '商品' }}</text>
-      </view>
-      <view class="nav-more" @tap="goSearch">
-        <image src="/static/svg/more.svg" class="nav-icon nav-icon-light" />
       </view>
     </view>
 
@@ -117,13 +110,16 @@
               lazy-load
               @tap.stop="previewImage(item)"
             />
-            <view v-if="item.conditionText" class="condition-badge">
-              <text>{{ item.conditionText }}</text>
-            </view>
             <view v-if="item.sellerAuthStatus === 2" class="verified-badge">认</view>
+            <view class="favorite-btn" @tap.stop="toggleFavorite(item)">
+              <image :src="item.isFavorited ? '/static/svg/favorited.svg' : '/static/svg/favorite.svg'" class="fav-icon" />
+            </view>
           </view>
           <view class="card-body">
             <text class="card-title">{{ item.title }}</text>
+            <view v-if="getConditionText(item.conditionLevel)" class="card-condition">
+              <text class="condition-tag">{{ getConditionText(item.conditionLevel) }}</text>
+            </view>
             <view class="card-price">
               <text class="price-sym">¥</text>
               <text class="price-val">{{ formatPrice(item.price) }}</text>
@@ -134,6 +130,11 @@
               <view class="meta-stats">
                 <text class="stat-item">{{ item.viewCount || 0 }}浏览</text>
               </view>
+            </view>
+            <view class="card-seller" v-if="item.sellerNickName">
+              <image v-if="item.sellerAvatarUrl" :src="item.sellerAvatarUrl" class="seller-avatar" mode="aspectFill" />
+              <view v-else class="seller-avatar avatar-placeholder">{{ item.sellerNickName[0] }}</view>
+              <text class="seller-name">{{ item.sellerNickName }}</text>
             </view>
           </view>
         </view>
@@ -153,13 +154,16 @@
               lazy-load
               @tap.stop="previewImage(item)"
             />
-            <view v-if="item.conditionText" class="condition-badge">
-              <text>{{ item.conditionText }}</text>
-            </view>
             <view v-if="item.sellerAuthStatus === 2" class="verified-badge">认</view>
+            <view class="favorite-btn" @tap.stop="toggleFavorite(item)">
+              <image :src="item.isFavorited ? '/static/svg/favorited.svg' : '/static/svg/favorite.svg'" class="fav-icon" />
+            </view>
           </view>
           <view class="card-body">
             <text class="card-title">{{ item.title }}</text>
+            <view v-if="getConditionText(item.conditionLevel)" class="card-condition">
+              <text class="condition-tag">{{ getConditionText(item.conditionLevel) }}</text>
+            </view>
             <view class="card-price">
               <text class="price-sym">¥</text>
               <text class="price-val">{{ formatPrice(item.price) }}</text>
@@ -170,6 +174,11 @@
               <view class="meta-stats">
                 <text class="stat-item">{{ item.viewCount || 0 }}浏览</text>
               </view>
+            </view>
+            <view class="card-seller" v-if="item.sellerNickName">
+              <image v-if="item.sellerAvatarUrl" :src="item.sellerAvatarUrl" class="seller-avatar" mode="aspectFill" />
+              <view v-else class="seller-avatar avatar-placeholder">{{ item.sellerNickName[0] }}</view>
+              <text class="seller-name">{{ item.sellerNickName }}</text>
             </view>
           </view>
         </view>
@@ -354,14 +363,10 @@
 import { ref, computed } from 'vue'
 import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { useAppStore } from '@/store/app'
-import { get } from '@/utils/request'
+import { get, post } from '@/utils/request'
 import { normalizeProductCardData, resolveImageUrl } from '@/utils/image'
-import { goBack } from '@/utils/nav'
-import { useNavBar } from '@/utils/useNavBar'
 
 const appStore = useAppStore()
-
-// 页面参数
 const categoryId = ref(null)
 const categoryName = ref('')
 
@@ -375,7 +380,6 @@ const total = ref(0)
 const loading = ref(false)
 const loadError = ref(false)
 const capsuleRightPadding = ref(0)
-const { statusBarHeight, navBarHeight } = useNavBar()
 
 // 筛选
 const filters = ref({
@@ -420,6 +424,14 @@ const CATEGORY_EMOJI = {
   潮玩娱乐: '🎮',
   代拿快递: '📦',
   快递: '📦'
+}
+
+const CONDITION_MAP = {
+  1: '全新',
+  2: '几乎全新',
+  3: '轻微使用痕迹',
+  4: '明显使用痕迹',
+  5: '有缺陷'
 }
 
 // 双列分配
@@ -476,11 +488,6 @@ const filterTitle = computed(() => {
   return map[filterType.value] || '筛选'
 })
 
-const navbarStyle = computed(() => ({
-  height: `${navBarHeight.value + statusBarHeight.value}px`,
-  paddingTop: `${statusBarHeight.value}px`
-}))
-
 const filterBarStyle = computed(() => {
   if (capsuleRightPadding.value > 0) {
     return { paddingRight: `${capsuleRightPadding.value}px` }
@@ -497,9 +504,15 @@ function getCategoryEmoji(name) {
   return CATEGORY_EMOJI[name] || ' '
 }
 
+function getConditionText(level) {
+  return CONDITION_MAP[level] || ''
+}
+
 function formatPrice(price) {
-  if (price == null) return '0.00'
-  return Number(price).toFixed(2)
+  if (price == null) return '0'
+  const num = Number(price)
+  if (num === Math.floor(num)) return String(Math.floor(num))
+  return num.toFixed(2).replace(/\.?0+$/, '')
 }
 
 function formatTime(time) {
@@ -602,7 +615,9 @@ async function loadProducts(refresh = false) {
 
     const list = (res?.records || []).map((item) => {
       const version = item && (item.updateTime || item.createTime || item.id)
-      return normalizeProductCardData(item, { version })
+      const normalized = normalizeProductCardData(item, { version })
+      normalized.isFavorited = false
+      return normalized
     })
 
     total.value = res?.total || 0
@@ -702,6 +717,24 @@ function goSearch() {
   })
 }
 
+async function toggleFavorite(item) {
+  if (!item || !item.id) return
+  try {
+    if (item.isFavorited) {
+      await post('/mini/favorite/cancel', { productId: item.id })
+      item.isFavorited = false
+      item.favoriteCount = Math.max(0, (item.favoriteCount || 0) - 1)
+    } else {
+      await post('/mini/favorite/add', { productId: item.id })
+      item.isFavorited = true
+      item.favoriteCount = (item.favoriteCount || 0) + 1
+    }
+  } catch (e) {
+    console.error('收藏操作失败', e)
+    uni.showToast({ title: '操作失败', icon: 'none' })
+  }
+}
+
 function goDetail(item) {
   if (!item || !item.id) return
   uni.navigateTo({
@@ -749,33 +782,17 @@ function switchCategory(cat) {
   box-shadow: 0 4rpx 12rpx rgba(74, 144, 217, 0.25);
 }
 
-.nav-back, .nav-more {
-  width: 64rpx;
-  height: 64rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.nav-icon {
-  width: 40rpx;
-  height: 40rpx;
-}
-
-.nav-icon-light {
-  filter: brightness(0) invert(1);
-}
 
 .search-wrapper {
   flex: 1;
   height: 64rpx;
-  margin: 0 16rpx;
+  margin: 0;
   padding: 0 24rpx;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.92);
+  background: #fff;
   border-radius: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
 }
 
 .search-icon {
@@ -794,16 +811,17 @@ function switchCategory(cat) {
 .filter-bar {
   background: #fff;
   white-space: nowrap;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  border-bottom: 1rpx solid #F0F0F0;
 }
 
 .filter-tabs {
   display: inline-flex;
   padding: 16rpx 24rpx;
-  gap: 16rpx;
+  gap: 24rpx;
 }
 
 .filter-tab {
+  position: relative;
   display: inline-flex;
   align-items: center;
   padding: 12rpx 24rpx;
@@ -830,10 +848,20 @@ function switchCategory(cat) {
   }
 
   &.active {
-    background: linear-gradient(135deg, #4A90D9 0%, #3A7BC8 100%);
-    box-shadow: 0 4rpx 12rpx rgba(74, 144, 217, 0.3);
-    .tab-text { color: #fff; font-weight: 600; }
-    .tab-arrow { color: rgba(255, 255, 255, 0.8); }
+    background: #fff;
+    .tab-text { color: #4A90D9; font-weight: 600; }
+    .tab-arrow { color: #4A90D9; }
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 4rpx;
+      background: #4A90D9;
+      border-radius: 2rpx;
+    }
   }
 
   &.has-value {
@@ -977,7 +1005,7 @@ function switchCategory(cat) {
   background: #fff;
   border-radius: 16rpx;
   overflow: hidden;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 
   &:active {
@@ -998,18 +1026,25 @@ function switchCategory(cat) {
   height: 100%;
 }
 
-.condition-badge {
+.favorite-btn {
   position: absolute;
   top: 12rpx;
-  left: 12rpx;
-  padding: 2rpx 12rpx;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(6rpx);
-  border-radius: 20rpx;
+  right: 12rpx;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
 
-  text {
-    font-size: 20rpx;
-    color: #fff;
+  .fav-icon {
+    width: 28rpx;
+    height: 28rpx;
+  }
+
+  &:active {
+    transform: scale(0.9);
   }
 }
 
@@ -1027,6 +1062,19 @@ function switchCategory(cat) {
   font-size: 18rpx;
   color: #fff;
   font-weight: bold;
+}
+
+.card-condition {
+  margin-bottom: 8rpx;
+
+  .condition-tag {
+    display: inline-block;
+    padding: 2rpx 12rpx;
+    background: #FFF3E0;
+    color: #FF8F00;
+    font-size: 20rpx;
+    border-radius: 4rpx;
+  }
 }
 
 .card-body {
@@ -1099,7 +1147,43 @@ function switchCategory(cat) {
 
 .stat-item {
   font-size: 20rpx;
-  color: var(--text-secondary);
+  color: var(--text-regular);
+}
+
+.card-seller {
+  display: flex;
+  align-items: center;
+  margin-top: 12rpx;
+  padding-top: 12rpx;
+  border-top: 1rpx solid #F5F5F5;
+
+  .seller-avatar {
+    width: 32rpx;
+    height: 32rpx;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    &.avatar-placeholder {
+      background: #E8F4FF;
+      color: #4A90D9;
+      font-size: 16rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+  }
+
+  .seller-name {
+    font-size: 22rpx;
+    color: var(--text-secondary);
+    margin-left: 8rpx;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 /* ========== 空状态 ========== */

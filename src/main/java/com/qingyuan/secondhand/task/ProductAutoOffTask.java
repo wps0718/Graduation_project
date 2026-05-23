@@ -37,7 +37,8 @@ public class ProductAutoOffTask {
             LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
             wrapper.lt(Product::getAutoOffTime, LocalDateTime.now())
                     .eq(Product::getStatus, ProductStatus.ON_SALE.getCode())
-                    .eq(Product::getIsDeleted, 0);
+                    .eq(Product::getIsDeleted, 0)
+                    .last("LIMIT 500");
             List<Product> products = productMapper.selectList(wrapper);
             if (products == null || products.isEmpty()) {
                 log.info("[商品自动下架任务] 无需自动下架的商品");

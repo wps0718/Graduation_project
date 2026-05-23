@@ -23,6 +23,7 @@ import com.qingyuan.secondhand.mapper.ProductMapper;
 import com.qingyuan.secondhand.mapper.TradeOrderMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
 import com.qingyuan.secondhand.service.NotificationService;
+import com.qingyuan.secondhand.service.BrowseHistoryService;
 import com.qingyuan.secondhand.service.ProductService;
 import com.qingyuan.secondhand.vo.AdminProductPageVO;
 import com.qingyuan.secondhand.vo.ProductDetailVO;
@@ -65,6 +66,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     private final UserMapper userMapper;
     private final CampusAuthMapper campusAuthMapper;
     private final CollegeMapper collegeMapper;
+    private final BrowseHistoryService browseHistoryService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -130,6 +132,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updatePrice(Long productId, BigDecimal price) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -156,11 +159,35 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
 
     @Override
     public ProductDetailVO getProductDetail(Long productId) {
-        ProductDetailVO detail = productMapper.getProductDetailById(productId);
-        if (detail == null) {
-            throw new BusinessException("商品不存在");
+        // 尝试从缓存获取
+        String cacheKey = RedisConstant.PRODUCT_DETAIL + productId;
+        String cachedJson = stringRedisTemplate.opsForValue().get(cacheKey);
+        ProductDetailVO detail;
+        if (cachedJson != null) {
+            try {
+                detail = objectMapper.readValue(cachedJson, ProductDetailVO.class);
+            } catch (Exception e) {
+                log.warn("商品详情缓存反序列化失败，productId={}", productId, e);
+                detail = null;
+            }
+        } else {
+            detail = null;
         }
-        detail.setImages(parseImages(detail.getImagesJson()));
+
+        if (detail == null) {
+            detail = productMapper.getProductDetailById(productId);
+            if (detail == null) {
+                throw new BusinessException("商品不存在");
+            }
+            detail.setImages(parseImages(detail.getImagesJson()));
+            // 写入缓存，10 分钟过期
+            try {
+                stringRedisTemplate.opsForValue().set(cacheKey, objectMapper.writeValueAsString(detail), 10, TimeUnit.MINUTES);
+            } catch (Exception e) {
+                log.warn("商品详情缓存写入失败，productId={}", productId, e);
+            }
+        }
+
         Long userId = UserContext.getCurrentUserId();
         if (userId != null) {
             detail.setIsOwner(userId.equals(detail.getSellerId()));
@@ -174,6 +201,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
             if (Boolean.TRUE.equals(firstView)) {
                 productAsyncService.asyncUpdateViewCount(productId);
             }
+            browseHistoryService.recordBrowse(userId, productId);
         } else {
             detail.setIsOwner(false);
             detail.setIsFavorited(false);
@@ -281,13 +309,14 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
         product.setStatus(3);
         this.updateById(product);
 
-        stringRedisTemplate.delete("product:detail:" + productId);
+        stringRedisTemplate.delete(RedisConstant.PRODUCT_DETAIL + productId);
         stringRedisTemplate.delete(RedisConstant.USER_STATS + product.getUserId());
 
         log.info("✅ [ProductService] 商品已标记为售出，商品ID: {}", productId);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void onShelf(Long productId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -317,6 +346,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteProduct(Long productId) {
         Long userId = UserContext.getCurrentUserId();
         if (userId == null) {
@@ -587,6 +617,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void forceOffShelf(Long productId) {
         if (productId == null) {
             throw new BusinessException("商品ID不能为空");

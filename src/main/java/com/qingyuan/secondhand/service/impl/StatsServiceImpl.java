@@ -9,7 +9,9 @@ import com.qingyuan.secondhand.vo.StatsTrendVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -19,18 +21,22 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     public StatsOverviewVO getOverview() {
+        // 合并为 2 条 SQL，替代原来的 11 条
+        Map<String, Object> agg = statsMapper.getOverviewAggregates();
+        Map<String, Object> pending = statsMapper.getPendingCounts();
+
         StatsOverviewVO vo = new StatsOverviewVO();
-        vo.setTodayNewUsers(statsMapper.countTodayNewUsers());
-        vo.setTodayNewProducts(statsMapper.countTodayNewProducts());
-        vo.setTodayNewOrders(statsMapper.countTodayOrders());
-        vo.setTodayGmv(statsMapper.sumTodayGmv());
-        vo.setTotalUsers(statsMapper.countTotalUsers());
-        vo.setTotalProducts(statsMapper.countTotalProducts());
-        vo.setTotalOrders(statsMapper.countTotalOrders());
-        vo.setTotalAmount(statsMapper.sumTotalGmv());
-        vo.setPendingProductCount(statsMapper.countPendingProducts());
-        vo.setPendingAuthCount(statsMapper.countPendingAuths());
-        vo.setPendingReports(statsMapper.countPendingReports());
+        vo.setTodayNewUsers(toInt(agg.get("todayNewUsers")));
+        vo.setTodayNewProducts(toInt(agg.get("todayNewProducts")));
+        vo.setTodayNewOrders(toInt(agg.get("todayNewOrders")));
+        vo.setTodayGmv(toBigDecimal(agg.get("todayGmv")));
+        vo.setTotalUsers(toInt(agg.get("totalUsers")));
+        vo.setTotalProducts(toInt(agg.get("totalProducts")));
+        vo.setTotalOrders(toInt(agg.get("totalOrders")));
+        vo.setTotalAmount(toBigDecimal(agg.get("totalAmount")));
+        vo.setPendingProductCount(toInt(pending.get("pendingProductCount")));
+        vo.setPendingAuthCount(toInt(pending.get("pendingAuthCount")));
+        vo.setPendingReports(toInt(pending.get("pendingReports")));
         return vo;
     }
 
@@ -53,5 +59,18 @@ public class StatsServiceImpl implements StatsService {
     @Override
     public List<StatsCategoryVO> getCategoryStats() {
         return statsMapper.getCategoryStats();
+    }
+
+    private Integer toInt(Object obj) {
+        if (obj == null) return 0;
+        if (obj instanceof Number) return ((Number) obj).intValue();
+        return 0;
+    }
+
+    private BigDecimal toBigDecimal(Object obj) {
+        if (obj == null) return BigDecimal.ZERO;
+        if (obj instanceof BigDecimal) return (BigDecimal) obj;
+        if (obj instanceof Number) return BigDecimal.valueOf(((Number) obj).doubleValue());
+        return BigDecimal.ZERO;
     }
 }

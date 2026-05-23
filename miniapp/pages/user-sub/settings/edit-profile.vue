@@ -1,17 +1,20 @@
 <template>
   <view class="edit-page">
     <view class="edit-card">
-      <view class="edit-item" @click="changeAvatar">
+      <view class="edit-item">
         <text class="edit-label">头像</text>
         <view class="edit-right">
-          <image class="edit-avatar" :src="form.avatarUrl || '/static/pic/校徽.png'" mode="aspectFill" />
-          <text class="edit-arrow">›</text>
+          <button open-type="chooseAvatar" @chooseavatar="onChooseAvatar" class="avatar-btn">
+            <image class="edit-avatar" :src="displayAvatar" mode="aspectFill" />
+            <text class="edit-arrow">›</text>
+          </button>
         </view>
       </view>
       <view class="edit-divider"></view>
       <view class="edit-item">
         <text class="edit-label">昵称</text>
         <input
+          type="nickname"
           class="edit-input"
           :value="form.nickName"
           placeholder="请输入昵称"
@@ -72,6 +75,8 @@ const form = ref({
   bio: ''
 })
 
+const displayAvatar = computed(() => resolveImageUrl(form.value.avatarUrl, { fallback: '/static/pic/校徽.png' }))
+
 const genderOptions = ['男', '女', '保密']
 
 const genderIndex = computed(() => {
@@ -122,31 +127,18 @@ async function loadProfile() {
   }
 }
 
-function chooseImage() {
-  return new Promise((resolve, reject) => {
-    uni.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success: (res) => resolve(res),
-      fail: (err) => reject(err)
-    })
-  })
-}
-
-async function changeAvatar() {
+async function onChooseAvatar(e) {
   if (!ensureLogin()) return
+  const tempUrl = e && e.detail && e.detail.avatarUrl
+  if (!tempUrl) return
+  form.value.avatarUrl = tempUrl
   try {
-    const res = await chooseImage()
-    const path = res && res.tempFilePaths && res.tempFilePaths[0]
-    if (!path) return
-    form.value.avatarUrl = path
-    const data = await uploadFile('/common/upload', path, { showLoading: true, formData: { type: 'avatar' } })
+    const data = await uploadFile('/mini/common/upload', tempUrl, { showLoading: true, formData: { type: 'avatar' } })
     if (data && data.url) {
-      form.value.avatarUrl = resolveImageUrl(data.url)
+      form.value.avatarUrl = data.url
     }
   } catch (error) {
-    showToast('头像更新失败')
+    showToast('头像上传失败')
   }
 }
 
@@ -215,6 +207,22 @@ onShow(() => {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+}
+
+.avatar-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: none;
+  padding: 0;
+  margin: 0;
+  line-height: normal;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  &::after {
+    border: none;
+  }
 }
 
 .edit-avatar {

@@ -75,15 +75,8 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
             throw new BusinessException("已收藏该商品");
         }
 
-        // 更新商品的收藏数
-        int existingCount = product.getFavoriteCount() == null ? 0 : product.getFavoriteCount();
-        Product update = new Product();
-        update.setId(productId);
-        update.setFavoriteCount(existingCount + 1);
-        int updated = productMapper.updateById(update);
-        if (updated <= 0) {
-            throw new BusinessException("收藏失败");
-        }
+        // 原子更新商品收藏数
+        productMapper.incrementFavoriteCount(productId);
 
         // 聚合通知逻辑
         Notification existing = notificationMapper.selectOne(new LambdaQueryWrapper<Notification>()
@@ -131,17 +124,8 @@ public class FavoriteServiceImpl extends ServiceImpl<FavoriteMapper, Favorite> i
         if (deleted <= 0) {
             throw new BusinessException("取消收藏失败");
         }
-        Product product = productMapper.selectById(productId);
-        Integer favoriteCount = product == null ? null : product.getFavoriteCount();
-        if (favoriteCount != null && favoriteCount > 0) {
-            Product update = new Product();
-            update.setId(productId);
-            update.setFavoriteCount(favoriteCount - 1);
-            int updated = productMapper.updateById(update);
-            if (updated <= 0) {
-                throw new BusinessException("取消收藏失败");
-            }
-        }
+        // 原子更新商品收藏数
+        productMapper.decrementFavoriteCount(productId);
     }
 
     @Override

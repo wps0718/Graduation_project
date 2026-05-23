@@ -59,14 +59,3 @@ export const unbanUser = (data) => {
     data
   })
 }
-
-/**
- * 获取校区列表（用于筛选下拉）
- * @returns {Promise} - 返回校区列表
- */
-export const getCampusList = () => {
-  return request({
-    url: '/admin/campus/list',
-    method: 'get'
-  })
-}

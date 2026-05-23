@@ -185,11 +185,11 @@ function normalizeReview(raw, currentId, index) {
   return {
     id: raw && raw.id ? raw.id : `${label}-${index}`,
     label,
-    scoreDesc: (raw && (raw.scoreDesc ?? raw.score_desc)) || 0,
-    scoreAttitude: (raw && (raw.scoreAttitude ?? raw.score_attitude)) || 0,
-    scoreExperience: (raw && (raw.scoreExperience ?? raw.score_experience)) || 0,
+    scoreDesc: (raw && (raw.scoreDesc != null ? raw.scoreDesc : raw.score_desc)) || 0,
+    scoreAttitude: (raw && (raw.scoreAttitude != null ? raw.scoreAttitude : raw.score_attitude)) || 0,
+    scoreExperience: (raw && (raw.scoreExperience != null ? raw.scoreExperience : raw.score_experience)) || 0,
     content: (raw && raw.content) || '',
-    isAuto: (raw && (raw.isAuto ?? raw.is_auto)) || false
+    isAuto: (raw && (raw.isAuto != null ? raw.isAuto : raw.is_auto)) || false
   }
 }
 

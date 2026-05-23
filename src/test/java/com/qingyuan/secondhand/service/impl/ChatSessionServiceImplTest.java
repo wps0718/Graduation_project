@@ -234,11 +234,7 @@ class ChatSessionServiceImplTest {
     void testGetUnreadTotal_Redis未命中查数据库() {
         when(valueOperations.get("im:unread:10001")).thenReturn(null);
 
-        ChatSession session1 = ChatSession.builder().unread(3).build();
-        ChatSession session2 = ChatSession.builder().unread(2).build();
-        List<ChatSession> sessions = Arrays.asList(session1, session2);
-
-        when(chatSessionMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(sessions);
+        when(chatSessionMapper.sumUnreadByUserId(10001L)).thenReturn(5);
 
         Integer total = chatSessionService.getUnreadTotal();
 

@@ -97,7 +97,7 @@
       <view class="auth-upload">
         <text class="auth-upload__label">请上传一卡通或者3.0截图</text>
         <view class="auth-upload__box" @click="chooseMaterial">
-          <image v-if="form.certImage" :src="form.certImage" class="auth-upload__image" mode="aspectFill" />
+          <image v-if="form.certImage" :src="resolveImageUrl(form.certImage)" class="auth-upload__image" mode="aspectFill" />
           <view v-else class="auth-upload__placeholder">
             <text class="auth-upload__icon">↑</text>
             <text class="auth-upload__text">点击上传</text>
@@ -235,7 +235,7 @@ function startEditFromStatus() {
   form.value.realName = latestStatusInfo.value.realName || ''
   form.value.studentNo = latestStatusInfo.value.studentNo || ''
   form.value.className = latestStatusInfo.value.className || ''
-  form.value.certImage = resolveImageUrl(latestStatusInfo.value.certImage || '')
+  form.value.certImage = latestStatusInfo.value.certImage || ''
   const matched = colleges.value.find((item) => item.name === form.value.collegeName)
   form.value.collegeId = matched ? matched.id : form.value.collegeId
 }
@@ -271,9 +271,9 @@ async function chooseMaterial() {
     const file = res && res.tempFiles && res.tempFiles[0]
     if (!validateImage(file)) return
     form.value.certImage = file.path
-    const data = await uploadFile('/common/upload', file.path, { showLoading: true, formData: { type: 'auth' } })
+    const data = await uploadFile('/mini/common/upload', file.path, { showLoading: true, formData: { type: 'auth' } })
     if (data && data.url) {
-      form.value.certImage = resolveImageUrl(data.url)
+      form.value.certImage = data.url
     }
   } catch (error) {
     showToast('上传失败，请重试')

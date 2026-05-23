@@ -10,7 +10,7 @@
               class="publish__upload-item"
               @longpress="setCover(index)"
             >
-              <image class="publish__upload-img" :src="item.url" mode="aspectFill" />
+              <image class="publish__upload-img" :src="resolveImageUrl(item.url)" mode="aspectFill" />
               <view v-if="index === 0" class="publish__upload-cover">封面</view>
               <view class="publish__upload-remove" @click.stop="removeImage(index)">
                 <text class="publish__upload-remove-text">×</text>
@@ -302,9 +302,8 @@ async function chooseImages() {
 }
 
 async function uploadImage(filePath) {
-  const data = await uploadFile('/common/upload', filePath, { showLoading: false, formData: { type: 'product' } })
-  const url = data && data.url ? data.url : ''
-  return resolveImageUrl(url)
+  const data = await uploadFile('/mini/common/upload', filePath, { showLoading: false, formData: { type: 'product' } })
+  return data && data.url ? data.url : ''
 }
 
 function validateForm() {

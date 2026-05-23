@@ -12,7 +12,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class StatsServiceImplTest {
@@ -22,17 +24,22 @@ class StatsServiceImplTest {
         StatsMapper statsMapper = Mockito.mock(StatsMapper.class);
         StatsServiceImpl service = new StatsServiceImpl(statsMapper);
 
-        Mockito.when(statsMapper.countTodayNewUsers()).thenReturn(3);
-        Mockito.when(statsMapper.countTodayNewProducts()).thenReturn(5);
-        Mockito.when(statsMapper.countTodayOrders()).thenReturn(2);
-        Mockito.when(statsMapper.sumTodayGmv()).thenReturn(new BigDecimal("123.45"));
-        Mockito.when(statsMapper.countTotalUsers()).thenReturn(100);
-        Mockito.when(statsMapper.countTotalProducts()).thenReturn(80);
-        Mockito.when(statsMapper.countTotalOrders()).thenReturn(60);
-        Mockito.when(statsMapper.sumTotalGmv()).thenReturn(new BigDecimal("4567.89"));
-        Mockito.when(statsMapper.countPendingProducts()).thenReturn(7);
-        Mockito.when(statsMapper.countPendingAuths()).thenReturn(4);
-        Mockito.when(statsMapper.countPendingReports()).thenReturn(1);
+        Map<String, Object> agg = new HashMap<>();
+        agg.put("todayNewUsers", 3);
+        agg.put("todayNewProducts", 5);
+        agg.put("todayNewOrders", 2);
+        agg.put("todayGmv", new BigDecimal("123.45"));
+        agg.put("totalUsers", 100);
+        agg.put("totalProducts", 80);
+        agg.put("totalOrders", 60);
+        agg.put("totalAmount", new BigDecimal("4567.89"));
+        Mockito.when(statsMapper.getOverviewAggregates()).thenReturn(agg);
+
+        Map<String, Object> pending = new HashMap<>();
+        pending.put("pendingProductCount", 7);
+        pending.put("pendingAuthCount", 4);
+        pending.put("pendingReports", 1);
+        Mockito.when(statsMapper.getPendingCounts()).thenReturn(pending);
 
         StatsOverviewVO result = service.getOverview();
 

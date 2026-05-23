@@ -252,7 +252,8 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { User } from '@element-plus/icons-vue'
-import { getUserPage, getUserDetail, banUser, unbanUser, getCampusList } from '@/api/user'
+import { getUserPage, getUserDetail, banUser, unbanUser } from '@/api/user'
+import { getCampusList } from '@/api/campus'
 import { getImageUrl } from '@/utils/baseUrl'
 
 // ==================== 数据定义 ====================

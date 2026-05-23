@@ -21,12 +21,12 @@ async function run() {
 
   runTest('resolveImageUrl converts relative upload path to absolute url', () => {
     const result = resolveImageUrl('/uploads/2026/04/a.png')
-    assert.strictEqual(result, 'http://localhost:8080/uploads/2026/04/a.png')
+    assert.strictEqual(result, 'https://7481afbe.r34.cpolar.top/uploads/2026/04/a.png')
   })
 
   runTest('resolveImageUrl appends version query for non-static url', () => {
     const result = resolveImageUrl('/uploads/a.png', { version: '123' })
-    assert.strictEqual(result, 'http://localhost:8080/uploads/a.png?v=123')
+    assert.strictEqual(result, 'https://7481afbe.r34.cpolar.top/uploads/a.png?v=123')
   })
 
   runTest('normalizeProductCardData uses first image when coverImage is missing', () => {
@@ -35,7 +35,7 @@ async function run() {
       title: '测试商品',
       images: ['/uploads/p1.png']
     })
-    assert.strictEqual(result.coverImage, 'http://localhost:8080/uploads/p1.png')
+    assert.strictEqual(result.coverImage, 'https://7481afbe.r34.cpolar.top/uploads/p1.png')
   })
 }
 

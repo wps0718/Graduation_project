@@ -48,7 +48,10 @@
             <text class="user-list__icon">👣</text>
             <text class="user-list__text">足迹</text>
           </view>
-          <text class="user-list__arrow">›</text>
+          <view class="user-list__right">
+            <text v-if="footprintCount" class="user-list__count">{{ footprintCount > 99 ? '99+' : footprintCount }}</text>
+            <text class="user-list__arrow">›</text>
+          </view>
         </view>
         <view class="user-list__divider"></view>
         <view class="user-list__item" @click="goFavorite">
@@ -115,6 +118,7 @@ import StatusTag from '@/components/status-tag/status-tag.vue'
 const userStore = useUserStore()
 
 const unreadCount = ref(0)
+const footprintCount = ref(0)
 
 const isLogin = computed(() => userStore.isLogin)
 const userInfo = computed(() => userStore.userInfo || {})
@@ -203,6 +207,19 @@ async function loadUnreadCount() {
   unreadCount.value = (data && data.total) || 0
 }
 
+async function loadFootprintCount() {
+  if (!isLogin.value) {
+    footprintCount.value = 0
+    return
+  }
+  try {
+    const data = await get('/mini/footprint/count', {}, { showLoading: false })
+    footprintCount.value = (data && typeof data === 'number') ? data : 0
+  } catch (e) {
+    footprintCount.value = 0
+  }
+}
+
 async function refreshAuthStatus() {
   if (!isLogin.value) {
     return
@@ -217,7 +234,7 @@ async function refreshAuthStatus() {
 
 onShow(async () => {
   if (isLogin.value) {
-    await Promise.all([userStore.fetchUserInfo(), refreshAuthStatus(), userStore.updateStats(), loadUnreadCount()])
+    await Promise.all([userStore.fetchUserInfo(), refreshAuthStatus(), userStore.updateStats(), loadUnreadCount(), loadFootprintCount()])
   } else {
     unreadCount.value = 0
   }
@@ -360,5 +377,10 @@ onShow(async () => {
 .user-list__badge-text {
   font-size: var(--font-xs);
   color: var(--text-white);
+}
+
+.user-list__count {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
 }
 </style>

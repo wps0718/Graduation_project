@@ -18,7 +18,7 @@
             @click="previewImage(index)"
             @longpress="setCover(index)"
           >
-            <image class="edit__upload-img" :src="item.url" mode="aspectFill" />
+            <image class="edit__upload-img" :src="resolveImageUrl(item.url)" mode="aspectFill" />
             <view v-if="index === 0" class="edit__upload-cover">封面</view>
             <view class="edit__upload-remove" @click.stop="removeImage(index)">
               <text class="edit__upload-remove-text">×</text>
@@ -206,7 +206,7 @@ async function loadProductDetail() {
     if (data.images && data.images.length > 0) {
       imageList.value = data.images.map((url, index) => ({
         id: `exist-${index}`,
-        url: resolveImageUrl(url),
+        url: url,
         isNew: false
       }))
     }
@@ -237,7 +237,7 @@ async function loadMeetingPoints() {
 
 // 图片管理
 function previewImage(index) {
-  const urls = imageList.value.map(item => item.url)
+  const urls = imageList.value.map(item => resolveImageUrl(item.url))
   uni.previewImage({ current: index, urls })
 }
 
@@ -274,8 +274,8 @@ async function chooseImages() {
   uni.showLoading({ title: '上传中', mask: true })
   for (const filePath of files) {
     try {
-      const data = await uploadFile('/common/upload', filePath, { showLoading: false, formData: { type: 'product' } })
-      const url = data && data.url ? resolveImageUrl(data.url) : ''
+      const data = await uploadFile('/mini/common/upload', filePath, { showLoading: false, formData: { type: 'product' } })
+      const url = data && data.url ? data.url : ''
       if (url) {
         imageList.value.push({ id: `new-${Date.now()}-${Math.random()}`, url, isNew: true })
       }

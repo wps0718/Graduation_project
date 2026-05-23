@@ -5,6 +5,7 @@ import com.qingyuan.secondhand.entity.Product;
 import com.qingyuan.secondhand.entity.SearchKeyword;
 import com.qingyuan.secondhand.mapper.ProductMapper;
 import com.qingyuan.secondhand.mapper.SearchKeywordMapper;
+import com.qingyuan.secondhand.service.BrowseHistoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ public class ProductAsyncService {
 
     private final ProductMapper productMapper;
     private final SearchKeywordMapper searchKeywordMapper;
+    private final BrowseHistoryService browseHistoryService;
 
     @Async
     public void asyncUpdateViewCount(Long productId) {
@@ -47,5 +49,10 @@ public class ProductAsyncService {
         update.setId(existing.getId());
         update.setSearchCount(existing.getSearchCount() == null ? 1 : existing.getSearchCount() + 1);
         searchKeywordMapper.updateById(update);
+    }
+
+    @Async
+    public void asyncRecordBrowseHistory(Long userId, Long productId) {
+        browseHistoryService.recordBrowse(userId, productId);
     }
 }

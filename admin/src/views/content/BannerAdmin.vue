@@ -231,9 +231,9 @@ import {
   addBanner,
   updateBanner,
   deleteBanner,
-  getCampusListForBanner,
   uploadBannerImage
 } from '@/api/banner'
+import { getCampusList } from '@/api/campus'
 
 
 // ==================== 校区选项 ====================
@@ -241,7 +241,7 @@ const campusOptions = ref([])
 
 const fetchCampusOptions = async () => {
   try {
-    const res = await getCampusListForBanner()
+    const res = await getCampusList()
     if (res.code === 1) {
       campusOptions.value = res.data || []
     }

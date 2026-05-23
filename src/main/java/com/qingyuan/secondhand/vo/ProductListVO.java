@@ -10,6 +10,7 @@ public class ProductListVO {
     private Long id;
     private String title;
     private BigDecimal price;
+    private BigDecimal originalPrice;
     private String coverImage;
     private Integer conditionLevel;
     private Integer viewCount;

@@ -1,6 +1,6 @@
 # 轻院二手交易平台 - 项目文档
 
-**版本：V1.9 | 最后更新：2026-05-10 | 项目状态：开发中**
+**版本：V2.0 | 最后更新：2026-05-22 | 项目状态：已完成**
 
 ---
 
@@ -471,14 +471,23 @@ Graduation_project/
 |------|------|------|
 | id | bigint | 主键自增，起始值 10000 |
 | open_id | varchar | 微信唯一标识 |
-| phone | varchar | 手机号 |
+| session_key | varchar | 微信 session_key |
 | nick_name | varchar | 昵称 |
+| username | varchar | 用户名（账号密码登录用） |
+| password | varchar | 密码（BCrypt 加密） |
 | avatar_url | varchar | 头像 |
-| status | tinyint | 账号状态：0 封禁 / 1 正常 / 2 注销中 |
-| auth_status | tinyint | 认证状态：0 未认证 / 1 审核中 / 2 已认证 / 3 已驳回 |
-| score | decimal | 综合评分，默认 5.0 |
 | bio | varchar(200) | 个人简介 |
 | ip_region | varchar(64) | IP 属地 |
+| gender | tinyint | 性别：0 未知 / 1 男 / 2 女 |
+| phone | varchar | 手机号 |
+| campus_id | bigint | 所属校区 ID |
+| auth_status | tinyint | 认证状态：0 未认证 / 1 审核中 / 2 已认证 / 3 已驳回 |
+| score | decimal | 综合评分，默认 5.0 |
+| status | tinyint | 账号状态：0 封禁 / 1 正常 / 2 注销中 |
+| ban_reason | varchar | 封禁原因 |
+| deactivate_time | datetime | 注销申请时间 |
+| agreement_accepted | tinyint | 是否同意协议 |
+| last_login_time | datetime | 最后登录时间 |
 | create_time | datetime | 创建时间（自动填充） |
 | update_time | datetime | 更新时间（自动填充） |
 
@@ -489,12 +498,21 @@ Graduation_project/
 | id | bigint | 主键自增 |
 | user_id | bigint | 发布者 ID |
 | title | varchar | 商品标题 |
+| description | varchar | 商品描述 |
 | price | decimal | 二手价格 |
 | original_price | decimal | 原价 |
 | category_id | int | 分类 ID |
 | campus_id | int | 交易校区 ID |
 | condition_level | tinyint | 成色：1 全新 / 2 几乎全新 / 3 九成新 / 4 八成新 / 5 七成新及以下 |
+| meeting_point_id | bigint | 面交地点 ID |
+| meeting_point_text | varchar | 面交地点文本 |
+| images | text | 商品图片 JSON 数组 |
+| view_count | int | 浏览次数 |
+| favorite_count | int | 收藏次数 |
 | status | tinyint | 状态：0 待审核 / 1 在售 / 2 已下架 / 3 已售出 / 4 审核驳回 |
+| reject_reason | varchar | 审核驳回原因 |
+| review_time | datetime | 审核时间 |
+| reviewer_id | bigint | 审核人 ID |
 | auto_off_time | datetime | 自动下架时间（发布后 90 天） |
 | is_deleted | tinyint | 逻辑删除（@TableLogic） |
 | create_time | datetime | 发布时间（自动填充） |
@@ -510,10 +528,14 @@ Graduation_project/
 | buyer_id | bigint | 买家 ID |
 | seller_id | bigint | 卖家 ID |
 | price | decimal | 成交价格 |
+| campus_id | bigint | 校区 ID |
+| meeting_point | varchar | 面交地点 |
+| remark | varchar | 备注 |
 | status | tinyint | 状态：1 待接单 / 2 待面交 / 3 已完成 / 4 已评价 / 5 已取消 |
 | seller_confirmed | tinyint | 卖家是否确认交付：0 否 / 1 是 |
 | buyer_confirmed | tinyint | 买家是否确认收货：0 否 / 1 是 |
-| cancel_by | tinyint | 取消方：0 系统 / 1 买家 / 2 卖家 |
+| cancel_reason | varchar | 取消原因 |
+| cancel_by | bigint | 取消方用户 ID |
 | expire_time | datetime | 超时时间（创建后 72 小时，超时自动取消） |
 | confirm_deadline | datetime | 自动确认收货时间（创建后 7 天） |
 | complete_time | datetime | 完成时间 |
@@ -531,7 +553,7 @@ Graduation_project/
 | id | bigint | 主键自增 |
 | order_id | bigint | 关联订单 ID |
 | reviewer_id | bigint | 评价者 ID |
-| reviewee_id | bigint | 被评价者 ID |
+| target_id | bigint | 被评价者 ID |
 | score_desc | tinyint | 描述相符评分（1-5 分） |
 | score_attitude | tinyint | 沟通态度评分（1-5 分） |
 | score_experience | tinyint | 交易体验评分（1-5 分） |
@@ -549,8 +571,9 @@ Graduation_project/
 | user_id | bigint | 当前用户 ID |
 | peer_id | bigint | 对方用户 ID |
 | product_id | bigint | 关联商品 ID |
-| unread | int | 当前用户未读消息数 |
 | last_msg | varchar | 最后一条消息摘要 |
+| last_msg_type | tinyint | 最后一条消息类型 |
+| unread | int | 当前用户未读消息数 |
 | last_time | datetime | 最后消息时间 |
 | is_top | tinyint | 是否置顶：0 否 / 1 是 |
 | is_deleted | tinyint | 是否删除（仅对自己生效） |
@@ -567,6 +590,8 @@ Graduation_project/
 | receiver_id | bigint | 接收者 ID |
 | msg_type | tinyint | 消息类型：1 文本 / 2 商品卡片 / 3 订单卡片 / 4 系统提示 / 5 快捷回复 |
 | content | text | 消息内容 |
+| product_id | bigint | 关联商品 ID（商品卡片消息） |
+| order_id | bigint | 关联订单 ID（订单卡片消息） |
 | is_read | tinyint | 是否已读：0 未读 / 1 已读 |
 | create_time | datetime | 发送时间 |
 
@@ -639,6 +664,9 @@ Graduation_project/
 | id | int | 主键自增 |
 | campus_id | int | 所属校区 ID |
 | name | varchar | 地点名称 |
+| description | varchar | 地点描述 |
+| sort | int | 排序 |
+| status | tinyint | 状态：0 禁用 / 1 启用 |
 | create_time | datetime | 创建时间（自动填充） |
 
 #### 12. 通知表（notification）
@@ -678,6 +706,16 @@ Graduation_project/
 | is_hot | tinyint | 是否热门：0 否 / 1 是 |
 | create_time | datetime | 创建时间（自动填充） |
 
+#### 15. 浏览记录表（browse_history）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | bigint | 主键自增 |
+| user_id | bigint | 用户 ID |
+| product_id | bigint | 商品 ID |
+| is_deleted | tinyint | 逻辑删除（@TableLogic） |
+| create_time | datetime | 浏览时间（自动填充） |
+
 ### 数据库变更说明
 
 | 增量脚本 | 变更内容 |
@@ -696,6 +734,7 @@ Graduation_project/
 user(用户) ──1:N──→ product(商品)
 user(用户) ──1:N──→ trade_order(订单) ←──N:1── product(商品)
 user(用户) ──1:N──→ favorite(收藏)    ←──N:1── product(商品)
+user(用户) ──1:N──→ browse_history(浏览记录) ←──N:1── product(商品)
 user(用户) ──1:1──→ campus_auth(校园认证) ──N:1──→ college(学院)
 campus_auth(校园认证) ──1:N──→ campus_auth_history(认证历史)
 trade_order(订单) ──1:2──→ review(评价)
@@ -722,6 +761,7 @@ product(商品) ──1:N──→ product_comment(留言) ──N:1──→ us
 | 9 | 校园认证被驳回 | 您的校园认证未通过审核，驳回原因：{reason} |
 | 10 | 评价提醒 | 你购买的「{productName}」交易已完成 3 天，还未评价哦 |
 | 11 | 新增关注 | {nickName}关注了你 |
+| 12 | 卖家已确认发货 | 卖家已确认发货，订单「{productName}」请尽快前往面交 |
 
 #### 2. NotificationCategory（通知分类）
 
@@ -734,9 +774,9 @@ product(商品) ──1:N──→ product_comment(留言) ──N:1──→ us
 
 | code | 描述 | 说明 |
 |------|------|------|
-| 1 | 待接单 | 订单创建后，等待卖家确认发货 |
+| 1 | 待接单 | 订单创建后，等待卖家确认发货（72 小时超时） |
 | 2 | 待面交 | 卖家已确认发货，买卖双方进行面交并各自确认 |
-| 3 | 已完成 | 双方均确认后完成，或自动确认收货后完成 |
+| 3 | 已完成 | 双方均确认后完成，或 7 天自动确认收货 |
 | 4 | 已评价 | 双方均评价或系统自动好评后 |
 | 5 | 已取消 | 超时取消 / 买家取消 / 卖家取消 |
 
@@ -749,13 +789,12 @@ product(商品) ──1:N──→ product_comment(留言) ──N:1──→ us
 | BannerLinkType | 3 | 外部链接 |
 | ReportStatus | 0 | 待处理 |
 | ReportStatus | 1 | 已处理 |
-| ReportStatus | 2 | 已驳回 |
+| ReportStatus | 2 | 已忽略 |
 | ReportReason | 1 | 虚假商品 |
-| ReportReason | 2 | 价格欺诈 |
-| ReportReason | 3 | 违禁物品 |
-| ReportReason | 4 | 恶意骚扰 |
-| ReportReason | 5 | 侵权商品 |
-| ReportReason | 6 | 其他 |
+| ReportReason | 2 | 违禁物品 |
+| ReportReason | 3 | 诈骗信息 |
+| ReportReason | 4 | 不当内容 |
+| ReportReason | 5 | 其他 |
 
 ---
 
@@ -820,8 +859,9 @@ product(商品) ──1:N──→ product_comment(留言) ──N:1──→ us
 | GET | `/mini/order/list` | 订单列表（支持买家/卖家视角） | ✅ |
 | GET | `/mini/order/detail/{id}` | 订单详情 | ✅ |
 | POST | `/mini/order/confirm` | 买家确认收货（设置 buyerConfirmed=1） | ✅ |
+| POST | `/mini/order/confirm-ship` | 买家确认发货（设置 buyerConfirmed=1） | ✅ |
 | POST | `/mini/order/seller-confirm-receive` | 卖家确认交付（设置 sellerConfirmed=1） | ✅ |
-| POST | `/mini/order/cancel` | 取消订单 | ✅ |
+| POST | `/mini/order/cancel` | 取消订单（参数：orderId, cancelReason） | ✅ |
 | POST | `/mini/order/delete` | 删除订单记录 | ✅ |
 
 #### 聊天模块（`/mini/chat`）
@@ -958,6 +998,11 @@ ws://host:port/ws/chat?token={jwt_token}
 | 消息 | POST | `/mini/notification/read-type` | 按通知类型标记已读（参数：type） |
 | 消息 | POST | `/mini/notification/read-all` | 全部标记已读 |
 | 消息 | GET | `/mini/notification/unread-count` | 未读数统计 |
+| 足迹 | GET | `/mini/footprint/list` | 足迹列表（分页，支持分类/时间筛选） |
+| 足迹 | POST | `/mini/footprint/delete` | 删除指定足迹 |
+| 足迹 | POST | `/mini/footprint/clear` | 清空所有足迹 |
+| 足迹 | GET | `/mini/footprint/count` | 足迹总数 |
+| 足迹 | POST | `/mini/footprint/record` | 记录浏览（商品详情页调用） |
 
 ### 管理端接口
 
@@ -996,10 +1041,10 @@ ws://host:port/ws/chat?token={jwt_token}
 
 | 方法 | 路径 | 说明 | 参数 | 响应数据 |
 |------|------|------|------|---------|
-| GET | `/admin/stats/overview` | 数据总览 | 无 | totalUsers、totalProducts、totalOrders、totalReviews、pendingAuthCount、pendingProductCount、todayNewUsers、todayNewProducts、todayNewOrders、totalAmount |
-| GET | `/admin/stats/trend` | 趋势折线图 | days（默认 7，可选 7/30） | [{date, newUsers, newProducts, newOrders}] |
-| GET | `/admin/stats/campus` | 校区维度统计 | 无 | [{campusName, productCount, orderCount, userCount}] |
-| GET | `/admin/stats/category` | 分类维度统计 | 无 | [{categoryName, productCount, percentage}] |
+| GET | `/admin/stats/overview` | 数据总览 | 无 | todayNewUsers、todayNewProducts、todayNewOrders、todayGmv、totalUsers、totalProducts、totalOrders、totalAmount、pendingProductCount、pendingAuthCount、pendingReports |
+| GET | `/admin/stats/trend` | 趋势折线图 | days（默认 7，最大 30） | [{date, newUsers, newProducts, orders, gmv}] |
+| GET | `/admin/stats/campus` | 校区维度统计 | 无 | [{campusId, campusName, productCount, orderCount, userCount}] |
+| GET | `/admin/stats/category` | 分类维度统计 | 无 | [{categoryId, categoryName, productCount, orderCount}] |
 
 #### 其他管理端模块
 

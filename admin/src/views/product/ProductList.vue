@@ -240,7 +240,7 @@
           </el-descriptions-item>
         </el-descriptions>
 
-        <el-tabs v-model="detailActiveTab" style="margin-top: 16px;">
+        <el-tabs v-model="detailActiveTab" style="margin-top: 16px;" @tab-change="onDetailTabChange">
           <el-tab-pane label="关联订单" name="orders">
             <el-table :data="orderList" border stripe size="small">
               <el-table-column prop="orderNo" label="订单ID" width="200" />
@@ -285,35 +285,44 @@
           </el-tab-pane>
 
           <el-tab-pane label="发布者信息" name="publisher">
-            <div v-if="currentProductDetail.publisher" class="publisher-detail">
-              <div class="publisher-header">
-                <el-avatar :size="80" shape="circle" :src="getImageUrl(currentProductDetail.publisher.avatarUrl)">
-                  <el-icon><User /></el-icon>
-                </el-avatar>
-                <div class="publisher-meta">
-                  <div class="publisher-nickname">{{ currentProductDetail.publisher.nickName || '-' }}</div>
-                  <div class="publisher-score" v-if="currentProductDetail.publisher.score !== null && currentProductDetail.publisher.score !== undefined">
-                    ⭐ {{ currentProductDetail.publisher.score }} 分
+            <div v-loading="publisherInfoLoading">
+              <template v-if="publisherInfo">
+                <!-- 顶部头像+昵称区域 -->
+                <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                  <el-avatar :size="64" :src="publisherInfo.avatarUrl" />
+                  <div style="margin-left: 16px;">
+                    <div style="font-size: 18px; font-weight: bold;">{{ publisherInfo.nickName }}</div>
+                    <div style="margin-top: 4px;">
+                      <el-tag size="small" :type="publisherInfo.authStatus === 2 ? 'success' : 'info'">
+                        {{ publisherInfo.authStatusText }}
+                      </el-tag>
+                      <el-tag size="small" :type="publisherInfo.accountStatus === 1 ? 'success' : 'danger'" style="margin-left: 8px;">
+                        {{ publisherInfo.accountStatusText }}
+                      </el-tag>
+                    </div>
                   </div>
-                  <div class="publisher-score" v-else>暂无评分</div>
                 </div>
-              </div>
-
-              <el-descriptions border :column="2">
-                <el-descriptions-item label="用户ID">{{ currentProductDetail.publisher.id }}</el-descriptions-item>
-                <el-descriptions-item label="手机号">{{ currentProductDetail.publisher.phone || '-' }}</el-descriptions-item>
-                <el-descriptions-item label="认证状态">
-                  <el-tag :type="getAuthStatusType(currentProductDetail.publisher.authStatus)" size="small">
-                    {{ getAuthStatusText(currentProductDetail.publisher.authStatus) }}
-                  </el-tag>
-                </el-descriptions-item>
-                <el-descriptions-item label="所在校区">{{ currentProductDetail.publisher.campusName || '-' }}</el-descriptions-item>
-                <el-descriptions-item label="发布商品">{{ currentProductDetail.publisher.publishCount || 0 }} 件</el-descriptions-item>
-                <el-descriptions-item label="订单数量">{{ currentProductDetail.publisher.orderCount || 0 }} 单</el-descriptions-item>
-              </el-descriptions>
-            </div>
-            <div v-else style="padding: 16px 0;">
-              <el-empty description="暂无发布者信息" />
+                <!-- 详细信息 -->
+                <el-descriptions :column="2" border>
+                  <el-descriptions-item label="手机号">{{ publisherInfo.phone }}</el-descriptions-item>
+                  <el-descriptions-item label="综合评分">{{ publisherInfo.score }} 分</el-descriptions-item>
+                  <el-descriptions-item label="个人简介">{{ publisherInfo.bio || '暂无' }}</el-descriptions-item>
+                  <el-descriptions-item label="IP属地">{{ publisherInfo.ipRegion || '暂无' }}</el-descriptions-item>
+                  <el-descriptions-item label="注册时间">{{ publisherInfo.createTime }}</el-descriptions-item>
+                  <el-descriptions-item label="发布商品数">{{ publisherInfo.productCount }}</el-descriptions-item>
+                  <el-descriptions-item label="成交订单数">{{ publisherInfo.dealOrderCount }}</el-descriptions-item>
+                </el-descriptions>
+                <!-- 校园认证信息（如果存在） -->
+                <template v-if="publisherInfo.realName">
+                  <div style="margin: 16px 0 8px; font-weight: bold; color: #303133;">校园认证信息</div>
+                  <el-descriptions :column="2" border>
+                    <el-descriptions-item label="真实姓名">{{ publisherInfo.realName }}</el-descriptions-item>
+                    <el-descriptions-item label="学院">{{ publisherInfo.collegeName || '-' }}</el-descriptions-item>
+                    <el-descriptions-item label="学号">{{ publisherInfo.studentNo || '-' }}</el-descriptions-item>
+                  </el-descriptions>
+                </template>
+              </template>
+              <el-empty v-if="!publisherInfoLoading && !publisherInfo" description="暂无发布者信息" />
             </div>
           </el-tab-pane>
         </el-tabs>
@@ -454,7 +463,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Picture, User, Search } from '@element-plus/icons-vue'
-import { getProductDetail, getProductPage, batchForceOffShelf, exportProduct, forceOffShelf, getRelatedOrders } from '@/api/product'
+import { getProductDetail, getProductPage, batchForceOffShelf, exportProduct, forceOffShelf, getRelatedOrders, getPublisherInfo } from '@/api/product'
 import { getCategoryList } from '@/api/category'
 import { getOrderDetail } from '@/api/order'
 import { getImageUrl, getPreviewImages } from '@/utils/baseUrl'
@@ -499,6 +508,8 @@ const orderQuery = ref({
 })
 const orderList = ref([])
 const orderTotal = ref(0)
+const publisherInfo = ref(null)
+const publisherInfoLoading = ref(false)
 
 const canBatchForceOff = computed(() => {
   return selectedRows.value.length > 0 && selectedRows.value.every(row => row.status === 1)
@@ -650,7 +661,9 @@ const openDetail = async (row) => {
     detailActiveTab.value = 'orders'
 
     orderQuery.value.page = 1
+    publisherInfo.value = null
     await loadOrderList()
+    loadPublisherInfo(row.id)
   } catch (error) {
     console.error('加载商品详情失败:', error)
   }
@@ -665,6 +678,25 @@ const loadOrderList = async () => {
     orderTotal.value = Number(pageData.total || 0)
   } catch (error) {
     console.error('加载关联订单失败:', error)
+  }
+}
+
+const loadPublisherInfo = async (productId) => {
+  if (!productId) return
+  publisherInfoLoading.value = true
+  try {
+    const res = await getPublisherInfo(productId)
+    publisherInfo.value = res.data || null
+  } catch (error) {
+    console.error('加载发布者信息失败:', error)
+  } finally {
+    publisherInfoLoading.value = false
+  }
+}
+
+const onDetailTabChange = (tabName) => {
+  if (tabName === 'publisher' && !publisherInfo.value && currentProductDetail.value) {
+    loadPublisherInfo(currentProductDetail.value.id)
   }
 }
 
@@ -761,6 +793,7 @@ watch(detailVisible, (v) => {
     orderTotal.value = 0
     orderQuery.value.page = 1
     orderDetail.value = null
+    publisherInfo.value = null
   }
 })
 

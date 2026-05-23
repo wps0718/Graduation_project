@@ -13,7 +13,6 @@ public class UserUpdateDTO {
     @Size(min = 1, max = 20, message = "昵称长度为1-20位")
     private String nickName;
 
-    @NotBlank(message = "头像不能为空")
     private String avatarUrl;
 
     @NotNull(message = "性别不能为空")

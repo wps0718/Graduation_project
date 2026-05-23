@@ -2,9 +2,7 @@ const TOKEN_KEY = 'token'
 const USER_INFO_KEY = 'userInfo'
 
 export function getToken() {
-  const token = uni.getStorageSync(TOKEN_KEY) || ''
-  console.log('[Auth] 当前 Token:', token ? `${token.substring(0, 20)}...` : '无')
-  return token
+  return uni.getStorageSync(TOKEN_KEY) || ''
 }
 
 export function setToken(token) {
@@ -46,13 +44,8 @@ export function isLogin() {
   return !!getToken()
 }
 
-export function isLoggedIn() {
-  return isLogin()
-}
-
 export function logout() {
   removeToken()
   removeUserInfo()
-  console.log('[Auth] 已退出登录')
 }
 

@@ -52,7 +52,6 @@ class FavoriteServiceImplTest {
         Mockito.when(productMapper.selectById(1L)).thenReturn(product);
         Mockito.when(favoriteMapper.selectCount(Mockito.any())).thenReturn(0L);
         Mockito.when(favoriteMapper.insert(Mockito.<Favorite>any())).thenReturn(1);
-        Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
         Mockito.when(notificationMapper.selectOne(Mockito.any())).thenReturn(null);
 
         UserContext.setCurrentUserId(10001L);
@@ -65,9 +64,7 @@ class FavoriteServiceImplTest {
         Assertions.assertEquals(10001L, saved.getUserId());
         Assertions.assertEquals(1L, saved.getProductId());
 
-        ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
-        Mockito.verify(productMapper).updateById(productCaptor.capture());
-        Assertions.assertEquals(6, productCaptor.getValue().getFavoriteCount());
+        Mockito.verify(productMapper).incrementFavoriteCount(1L);
         Mockito.verify(notificationService).send(
                 Mockito.eq(10002L),
                 Mockito.eq(NotificationType.BE_FAVORITED),
@@ -133,19 +130,11 @@ class FavoriteServiceImplTest {
         Mockito.when(favoriteMapper.selectOne(Mockito.any())).thenReturn(favorite);
         Mockito.when(favoriteMapper.deleteById(100L)).thenReturn(1);
 
-        Product product = new Product();
-        product.setId(1L);
-        product.setFavoriteCount(5);
-        Mockito.when(productMapper.selectById(1L)).thenReturn(product);
-        Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
-
         UserContext.setCurrentUserId(10001L);
         FavoriteServiceImpl service = new FavoriteServiceImpl(favoriteMapper, productMapper, objectMapper, notificationMapper, notificationService);
         service.cancelFavorite(1L);
 
-        ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
-        Mockito.verify(productMapper).updateById(productCaptor.capture());
-        Assertions.assertEquals(4, productCaptor.getValue().getFavoriteCount());
+        Mockito.verify(productMapper).decrementFavoriteCount(1L);
         Mockito.verify(favoriteMapper).deleteById(100L);
     }
 
@@ -245,7 +234,6 @@ class FavoriteServiceImplTest {
         Mockito.when(productMapper.selectById(1L)).thenReturn(product);
         Mockito.when(favoriteMapper.selectCount(Mockito.any())).thenReturn(0L);
         Mockito.when(favoriteMapper.insert(Mockito.<Favorite>any())).thenReturn(1);
-        Mockito.when(productMapper.updateById(Mockito.any(Product.class))).thenReturn(1);
 
         Notification existing = new Notification();
         existing.setId(10L);

@@ -17,9 +17,8 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -41,20 +40,32 @@ public class ReviewAutoTask {
             LocalDateTime deadline = LocalDateTime.now().minusDays(7);
             LambdaQueryWrapper<TradeOrder> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(TradeOrder::getStatus, OrderStatus.COMPLETED.getCode())
-                    .lt(TradeOrder::getCompleteTime, deadline);
+                    .lt(TradeOrder::getCompleteTime, deadline)
+                    .last("LIMIT 500");
             List<TradeOrder> orders = tradeOrderMapper.selectList(wrapper);
             if (orders == null || orders.isEmpty()) {
                 log.info("[自动好评任务] 无需自动好评的订单");
                 return;
             }
+
+            // 批量查询所有订单的评价记录
+            List<Long> orderIds = orders.stream().map(TradeOrder::getId).collect(Collectors.toList());
+            List<Review> allReviews = reviewMapper.selectList(
+                    new LambdaQueryWrapper<Review>().in(Review::getOrderId, orderIds)
+            );
+            // 按 orderId 分组
+            Map<Long, List<Review>> reviewMap = allReviews.stream()
+                    .collect(Collectors.groupingBy(Review::getOrderId));
+
+            // 收集所有需要更新评分的用户 ID
+            Set<Long> targetIds = new LinkedHashSet<>();
+
             for (TradeOrder order : orders) {
                 try {
-                    List<Review> reviews = reviewMapper.selectList(new LambdaQueryWrapper<Review>()
-                            .eq(Review::getOrderId, order.getId()));
+                    List<Review> reviews = reviewMap.get(order.getId());
                     boolean buyerReviewed = hasReviewed(reviews, order.getBuyerId());
                     boolean sellerReviewed = hasReviewed(reviews, order.getSellerId());
                     int newCount = 0;
-                    Set<Long> targetIds = new HashSet<>();
 
                     if (!buyerReviewed) {
                         Review review = buildAutoReview(order.getId(), order.getBuyerId(), order.getSellerId());
@@ -84,19 +95,27 @@ public class ReviewAutoTask {
                         tradeOrderMapper.updateById(update);
                     }
 
-                    for (Long targetId : targetIds) {
+                    if (newCount > 0) {
+                        processedCount++;
+                    }
+                } catch (Exception e) {
+                    log.error("[自动好评任务] 处理订单失败，订单ID：{}，错误：{}", order.getId(), e.getMessage(), e);
+                }
+            }
+
+            // 批量更新用户评分
+            if (!targetIds.isEmpty()) {
+                for (Long targetId : targetIds) {
+                    try {
                         BigDecimal score = calculateUserScore(targetId);
                         User updateUser = new User();
                         updateUser.setId(targetId);
                         updateUser.setScore(score);
                         updateUser.setUpdateTime(LocalDateTime.now());
                         userMapper.updateById(updateUser);
+                    } catch (Exception e) {
+                        log.error("[自动好评任务] 更新用户评分失败，用户ID：{}，错误：{}", targetId, e.getMessage(), e);
                     }
-                    if (newCount > 0) {
-                        processedCount++;
-                    }
-                } catch (Exception e) {
-                    log.error("[自动好评任务] 处理订单失败，订单ID：{}，错误：{}", order.getId(), e.getMessage(), e);
                 }
             }
         } catch (Exception e) {

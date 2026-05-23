@@ -11,6 +11,9 @@ target/
 # 生产环境配置（含密钥，不可提交）
 src/main/resources/application-prod.yml
 
+# 开发环境本地配置（含真实密钥，不可提交）
+src/main/resources/application-dev.yml
+
 # IntelliJ
 .idea/
 *.iml

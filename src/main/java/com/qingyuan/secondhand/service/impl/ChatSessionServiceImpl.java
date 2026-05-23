@@ -283,21 +283,16 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     }
 
     private ChatSessionVO buildSessionVO(Long userId, Long peerId, Long productId) {
-        List<ChatSessionVO> list = chatSessionMapper.selectSessionListByUserId(userId);
-        if (list == null) {
+        ChatSessionVO item = chatSessionMapper.selectSessionByUserAndPeer(userId, peerId, productId);
+        if (item == null) {
             return null;
         }
-        for (ChatSessionVO item : list) {
-            if (peerId.equals(item.getPeerId()) && matchProductId(productId, item.getProductId())) {
-                item.setSessionKey(SessionKeyUtil.buildSessionKey(userId, peerId, productId));
-                item.setProductImage(parseCoverImage(item.getProductImage()));
-                if (item.getIsTop() == null) {
-                    item.setIsTop(false);
-                }
-                return item;
-            }
+        item.setSessionKey(SessionKeyUtil.buildSessionKey(userId, peerId, productId));
+        item.setProductImage(parseCoverImage(item.getProductImage()));
+        if (item.getIsTop() == null) {
+            item.setIsTop(false);
         }
-        return null;
+        return item;
     }
 
     private ChatSession findSession(Long userId, Long peerId, Long productId) {
@@ -331,19 +326,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     }
 
     private Integer calculateUnreadTotalInternal(Long userId) {
-        List<ChatSession> sessions = chatSessionMapper.selectList(new LambdaQueryWrapper<ChatSession>()
-                .eq(ChatSession::getUserId, userId)
-                .eq(ChatSession::getIsDeleted, 0));
-        int total = 0;
-        if (sessions != null) {
-            for (ChatSession session : sessions) {
-                Integer unread = session.getUnread();
-                if (unread != null) {
-                    total += unread;
-                }
-            }
-        }
-        return total;
+        return chatSessionMapper.sumUnreadByUserId(userId);
     }
 
     private boolean matchProductId(Long productId, Long targetProductId) {
