@@ -1,0 +1,25 @@
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/secondhand?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&useUnicode=true&connectionCollation=utf8mb4_bin&allowPublicKeyRetrieval=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:changeme-dev-db-password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: 0
+
+jwt:
+  secret: ${JWT_SECRET:changeme-dev-jwt-secret}
+
+upload:
+  path: ${UPLOAD_PATH:G:/Code/Graduation_project/uploads/}
+
+wx:
+  appId: "${WX_APP_ID:your-wx-app-id}"
+  appSecret: "${WX_APP_SECRET:your-wx-app-secret}"
