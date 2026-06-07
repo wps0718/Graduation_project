@@ -91,6 +91,7 @@
 import { ref, computed, reactive } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
+import { resolveImageUrl } from '@/utils/image'
 import { useUserStore } from '@/store'
 import Price from '@/components/price/price.vue'
 import { showToast, ensureLogin } from '@/utils/nav'
@@ -130,9 +131,9 @@ const productInfo = computed(() => {
 
 const productImage = computed(() => {
   if (!productInfo.value) return ''
-  if (productInfo.value.coverImage) return productInfo.value.coverImage
+  if (productInfo.value.coverImage) return resolveImageUrl(productInfo.value.coverImage)
   if (Array.isArray(productInfo.value.images) && productInfo.value.images.length > 0) {
-    return productInfo.value.images[0]
+    return resolveImageUrl(productInfo.value.images[0])
   }
   return ''
 })

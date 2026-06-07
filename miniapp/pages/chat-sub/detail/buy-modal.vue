@@ -8,7 +8,7 @@
 
       <view class="modal-body">
         <view class="modal-product">
-          <image class="modal-product__image" :src="product.coverImage" mode="aspectFill" />
+          <image class="modal-product__image" :src="resolveImageUrl(product.coverImage)" mode="aspectFill" />
           <view class="modal-product__info">
             <text class="modal-product__title">{{ product.title }}</text>
             <text class="modal-product__price">原价：¥{{ product.price }}</text>
@@ -73,6 +73,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { resolveImageUrl } from '@/utils/image'
 
 const props = defineProps({
   visible: Boolean,

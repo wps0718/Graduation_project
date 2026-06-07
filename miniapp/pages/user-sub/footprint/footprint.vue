@@ -80,7 +80,7 @@
               <view class="footprint-card__image-wrap">
                 <image
                   class="footprint-card__image"
-                  :src="item.coverImage"
+                  :src="resolveImageUrl(item.coverImage)"
                   mode="aspectFill"
                 />
                 <view
@@ -150,6 +150,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
+import { resolveImageUrl } from '@/utils/image'
 import EmptyState from '@/components/empty-state/empty-state.vue'
 import { showToast, ensureLogin } from '@/utils/nav'
 

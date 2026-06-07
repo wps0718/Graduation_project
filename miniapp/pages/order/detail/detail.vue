@@ -139,6 +139,7 @@
 import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
+import { resolveImageUrl } from '@/utils/image'
 import { ORDER_STATUS } from '@/utils/constant'
 import { useUserStore } from '@/store'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
@@ -157,7 +158,7 @@ const statusText = computed(() => {
 
 const productImage = computed(() => {
   const images = order.value?.productImages
-  if (images && images.length) return images[0]
+  if (images && images.length) return resolveImageUrl(images[0])
   return ''
 })
 

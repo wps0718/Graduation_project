@@ -37,3 +37,32 @@ export const getCampusStats = () => {
 export const getCategoryStats = () => {
   return request.get('/admin/stats/category')
 }
+
+/**
+ * 获取登录方式统计（饼图）
+ * @param {string} startDate - 开始日期 YYYY-MM-DD
+ * @param {string} endDate - 结束日期 YYYY-MM-DD
+ * @returns {Promise<Array<{methodName: string, count: number}>>}
+ */
+export const getLoginMethodStats = (startDate, endDate) => {
+  return request.get('/admin/stats/login-method', { params: { startDate, endDate } })
+}
+
+/**
+ * 获取登录时段统计（柱状图）
+ * @param {string} startDate - 开始日期 YYYY-MM-DD
+ * @param {string} endDate - 结束日期 YYYY-MM-DD
+ * @returns {Promise<Array<{timeSlot: string, pcCount: number, miniCount: number}>>}
+ */
+export const getLoginTimeStats = (startDate, endDate) => {
+  return request.get('/admin/stats/login-time', { params: { startDate, endDate } })
+}
+
+/**
+ * 获取登录与注册趋势（折线图）
+ * @param {number} days - 天数（7或30，默认7）
+ * @returns {Promise<Array<{date: string, loginCount: number, registerCount: number}>>}
+ */
+export const getLoginTrend = (days = 7) => {
+  return request.get('/admin/stats/login-trend', { params: { days } })
+}

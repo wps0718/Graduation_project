@@ -75,7 +75,7 @@
       <view class="detail__section">
         <text class="detail__section-title">卖家信息</text>
         <view class="detail__seller" @click="goSellerProfile">
-          <UserAvatar :src="seller.avatarUrl" :size="96" :show-auth="true" :auth-status="seller.authStatus" />
+          <UserAvatar :avatar-url="seller.avatarUrl" :size="96" :show-auth="true" :auth-status="seller.authStatus" />
           <view class="detail__seller-info">
             <text class="detail__seller-name">{{ seller.nickName || '未命名卖家' }}</text>
             <view class="detail__seller-extra">
@@ -97,7 +97,7 @@
           <view v-for="comment in comments" :key="comment.id" class="comment-item">
             <view class="comment-item__main">
               <view class="comment-item__avatar">
-                <UserAvatar :src="comment.avatarUrl" :size="64" />
+                <UserAvatar :avatar-url="comment.avatarUrl" :size="64" />
               </view>
               <view class="comment-item__content-wrap">
                 <view class="comment-item__user-row">
@@ -118,7 +118,7 @@
             <view v-if="comment.replies && comment.replies.length > 0" class="comment-replies">
               <view v-for="reply in comment.replies" :key="reply.id" class="reply-item">
                 <view class="reply-item__avatar">
-                  <UserAvatar :src="reply.avatarUrl" :size="48" />
+                  <UserAvatar :avatar-url="reply.avatarUrl" :size="48" />
                 </view>
                 <view class="reply-item__content-wrap">
                   <view class="reply-item__user-row">

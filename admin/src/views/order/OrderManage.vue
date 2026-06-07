@@ -417,7 +417,7 @@ const statusText = (status) => {
  * @returns {string} tag类型
  */
 const statusTagType = (status) => {
-  const map = { 1: 'warning', 2: 'info', 3: 'success', 4: '', 5: 'danger' }
+  const map = { 1: 'warning', 2: 'info', 3: 'success', 4: 'success', 5: 'danger' }
   return map[status] ?? 'info'
 }
 

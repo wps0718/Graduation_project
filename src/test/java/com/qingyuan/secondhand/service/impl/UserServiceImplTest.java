@@ -13,6 +13,7 @@ import com.qingyuan.secondhand.dto.SmsSendDTO;
 import com.qingyuan.secondhand.dto.UserUpdateDTO;
 import com.qingyuan.secondhand.dto.WxLoginDTO;
 import com.qingyuan.secondhand.entity.User;
+import com.qingyuan.secondhand.mapper.LoginLogMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
 import com.qingyuan.secondhand.service.FollowService;
 import com.qingyuan.secondhand.vo.LoginVO;
@@ -101,7 +102,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.selectByOpenId("openid-1")).thenReturn(existing);
         Mockito.when(jwtUtil.createToken(Mockito.eq(1L), Mockito.anyMap())).thenReturn("token-1");
 
-        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService()));
+        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class)));
         Mockito.doReturn(true).when(service).updateById(Mockito.any(User.class));
 
         WxLoginDTO dto = new WxLoginDTO();
@@ -139,7 +140,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.selectByOpenId("openid-2")).thenReturn(null);
         Mockito.when(jwtUtil.createToken(Mockito.eq(10001L), Mockito.anyMap())).thenReturn("token-2");
 
-        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService()));
+        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class)));
         Mockito.doAnswer(invocation -> {
             User u = invocation.getArgument(0);
             u.setId(10001L);
@@ -180,7 +181,7 @@ class UserServiceImplTest {
 
         Mockito.when(userMapper.selectByOpenId("openid-3")).thenReturn(banned);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         WxLoginDTO dto = new WxLoginDTO();
         dto.setCode("code");
 
@@ -215,7 +216,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.selectByOpenId("openid-4")).thenReturn(deactivating);
         Mockito.when(jwtUtil.createToken(Mockito.eq(4L), Mockito.anyMap())).thenReturn("token-4");
 
-        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService()));
+        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class)));
         Mockito.doReturn(true).when(service).updateById(Mockito.any(User.class));
 
         WxLoginDTO dto = new WxLoginDTO();
@@ -257,7 +258,7 @@ class UserServiceImplTest {
         Mockito.when(passwordEncoder.matches(Mockito.eq("123456"), Mockito.eq("hash"))).thenReturn(true);
         Mockito.when(jwtUtil.createToken(Mockito.eq(10L), Mockito.anyMap())).thenReturn("token-10");
 
-        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService()));
+        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class)));
         Mockito.doReturn(true).when(service).updateById(Mockito.any(User.class));
 
         AccountLoginDTO dto = new AccountLoginDTO();
@@ -285,7 +286,7 @@ class UserServiceImplTest {
 
         Mockito.when(userMapper.selectByPhone("13800000001")).thenReturn(null);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         AccountLoginDTO dto = new AccountLoginDTO();
         dto.setPhone("13800000001");
         dto.setPassword("123456");
@@ -321,7 +322,7 @@ class UserServiceImplTest {
         Mockito.when(valueOps.increment("login:fail:13800000002")).thenReturn(2L);
         Mockito.when(stringRedisTemplate.getExpire("login:fail:13800000002", TimeUnit.SECONDS)).thenReturn(600L);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         AccountLoginDTO dto = new AccountLoginDTO();
         dto.setPhone("13800000002");
         dto.setPassword("bad");
@@ -354,7 +355,7 @@ class UserServiceImplTest {
         Mockito.when(valueOps.get("login:fail:13800000003")).thenReturn("5");
         Mockito.when(stringRedisTemplate.getExpire("login:fail:13800000003", TimeUnit.SECONDS)).thenReturn(100L);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         AccountLoginDTO dto = new AccountLoginDTO();
         dto.setPhone("13800000003");
         dto.setPassword("123456");
@@ -390,7 +391,7 @@ class UserServiceImplTest {
         Mockito.when(valueOps.increment("login:fail:13800000004")).thenReturn(5L);
         Mockito.when(stringRedisTemplate.getExpire("login:fail:13800000004", TimeUnit.SECONDS)).thenReturn(600L);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         AccountLoginDTO dto = new AccountLoginDTO();
         dto.setPhone("13800000004");
         dto.setPassword("bad");
@@ -415,7 +416,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.selectById(400L)).thenReturn(user);
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(400L);
@@ -447,7 +448,7 @@ class UserServiceImplTest {
 
         Mockito.when(userMapper.selectById(401L)).thenReturn(user);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(401L);
@@ -469,7 +470,7 @@ class UserServiceImplTest {
         StringRedisTemplate stringRedisTemplate = Mockito.mock(StringRedisTemplate.class);
         BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> invokeAcceptAgreement(service));
         Assertions.assertEquals("未登录", ex.getMsg());
@@ -488,7 +489,7 @@ class UserServiceImplTest {
 
         Mockito.when(userMapper.selectById(500L)).thenReturn(null);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(500L);
@@ -526,7 +527,7 @@ class UserServiceImplTest {
         Mockito.when(valueOps.get("login:fail:13800000005")).thenReturn(null);
         Mockito.when(passwordEncoder.matches(Mockito.eq("123456"), Mockito.eq("hash"))).thenReturn(true);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         AccountLoginDTO dto = new AccountLoginDTO();
         dto.setPhone("13800000005");
         dto.setPassword("123456");
@@ -562,7 +563,7 @@ class UserServiceImplTest {
         Mockito.when(passwordEncoder.matches(Mockito.eq("123456"), Mockito.eq("hash"))).thenReturn(true);
         Mockito.when(jwtUtil.createToken(Mockito.eq(15L), Mockito.anyMap())).thenReturn("token-15");
 
-        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService()));
+        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class)));
         Mockito.doReturn(true).when(service).updateById(Mockito.any(User.class));
 
         AccountLoginDTO dto = new AccountLoginDTO();
@@ -598,7 +599,7 @@ class UserServiceImplTest {
         Mockito.when(passwordEncoder.matches(Mockito.eq("bad"), Mockito.eq("hash"))).thenReturn(false);
         Mockito.when(valueOps.increment("login:fail:13800000007")).thenReturn(1L);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         AccountLoginDTO dto = new AccountLoginDTO();
         dto.setPhone("13800000007");
         dto.setPassword("bad");
@@ -626,7 +627,7 @@ class UserServiceImplTest {
         Mockito.when(valueOps.get("sms:daily:13800000008")).thenReturn("0");
         Mockito.when(valueOps.increment("sms:daily:13800000008")).thenReturn(2L);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         SmsSendDTO dto = new SmsSendDTO();
         dto.setPhone("13800000008");
 
@@ -669,7 +670,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.selectCampusNameById(2L)).thenReturn("南海北");
         Mockito.when(userMapper.selectLatestCampusAuthAuditStatus(1L)).thenReturn(null);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(1L);
@@ -705,7 +706,7 @@ class UserServiceImplTest {
         Mockito.when(valueOps.get("user:info:2")).thenReturn("{\"id\":2,\"nickName\":\"李四\",\"avatarUrl\":\"x.png\",\"phone\":\"138****8888\",\"gender\":0,\"campusId\":1,\"campusName\":\"新港\",\"authStatus\":1,\"score\":5.0,\"status\":1}");
         Mockito.when(userMapper.selectLatestCampusAuthAuditStatus(2L)).thenReturn(1);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(2L);
@@ -737,7 +738,7 @@ class UserServiceImplTest {
         Mockito.when(valueOps.get("user:info:12")).thenReturn(null);
         Mockito.when(userMapper.selectById(12L)).thenReturn(null);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(12L);
@@ -776,7 +777,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.selectById(13L)).thenReturn(user);
         Mockito.when(userMapper.selectLatestCampusAuthAuditStatus(13L)).thenReturn(null);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(13L);
@@ -802,7 +803,7 @@ class UserServiceImplTest {
 
         Mockito.when(userMapper.selectById(14L)).thenReturn(null);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         UserUpdateDTO dto = new UserUpdateDTO();
         dto.setNickName("新昵称");
@@ -856,7 +857,7 @@ class UserServiceImplTest {
 
         Mockito.when(userMapper.pageOnSaleSellerProducts(Mockito.any(Page.class), Mockito.eq(100L))).thenReturn(productPage);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         UserProfileVO vo = service.getUserProfile(100L, 1, 10);
 
         Assertions.assertEquals(100L, vo.getId());
@@ -891,7 +892,7 @@ class UserServiceImplTest {
 
         Mockito.when(userMapper.selectById(101L)).thenReturn(null);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         BusinessException ex = Assertions.assertThrows(BusinessException.class, () -> service.getUserProfile(101L, 1, 10));
         Assertions.assertEquals("用户不存在", ex.getMsg());
     }
@@ -914,7 +915,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
         Mockito.when(userMapper.offShelfAllProducts(200L)).thenReturn(2);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(200L);
@@ -950,7 +951,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.selectById(201L)).thenReturn(user);
         Mockito.when(userMapper.countActiveOrders(201L)).thenReturn(1);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(201L);
@@ -979,7 +980,7 @@ class UserServiceImplTest {
 
         Mockito.when(userMapper.selectById(202L)).thenReturn(user);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(202L);
@@ -1005,7 +1006,7 @@ class UserServiceImplTest {
 
         Mockito.when(userMapper.selectById(203L)).thenReturn(user);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(203L);
@@ -1033,7 +1034,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.selectById(300L)).thenReturn(user);
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(300L);
@@ -1067,7 +1068,7 @@ class UserServiceImplTest {
 
         Mockito.when(userMapper.selectById(301L)).thenReturn(user);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(301L);
@@ -1098,7 +1099,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.selectById(3L)).thenReturn(new User());
         Mockito.when(userMapper.updateById(Mockito.any(User.class))).thenReturn(1);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         UserUpdateDTO dto = new UserUpdateDTO();
         dto.setNickName("新昵称");
@@ -1139,7 +1140,7 @@ class UserServiceImplTest {
         Mockito.when(stringRedisTemplate.opsForValue()).thenReturn(valueOps);
         Mockito.when(valueOps.get("user:stats:10")).thenReturn("{\"onSaleCount\":2,\"soldCount\":3,\"favoriteCount\":4}");
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(10L);
@@ -1171,7 +1172,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.countSoldOrders(11L)).thenReturn(3);
         Mockito.when(userMapper.countFavoriteProducts(11L)).thenReturn(4);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
 
         try {
             UserContext.setCurrentUserId(11L);
@@ -1197,7 +1198,7 @@ class UserServiceImplTest {
 
         Mockito.when(stringRedisTemplate.hasKey("sms:limit:13800000009")).thenReturn(true);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         SmsSendDTO dto = new SmsSendDTO();
         dto.setPhone("13800000009");
 
@@ -1221,7 +1222,7 @@ class UserServiceImplTest {
         Mockito.when(stringRedisTemplate.hasKey("sms:limit:13800000010")).thenReturn(false);
         Mockito.when(valueOps.get("sms:daily:13800000010")).thenReturn("10");
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         SmsSendDTO dto = new SmsSendDTO();
         dto.setPhone("13800000010");
 
@@ -1246,7 +1247,7 @@ class UserServiceImplTest {
         Mockito.when(valueOps.get("sms:daily:13800000011")).thenReturn("0");
         Mockito.when(valueOps.increment("sms:daily:13800000011")).thenReturn(1L);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         SmsSendDTO dto = new SmsSendDTO();
         dto.setPhone("13800000011");
 
@@ -1281,7 +1282,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.selectByPhone("13800000012")).thenReturn(user);
         Mockito.when(jwtUtil.createToken(Mockito.eq(20L), Mockito.anyMap())).thenReturn("token-20");
 
-        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService()));
+        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class)));
         Mockito.doReturn(true).when(service).updateById(Mockito.any(User.class));
 
         SmsLoginDTO dto = new SmsLoginDTO();
@@ -1312,7 +1313,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.selectByPhone("13800000013")).thenReturn(null);
         Mockito.when(jwtUtil.createToken(Mockito.eq(10002L), Mockito.anyMap())).thenReturn("token-10002");
 
-        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService()));
+        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class)));
         Mockito.doAnswer(invocation -> {
             User u = invocation.getArgument(0);
             u.setId(10002L);
@@ -1347,7 +1348,7 @@ class UserServiceImplTest {
         Mockito.when(stringRedisTemplate.opsForValue()).thenReturn(valueOps);
         Mockito.when(valueOps.get("sms:code:13800000014")).thenReturn(null);
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         SmsLoginDTO dto = new SmsLoginDTO();
         dto.setPhone("13800000014");
         dto.setSmsCode("123456");
@@ -1372,7 +1373,7 @@ class UserServiceImplTest {
         Mockito.when(stringRedisTemplate.opsForValue()).thenReturn(valueOps);
         Mockito.when(valueOps.get("sms:code:13800000015")).thenReturn("123456");
 
-        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService());
+        UserServiceImpl service = new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class));
         SmsLoginDTO dto = new SmsLoginDTO();
         dto.setPhone("13800000015");
         dto.setSmsCode("654321");
@@ -1404,7 +1405,7 @@ class UserServiceImplTest {
 
         Mockito.when(userMapper.selectByPhone("13800000016")).thenReturn(user);
 
-        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService()));
+        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class)));
 
         SmsLoginDTO dto = new SmsLoginDTO();
         dto.setPhone("13800000016");
@@ -1442,7 +1443,7 @@ class UserServiceImplTest {
         Mockito.when(userMapper.selectByPhone("13800000017")).thenReturn(user);
         Mockito.when(jwtUtil.createToken(Mockito.eq(31L), Mockito.anyMap())).thenReturn("token-31");
 
-        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService()));
+        UserServiceImpl service = Mockito.spy(new UserServiceImpl(wxConfig, restTemplate, jwtUtil, userMapper, stringRedisTemplate, passwordEncoder, new ObjectMapper(), buildFollowService(), Mockito.mock(LoginLogMapper.class)));
         Mockito.doReturn(true).when(service).updateById(Mockito.any(User.class));
 
         SmsLoginDTO dto = new SmsLoginDTO();

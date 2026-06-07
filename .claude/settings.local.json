@@ -144,7 +144,27 @@
       "PowerShell(Select-String *)",
       "PowerShell(cmd /c \"dir /s /b D:\\\\java17\\\\java.exe 2>nul\"; cmd /c \"dir /s /b D:\\\\java\\\\java.exe 2>nul\")",
       "PowerShell($env:JAVA_HOME = \"D:\\\\java17\"; & \"D:\\\\Maven\\\\apache-maven-3.9.8-bin\\\\apache-maven-3.9.8\\\\bin\\\\mvn.cmd\" -version 2>&1)",
-      "PowerShell($env:JAVA_HOME = \"D:\\\\java\"; & \"D:\\\\Maven\\\\apache-maven-3.9.8-bin\\\\apache-maven-3.9.8\\\\bin\\\\mvn.cmd\" -version 2>&1)"
+      "PowerShell($env:JAVA_HOME = \"D:\\\\java\"; & \"D:\\\\Maven\\\\apache-maven-3.9.8-bin\\\\apache-maven-3.9.8\\\\bin\\\\mvn.cmd\" -version 2>&1)",
+      "PowerShell(mvn test-compile *)",
+      "PowerShell(& \"D:\\\\Maven\\\\apache-maven-3.9.6\\\\bin\\\\mvn.cmd\" test-compile -f \"G:\\\\Code\\\\Graduation_project\\\\pom.xml\" 2>&1 | Select-Object -Last 8)",
+      "PowerShell(where.exe git 2>$null; & \"C:\\\\Program Files\\\\Git\\\\bin\\\\git.exe\" --version 2>$null; & \"C:\\\\Program Files \\(x86\\)\\\\Git\\\\bin\\\\git.exe\" --version 2>$null)",
+      "PowerShell(cmd /c \"where git\" 2>&1)",
+      "PowerShell(Invoke-WebRequest -Uri \"https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/archive/refs/heads/main.zip\" -OutFile \"$env:TEMP\\\\skill.zip\" -UseBasicParsing)",
+      "PowerShell(Expand-Archive *)",
+      "PowerShell(Copy-Item *)",
+      "PowerShell(Remove-Item *)",
+      "PowerShell(.\\\\mvnw.cmd clean compile -DskipTests -q 2>&1 | Select-Object -Last 20)"
     ]
+  },
+  "enabledPlugins": {
+    "ui-ux-pro-max@ui-ux-pro-max-local": true
+  },
+  "extraKnownMarketplaces": {
+    "ui-ux-pro-max-local": {
+      "source": {
+        "source": "directory",
+        "path": "./plugins/ui-ux-pro-max"
+      }
+    }
   }
 }

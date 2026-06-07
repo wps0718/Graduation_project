@@ -9,11 +9,14 @@ import com.qingyuan.secondhand.common.util.JwtUtil;
 import com.qingyuan.secondhand.dto.EmployeeDTO;
 import com.qingyuan.secondhand.dto.EmployeeLoginDTO;
 import com.qingyuan.secondhand.entity.Employee;
+import com.qingyuan.secondhand.entity.LoginLog;
 import com.qingyuan.secondhand.mapper.EmployeeMapper;
+import com.qingyuan.secondhand.mapper.LoginLogMapper;
 import com.qingyuan.secondhand.service.EmployeeService;
 import com.qingyuan.secondhand.vo.EmployeeLoginVO;
 import com.qingyuan.secondhand.vo.EmployeeVO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -25,6 +28,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> implements EmployeeService {
 
     private static final String DEFAULT_PASSWORD = "123456";
@@ -33,6 +37,7 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
     private final EmployeeMapper employeeMapper;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final LoginLogMapper loginLogMapper;
 
     @Override
     public EmployeeLoginVO login(EmployeeLoginDTO dto) {
@@ -60,6 +65,17 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
         vo.setName(employee.getName());
         vo.setRole(employee.getRole());
         vo.setToken(token);
+
+        try {
+            LoginLog log = new LoginLog();
+            log.setEmployeeId(employee.getId());
+            log.setLoginMethod("pc");
+            log.setLoginTime(LocalDateTime.now());
+            loginLogMapper.insert(log);
+        } catch (Exception e) {
+            log.warn("记录PC端登录日志失败: employeeId={}", employee.getId(), e);
+        }
+
         return vo;
     }
 

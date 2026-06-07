@@ -1,6 +1,6 @@
 <template>
   <view class="chat-order-card">
-    <view class="chat-order-card__inner">
+    <view class="chat-order-card__inner" :class="{ 'is-cancelled': item.orderStatus === 5 }">
       <text class="chat-order-card__icon">{{ icon }}</text>
       <view class="chat-order-card__body">
         <text class="chat-order-card__title">{{ title }}</text>
@@ -10,9 +10,14 @@
           <text v-if="item.orderMeetingPoint" class="chat-order-card__detail">面交地点：{{ item.orderMeetingPoint }}</text>
         </view>
         <text class="chat-order-card__hint">{{ hint }}</text>
-        <!-- status=1 待接单：卖家确认发货，买家等待 -->
-        <view v-if="item.orderStatus === 1 && item.sellerId === selfId" class="chat-order-card__action" @click="$emit('confirm-ship', item)">
-          <text class="chat-order-card__action-text">确认发货</text>
+        <!-- status=1 待接单：卖家确认发货 + 取消订单，买家等待 -->
+        <view v-if="item.orderStatus === 1 && item.sellerId === selfId">
+          <view class="chat-order-card__action" @click="$emit('confirm-ship', item)">
+            <text class="chat-order-card__action-text">确认发货</text>
+          </view>
+          <view class="chat-order-card__action chat-order-card__action--secondary" @click="$emit('cancel-order', item)">
+            <text class="chat-order-card__action-text--secondary">取消订单</text>
+          </view>
         </view>
         <view v-else-if="item.orderStatus === 1 && item.buyerId === selfId" class="chat-order-card__waiting">
           <text class="chat-order-card__waiting-text">⏳ 等待卖家确认发货</text>
@@ -43,10 +48,10 @@ const props = defineProps({
   selfId: { type: Number, default: 0 }
 })
 
-defineEmits(['confirm-ship', 'seller-confirm-receive', 'buyer-confirm-receive'])
+defineEmits(['confirm-ship', 'seller-confirm-receive', 'buyer-confirm-receive', 'cancel-order'])
 
-const iconMap = { 1: '📋', 2: '📦', 3: '✅', 5: '❌' }
-const titleMap = { 1: '订单已创建', 2: '待面交', 3: '交易完成', 5: '订单已取消' }
+const iconMap = { 1: '📋', 2: '📦', 3: '✅', 4: '⭐', 5: '❌' }
+const titleMap = { 1: '订单已创建', 2: '待面交', 3: '交易完成', 4: '已评价', 5: '订单已取消' }
 
 const icon = computed(() => iconMap[props.item.orderStatus] || '📋')
 const title = computed(() => titleMap[props.item.orderStatus] || '订单')
@@ -55,7 +60,7 @@ const hint = computed(() => {
   if (s === 1) return '⏰ 72小时内面交有效，请及时联系对方'
   if (s === 2) return '📦 面交后双方各自确认，都确认即完成交易'
   if (s === 3) return '🎉 交易已完成'
-  if (s === 5) return '订单已取消'
+  if (s === 5) return '❌ 订单已取消，如有疑问请联系对方'
   return ''
 })
 </script>
@@ -76,6 +81,11 @@ const hint = computed(() => {
   border-radius: var(--radius-md);
   padding: 20rpx 24rpx;
   max-width: 540rpx;
+}
+
+.chat-order-card__inner.is-cancelled {
+  background-color: #f5f5f5;
+  border: 1rpx dashed #ddd;
 }
 
 .chat-order-card__icon {
@@ -112,6 +122,18 @@ const hint = computed(() => {
   margin-top: 4rpx;
 }
 
+.is-cancelled .chat-order-card__hint {
+  color: #999;
+}
+
+.is-cancelled .chat-order-card__title {
+  color: #999;
+}
+
+.is-cancelled .chat-order-card__detail {
+  color: #999;
+}
+
 .chat-order-card__action {
   display: flex;
   justify-content: center;
@@ -128,6 +150,23 @@ const hint = computed(() => {
   font-size: 28rpx;
   color: #fff;
   background-color: var(--primary-color);
+  border-radius: 36rpx;
+}
+
+.chat-order-card__action--secondary {
+  margin-top: 16rpx;
+}
+
+.chat-order-card__action-text--secondary {
+  width: 100%;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #999;
+  background-color: #fff;
+  border: 1rpx solid #ddd;
   border-radius: 36rpx;
 }
 

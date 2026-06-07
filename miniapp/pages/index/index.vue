@@ -378,9 +378,8 @@ function handleBannerClick(item) {
 
 function handleCategoryClick(item) {
   if (item.name === '代拿快递') {
-    const keyword = encodeURIComponent('代拿快递')
     uni.navigateTo({
-      url: `/pages/login-sub/search/search?keyword=${keyword}`
+      url: '/pages/pickup-sub/index/index'
     })
   } else {
     uni.navigateTo({

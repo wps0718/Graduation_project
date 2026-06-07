@@ -15,7 +15,7 @@
       <view v-if="replies.length > 0" class="reply-list">
         <view v-for="reply in replies" :key="reply.id" class="reply-item" @click="goToProduct(reply.productId)">
           <view class="reply-item__left">
-            <UserAvatar :src="reply.fromAvatarUrl" :size="80" />
+            <UserAvatar :avatar-url="reply.fromAvatarUrl" :size="80" />
           </view>
           <view class="reply-item__center">
             <view class="reply-item__user-row">
@@ -26,7 +26,7 @@
             <text class="reply-item__time">{{ formatTime(reply.createTime) }}</text>
           </view>
           <view class="reply-item__right">
-            <image class="reply-item__product-img" :src="reply.productImage" mode="aspectFill" />
+            <image class="reply-item__product-img" :src="resolveImageUrl(reply.productImage)" mode="aspectFill" />
           </view>
           <view v-if="reply.isRead === 0" class="reply-item__dot"></view>
         </view>
@@ -43,6 +43,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { get, post } from '@/utils/request'
+import { resolveImageUrl } from '@/utils/image'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
 

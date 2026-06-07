@@ -28,7 +28,7 @@ public class FileUtil {
 
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png");
     private static final long MAX_SIZE = 5 * 1024 * 1024; // 5MB
-    private static final Set<String> ALLOWED_TYPES = Set.of("common", "product", "auth", "avatar", "banner");
+    private static final Set<String> ALLOWED_TYPES = Set.of("common", "product", "auth", "avatar", "banner", "dispute");
 
     public String upload(MultipartFile file, String type) {
         if (file.isEmpty()) {

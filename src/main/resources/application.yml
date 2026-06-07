@@ -33,3 +33,10 @@ task:
     review-remind: true
     product-auto-off: true
     user-deactivate: true
+    pickup-price-confirm: true
+    pickup-overdue: true
+    pickup-auto-confirm: true
+    dispute-reminder: true
+
+pickup:
+  aes-key: default-pickup-aes-key-2026

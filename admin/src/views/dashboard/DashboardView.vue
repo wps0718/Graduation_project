@@ -124,8 +124,8 @@
             <div class="card-header">
               <span class="header-title">近期数据趋势</span>
               <el-radio-group v-model="trendDays" size="small" @change="handleTrendDaysChange">
-                <el-radio-button :label="7">近7天</el-radio-button>
-                <el-radio-button :label="30">近30天</el-radio-button>
+                <el-radio-button :value="7">近7天</el-radio-button>
+                <el-radio-button :value="30">近30天</el-radio-button>
               </el-radio-group>
             </div>
           </template>
@@ -157,6 +157,80 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 区域5：系统使用情况统计 -->
+    <el-row class="section-title-row">
+      <el-col :span="24">
+        <div class="section-header">
+          <span class="section-title">系统使用情况统计</span>
+          <div class="section-filter">
+            <el-date-picker
+              v-model="loginDateRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="YYYY-MM-DD"
+              @change="handleLoginDateChange"
+            />
+            <el-button type="primary" @click="loadLoginStats" style="margin-left: 12px;">查询</el-button>
+          </div>
+        </div>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="20" class="login-charts">
+      <el-col :span="12">
+        <el-card class="chart-card" v-loading="loadingLoginMethod">
+          <template #header>
+            <div class="card-header">
+              <span class="header-title">登录方式统计</span>
+            </div>
+          </template>
+          <div ref="loginMethodChartRef" class="chart-container" style="height: 280px;"></div>
+        </el-card>
+      </el-col>
+      <el-col :span="12">
+        <el-card class="chart-card" v-loading="loadingLoginTime">
+          <template #header>
+            <div class="card-header">
+              <span class="header-title">登录时段统计</span>
+            </div>
+          </template>
+          <div ref="loginTimeChartRef" class="chart-container" style="height: 280px;"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row class="chart-row">
+      <el-col :span="24">
+        <el-card class="chart-card" v-loading="loadingLoginTrend">
+          <template #header>
+            <div class="card-header">
+              <span class="header-title">登录与注册趋势</span>
+              <el-radio-group v-model="loginTrendDays" size="small" @change="handleLoginTrendDaysChange">
+                <el-radio-button :value="7">近7天</el-radio-button>
+                <el-radio-button :value="30">近30天</el-radio-button>
+              </el-radio-group>
+            </div>
+          </template>
+          <div ref="loginTrendChartRef" class="chart-container" style="height: 320px;"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="20" class="bottom-charts">
+      <el-col :span="24">
+        <el-card class="chart-card" v-loading="loadingCampusStats">
+          <template #header>
+            <div class="card-header">
+              <span class="header-title">各校园数据统计</span>
+            </div>
+          </template>
+          <div ref="campusStatsChartRef" class="chart-container" style="height: 320px;"></div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -165,7 +239,7 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, Goods, ShoppingCart, Money } from '@element-plus/icons-vue'
-import { getOverview, getTrend, getCampusStats, getCategoryStats } from '@/api/stats'
+import { getOverview, getTrend, getCampusStats, getCategoryStats, getLoginMethodStats, getLoginTimeStats, getLoginTrend } from '@/api/stats'
 
 // ECharts 按需引入
 import * as echarts from 'echarts/core'
@@ -201,6 +275,10 @@ const loadingOverview = ref(false)
 const loadingTrend = ref(false)
 const loadingCampus = ref(false)
 const loadingCategory = ref(false)
+const loadingLoginMethod = ref(false)
+const loadingLoginTime = ref(false)
+const loadingLoginTrend = ref(false)
+const loadingCampusStats = ref(false)
 
 // 概览数据
 const overview = ref({
@@ -226,14 +304,33 @@ const campusData = ref([])
 // 分类数据
 const categoryData = ref([])
 
+// 登录方式数据
+const loginMethodData = ref([])
+// 登录时段数据
+const loginTimeData = ref([])
+// 登录趋势数据
+const loginTrendData = ref([])
+
+// 登录统计日期范围
+const loginDateRange = ref(null)
+const loginTrendDays = ref(7)
+
 // ==================== 图表实例 ====================
 const trendChartRef = ref(null)
 const campusChartRef = ref(null)
 const categoryChartRef = ref(null)
+const loginMethodChartRef = ref(null)
+const loginTimeChartRef = ref(null)
+const loginTrendChartRef = ref(null)
+const campusStatsChartRef = ref(null)
 
 let trendChart = null
 let campusChart = null
 let categoryChart = null
+let loginMethodChart = null
+let loginTimeChart = null
+let loginTrendChart = null
+let campusStatsChart = null
 
 // ==================== 工具函数 ====================
 
@@ -349,6 +446,97 @@ const loadCategory = async () => {
  */
 const handleTrendDaysChange = () => {
   loadTrend()
+}
+
+/**
+ * 登录日期范围变化
+ */
+const handleLoginDateChange = () => {
+  loadLoginStats()
+}
+
+/**
+ * 登录趋势天数切换
+ */
+const handleLoginTrendDaysChange = () => {
+  loadLoginTrendData()
+}
+
+/**
+ * 加载登录方式统计
+ */
+const loadLoginMethodData = async () => {
+  loadingLoginMethod.value = true
+  try {
+    const params = getLoginDateParams()
+    const res = await getLoginMethodStats(params.startDate, params.endDate)
+    if (res.code === 1) {
+      loginMethodData.value = res.data || []
+      initLoginMethodChart()
+    }
+  } catch (error) {
+    ElMessage.error('加载登录方式数据失败')
+    console.error('加载登录方式数据失败:', error)
+  } finally {
+    loadingLoginMethod.value = false
+  }
+}
+
+/**
+ * 加载登录时段统计
+ */
+const loadLoginTimeData = async () => {
+  loadingLoginTime.value = true
+  try {
+    const params = getLoginDateParams()
+    const res = await getLoginTimeStats(params.startDate, params.endDate)
+    if (res.code === 1) {
+      loginTimeData.value = res.data || []
+      initLoginTimeChart()
+    }
+  } catch (error) {
+    ElMessage.error('加载登录时段数据失败')
+    console.error('加载登录时段数据失败:', error)
+  } finally {
+    loadingLoginTime.value = false
+  }
+}
+
+/**
+ * 加载登录趋势数据
+ */
+const loadLoginTrendData = async () => {
+  loadingLoginTrend.value = true
+  try {
+    const res = await getLoginTrend(loginTrendDays.value)
+    if (res.code === 1) {
+      loginTrendData.value = res.data || []
+      initLoginTrendChart()
+    }
+  } catch (error) {
+    ElMessage.error('加载登录趋势数据失败')
+    console.error('加载登录趋势数据失败:', error)
+  } finally {
+    loadingLoginTrend.value = false
+  }
+}
+
+/**
+ * 加载登录统计数据（饼图和柱状图）
+ */
+const loadLoginStats = () => {
+  loadLoginMethodData()
+  loadLoginTimeData()
+}
+
+/**
+ * 获取登录日期参数
+ */
+const getLoginDateParams = () => {
+  if (loginDateRange.value && loginDateRange.value.length === 2) {
+    return { startDate: loginDateRange.value[0], endDate: loginDateRange.value[1] }
+  }
+  return { startDate: null, endDate: null }
 }
 
 // ==================== 图表初始化 ====================
@@ -558,12 +746,310 @@ const initCategoryChart = () => {
 }
 
 /**
+ * 初始化登录方式饼图
+ */
+const initLoginMethodChart = () => {
+  if (!loginMethodChartRef.value) return
+
+  if (loginMethodChart) {
+    loginMethodChart.dispose()
+  }
+
+  loginMethodChart = echarts.init(loginMethodChartRef.value)
+
+  if (!loginMethodData.value || loginMethodData.value.length === 0) {
+    loginMethodChart.setOption({
+      title: { text: '暂无数据', left: 'center', top: 'center', textStyle: { color: '#909399', fontSize: 14 } }
+    })
+    return
+  }
+
+  const pieData = loginMethodData.value.map(item => ({
+    name: item.methodName,
+    value: item.count
+  }))
+
+  const colors = ['#4A90D9', '#67C23A', '#E6A23C', '#9B59B6']
+
+  const option = {
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: {c}次 ({d}%)'
+    },
+    legend: {
+      orient: 'vertical',
+      right: '5%',
+      top: 'center',
+      itemGap: 15
+    },
+    color: colors,
+    series: [
+      {
+        name: '登录方式',
+        type: 'pie',
+        radius: ['45%', '70%'],
+        center: ['40%', '50%'],
+        avoidLabelOverlap: false,
+        itemStyle: {
+          borderRadius: 8,
+          borderColor: '#fff',
+          borderWidth: 2
+        },
+        label: {
+          show: false
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: 14,
+            fontWeight: 'bold'
+          }
+        },
+        labelLine: {
+          show: false
+        },
+        data: pieData
+      }
+    ]
+  }
+
+  loginMethodChart.setOption(option)
+}
+
+/**
+ * 初始化登录时段柱状图
+ */
+const initLoginTimeChart = () => {
+  if (!loginTimeChartRef.value) return
+
+  if (loginTimeChart) {
+    loginTimeChart.dispose()
+  }
+
+  loginTimeChart = echarts.init(loginTimeChartRef.value)
+
+  if (!loginTimeData.value || loginTimeData.value.length === 0) {
+    loginTimeChart.setOption({
+      title: { text: '暂无数据', left: 'center', top: 'center', textStyle: { color: '#909399', fontSize: 14 } }
+    })
+    return
+  }
+
+  const timeSlots = loginTimeData.value.map(item => item.timeSlot)
+  const pcCounts = loginTimeData.value.map(item => item.pcCount)
+  const miniCounts = loginTimeData.value.map(item => item.miniCount)
+
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' }
+    },
+    legend: {
+      data: ['PC端', '小程序端'],
+      bottom: 0
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '12%',
+      top: '10%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: timeSlots,
+      axisLabel: {
+        rotate: 30,
+        fontSize: 11
+      }
+    },
+    yAxis: {
+      type: 'value',
+      name: '登录次数',
+      minInterval: 1
+    },
+    series: [
+      {
+        name: 'PC端',
+        type: 'bar',
+        data: pcCounts,
+        itemStyle: { color: '#4A90D9' },
+        barMaxWidth: 30
+      },
+      {
+        name: '小程序端',
+        type: 'bar',
+        data: miniCounts,
+        itemStyle: { color: '#67C23A' },
+        barMaxWidth: 30
+      }
+    ]
+  }
+
+  loginTimeChart.setOption(option)
+}
+
+/**
+ * 初始化登录与注册趋势折线图
+ */
+const initLoginTrendChart = () => {
+  if (!loginTrendChartRef.value) return
+
+  if (loginTrendChart) {
+    loginTrendChart.dispose()
+  }
+
+  loginTrendChart = echarts.init(loginTrendChartRef.value)
+
+  if (!loginTrendData.value || loginTrendData.value.length === 0) {
+    loginTrendChart.setOption({
+      title: { text: '暂无数据', left: 'center', top: 'center', textStyle: { color: '#909399', fontSize: 14 } }
+    })
+    return
+  }
+
+  const dates = loginTrendData.value.map(item => item.date.slice(5))
+  const loginCounts = loginTrendData.value.map(item => item.loginCount)
+  const registerCounts = loginTrendData.value.map(item => item.registerCount)
+
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross',
+        crossStyle: { color: '#999' }
+      }
+    },
+    legend: {
+      data: ['登录次数', '注册人数'],
+      bottom: 0
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '10%',
+      top: '10%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: dates,
+      axisPointer: { type: 'shadow' }
+    },
+    yAxis: {
+      type: 'value',
+      minInterval: 1
+    },
+    series: [
+      {
+        name: '登录次数',
+        type: 'line',
+        data: loginCounts,
+        smooth: true,
+        itemStyle: { color: '#4A90D9' },
+        lineStyle: { width: 3 }
+      },
+      {
+        name: '注册人数',
+        type: 'line',
+        data: registerCounts,
+        smooth: true,
+        itemStyle: { color: '#67C23A' },
+        lineStyle: { width: 3 }
+      }
+    ]
+  }
+
+  loginTrendChart.setOption(option)
+}
+
+/**
+ * 初始化各校园数据统计柱状图
+ */
+const initCampusStatsChart = () => {
+  if (!campusStatsChartRef.value) return
+
+  if (campusStatsChart) {
+    campusStatsChart.dispose()
+  }
+
+  campusStatsChart = echarts.init(campusStatsChartRef.value)
+
+  if (!campusData.value || campusData.value.length === 0) {
+    campusStatsChart.setOption({
+      title: { text: '暂无数据', left: 'center', top: 'center', textStyle: { color: '#909399', fontSize: 14 } }
+    })
+    return
+  }
+
+  const campusNames = campusData.value.map(item => item.campusName)
+  const userCounts = campusData.value.map(item => item.userCount)
+  const productCounts = campusData.value.map(item => item.productCount)
+  const orderCounts = campusData.value.map(item => item.orderCount)
+
+  const option = {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' }
+    },
+    legend: {
+      data: ['用户数', '商品数', '订单数'],
+      bottom: 0
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '10%',
+      top: '10%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: campusNames
+    },
+    yAxis: {
+      type: 'value',
+      minInterval: 1
+    },
+    series: [
+      {
+        name: '用户数',
+        type: 'bar',
+        data: userCounts,
+        itemStyle: { color: '#4A90D9' },
+        barMaxWidth: 50
+      },
+      {
+        name: '商品数',
+        type: 'bar',
+        data: productCounts,
+        itemStyle: { color: '#67C23A' },
+        barMaxWidth: 50
+      },
+      {
+        name: '订单数',
+        type: 'bar',
+        data: orderCounts,
+        itemStyle: { color: '#E6A23C' },
+        barMaxWidth: 50
+      }
+    ]
+  }
+
+  campusStatsChart.setOption(option)
+}
+
+/**
  * 窗口大小改变时重绘图表
  */
 const handleResize = () => {
   trendChart?.resize()
   campusChart?.resize()
   categoryChart?.resize()
+  loginMethodChart?.resize()
+  loginTimeChart?.resize()
+  loginTrendChart?.resize()
+  campusStatsChart?.resize()
 }
 
 // ==================== 生命周期 ====================
@@ -574,7 +1060,10 @@ onMounted(async () => {
     loadOverview(),
     loadTrend(),
     loadCampus(),
-    loadCategory()
+    loadCategory(),
+    loadLoginMethodData(),
+    loadLoginTimeData(),
+    loadLoginTrendData()
   ])
 
   // 等待 DOM 更新后初始化图表
@@ -582,6 +1071,10 @@ onMounted(async () => {
   initTrendChart()
   initCampusChart()
   initCategoryChart()
+  initLoginMethodChart()
+  initLoginTimeChart()
+  initLoginTrendChart()
+  initCampusStatsChart()
 
   // 监听窗口大小变化
   window.addEventListener('resize', handleResize)
@@ -592,6 +1085,10 @@ onUnmounted(() => {
   trendChart?.dispose()
   campusChart?.dispose()
   categoryChart?.dispose()
+  loginMethodChart?.dispose()
+  loginTimeChart?.dispose()
+  loginTrendChart?.dispose()
+  campusStatsChart?.dispose()
 
   // 移除事件监听
   window.removeEventListener('resize', handleResize)
@@ -706,6 +1203,37 @@ onUnmounted(() => {
 
 .chart-container {
   width: 100%;
+}
+
+/* 系统使用情况统计区域 */
+.section-title-row {
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 16px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.06);
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.section-filter {
+  display: flex;
+  align-items: center;
+}
+
+.login-charts {
+  margin-bottom: 20px;
 }
 
 /* 响应式调整 */

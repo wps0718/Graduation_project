@@ -36,6 +36,8 @@
           </template>
           <el-menu-item index="/product/list">商品列表</el-menu-item>
           <el-menu-item index="/order">订单管理</el-menu-item>
+          <el-menu-item index="/pickup">代拿订单</el-menu-item>
+          <el-menu-item index="/dispute">纠纷管理</el-menu-item>
           <el-menu-item index="/user">用户管理</el-menu-item>
           <el-menu-item index="/report">举报管理</el-menu-item>
         </el-sub-menu>

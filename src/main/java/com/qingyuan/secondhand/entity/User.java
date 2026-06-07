@@ -29,6 +29,7 @@ public class User {
     private Long campusId;
     private Integer authStatus;
     private BigDecimal score;
+    private BigDecimal pickupScore;
     private Integer status;
     private String banReason;
     private LocalDateTime deactivateTime;

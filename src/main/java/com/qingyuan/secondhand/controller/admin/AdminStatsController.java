@@ -4,6 +4,9 @@ import com.qingyuan.secondhand.common.result.Result;
 import com.qingyuan.secondhand.service.StatsService;
 import com.qingyuan.secondhand.vo.StatsCampusVO;
 import com.qingyuan.secondhand.vo.StatsCategoryVO;
+import com.qingyuan.secondhand.vo.StatsLoginMethodVO;
+import com.qingyuan.secondhand.vo.StatsLoginTimeVO;
+import com.qingyuan.secondhand.vo.StatsLoginTrendVO;
 import com.qingyuan.secondhand.vo.StatsOverviewVO;
 import com.qingyuan.secondhand.vo.StatsTrendVO;
 import lombok.RequiredArgsConstructor;
@@ -42,5 +45,24 @@ public class AdminStatsController {
     @GetMapping("/category")
     public Result<List<StatsCategoryVO>> getCategoryStats() {
         return Result.success(statsService.getCategoryStats());
+    }
+
+    @GetMapping("/login-method")
+    public Result<List<StatsLoginMethodVO>> getLoginMethodStats(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        return Result.success(statsService.getLoginMethodStats(startDate, endDate));
+    }
+
+    @GetMapping("/login-time")
+    public Result<List<StatsLoginTimeVO>> getLoginTimeStats(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        return Result.success(statsService.getLoginTimeStats(startDate, endDate));
+    }
+
+    @GetMapping("/login-trend")
+    public Result<List<StatsLoginTrendVO>> getLoginTrend(@RequestParam(required = false) Integer days) {
+        return Result.success(statsService.getLoginTrend(days));
     }
 }

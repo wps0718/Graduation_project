@@ -24,7 +24,8 @@ public interface NotificationMapper extends BaseMapper<Notification> {
     @Select("SELECT " +
             "COUNT(*) AS total, " +
             "SUM(CASE WHEN category = 1 THEN 1 ELSE 0 END) AS trade, " +
-            "SUM(CASE WHEN category = 2 THEN 1 ELSE 0 END) AS `system` " +
+            "SUM(CASE WHEN category = 2 THEN 1 ELSE 0 END) AS `system`, " +
+            "SUM(CASE WHEN category = 3 THEN 1 ELSE 0 END) AS pickup " +
             "FROM notification WHERE user_id = #{userId} AND is_read = 0")
     UnreadCountVO selectUnreadCountByUserId(@Param("userId") Long userId);
 }

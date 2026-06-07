@@ -90,7 +90,7 @@
           <!-- 缩略图 -->
           <view class="card-thumb">
             <image
-              :src="item.coverImage || '/static/pic/placeholder.png'"
+              :src="resolveImageUrl(item.coverImage, { fallback: '/static/pic/placeholder.png' })"
               mode="aspectFill"
               class="card-thumb__img"
             />
@@ -235,6 +235,7 @@
 import { ref, reactive, computed, watch } from 'vue'
 import { onLoad, onShow } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
+import { resolveImageUrl } from '@/utils/image'
 import { isLogin } from '@/utils/auth'
 
 // ====== 状态 Tab ======

@@ -26,7 +26,7 @@
         <view class="favorite-card__cover">
           <image
             class="favorite-card__image"
-            :src="item.coverImage"
+            :src="resolveImageUrl(item.coverImage)"
             mode="aspectFill"
           />
           <!-- 已售出/已下架角标 -->
@@ -78,6 +78,7 @@
 import { ref, computed } from 'vue'
 import { onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
+import { resolveImageUrl } from '@/utils/image'
 import { PRODUCT_STATUS } from '@/utils/constant'
 import { useUserStore } from '@/store'
 import EmptyState from '@/components/empty-state/empty-state.vue'

@@ -9,7 +9,9 @@ import { computed } from 'vue'
 import {
   AUTH_STATUS,
   PRODUCT_STATUS,
-  ORDER_STATUS
+  ORDER_STATUS,
+  PICKUP_STATUS,
+  PICKUP_DISPUTE_STATUS
 } from '@/utils/constant'
 
 const props = defineProps({
@@ -43,6 +45,24 @@ const STATUS_MAP = {
     [ORDER_STATUS.COMPLETED]: { text: '已完成', color: 'green' },
     [ORDER_STATUS.REVIEWED]: { text: '已评价', color: 'blue' },
     [ORDER_STATUS.CANCELLED]: { text: '已取消', color: 'grey' }
+  },
+  pickup: {
+    [PICKUP_STATUS.PENDING_ACCEPT]: { text: '待接单', color: 'orange' },
+    [PICKUP_STATUS.ACCEPTED]: { text: '已接单', color: 'orange' },
+    [PICKUP_STATUS.PRICE_CONFIRMED]: { text: '待代拿', color: 'blue' },
+    [PICKUP_STATUS.PICKING_UP]: { text: '代拿中', color: 'blue' },
+    [PICKUP_STATUS.DELIVERED]: { text: '待确认', color: 'orange' },
+    [PICKUP_STATUS.COMPLETED]: { text: '已完成', color: 'green' },
+    [PICKUP_STATUS.RATED]: { text: '已评价', color: 'blue' },
+    [PICKUP_STATUS.CANCELLED]: { text: '已取消', color: 'grey' },
+    [PICKUP_STATUS.DISPUTE]: { text: '纠纷中', color: 'red' }
+  },
+  dispute: {
+    [PICKUP_DISPUTE_STATUS.PENDING_RESPONSE]: { text: '待回应', color: 'orange' },
+    [PICKUP_DISPUTE_STATUS.RESPONDED]: { text: '已回应', color: 'blue' },
+    [PICKUP_DISPUTE_STATUS.AUTO_WIN]: { text: '自动胜诉', color: 'green' },
+    [PICKUP_DISPUTE_STATUS.JUDGED]: { text: '已裁决', color: 'green' },
+    [PICKUP_DISPUTE_STATUS.WITHDRAWN]: { text: '已撤回', color: 'grey' }
   },
   condition: {
     1: { text: '全新', color: 'green' },

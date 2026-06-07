@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingyuan.secondhand.mapper.PickupDisputeMapper">
+
+    <resultMap id="DisputeVOMap" type="com.qingyuan.secondhand.vo.PickupDisputeVO">
+        <id column="id" property="id"/>
+        <result column="order_id" property="orderId"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="initiator_id" property="initiatorId"/>
+        <result column="initiator_role" property="initiatorRole"/>
+        <result column="dispute_type" property="disputeType"/>
+        <result column="description" property="description"/>
+        <result column="submit_time" property="submitTime"/>
+        <result column="response_deadline" property="responseDeadline"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="initiator_nick_name" property="initiatorNickName"/>
+        <result column="initiator_avatar" property="initiatorAvatar"/>
+        <result column="responder_nick_name" property="responderNickName"/>
+        <result column="responder_avatar" property="responderAvatar"/>
+    </resultMap>
+
+    <select id="getDisputePage" resultMap="DisputeVOMap">
+        SELECT
+            d.id,
+            d.order_id,
+            d.order_no,
+            d.initiator_id,
+            d.initiator_role,
+            d.dispute_type,
+            d.description,
+            d.submit_time,
+            d.response_deadline,
+            d.status,
+            d.create_time,
+            ui.nick_name AS initiator_nick_name,
+            ui.avatar_url AS initiator_avatar,
+            d.responder_id,
+            ur.nick_name AS responder_nick_name,
+            ur.avatar_url AS responder_avatar
+        FROM pickup_dispute d
+        LEFT JOIN user ui ON d.initiator_id = ui.id
+        LEFT JOIN user ur ON d.responder_id = ur.id
+        <where>
+            <if test="status != null">
+                AND d.status = #{status}
+            </if>
+            <if test="disputeType != null">
+                AND d.dispute_type = #{disputeType}
+            </if>
+        </where>
+        ORDER BY
+            CASE WHEN d.status = 0 THEN 0 ELSE 1 END,
+            d.create_time DESC
+    </select>
+
+</mapper>

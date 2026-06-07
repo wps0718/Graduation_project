@@ -40,5 +40,5 @@ export function formatLastActive(value) {
 export function parseActiveTime(value) {
   if (!value) return 0
   if (typeof value === 'number') return value
-  return new Date(String(value).replace(/-/g, '/')).getTime()
+  return new Date(String(value).replace('T', ' ').replace(/-/g, '/')).getTime()
 }

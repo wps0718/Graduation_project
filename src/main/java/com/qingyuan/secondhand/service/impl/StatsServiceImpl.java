@@ -4,6 +4,9 @@ import com.qingyuan.secondhand.mapper.StatsMapper;
 import com.qingyuan.secondhand.service.StatsService;
 import com.qingyuan.secondhand.vo.StatsCampusVO;
 import com.qingyuan.secondhand.vo.StatsCategoryVO;
+import com.qingyuan.secondhand.vo.StatsLoginMethodVO;
+import com.qingyuan.secondhand.vo.StatsLoginTimeVO;
+import com.qingyuan.secondhand.vo.StatsLoginTrendVO;
 import com.qingyuan.secondhand.vo.StatsOverviewVO;
 import com.qingyuan.secondhand.vo.StatsTrendVO;
 import lombok.RequiredArgsConstructor;
@@ -59,6 +62,27 @@ public class StatsServiceImpl implements StatsService {
     @Override
     public List<StatsCategoryVO> getCategoryStats() {
         return statsMapper.getCategoryStats();
+    }
+
+    @Override
+    public List<StatsLoginMethodVO> getLoginMethodStats(String startDate, String endDate) {
+        return statsMapper.getLoginMethodStats(startDate, endDate);
+    }
+
+    @Override
+    public List<StatsLoginTimeVO> getLoginTimeStats(String startDate, String endDate) {
+        return statsMapper.getLoginTimeStats(startDate, endDate);
+    }
+
+    @Override
+    public List<StatsLoginTrendVO> getLoginTrend(Integer days) {
+        if (days == null || days <= 0) {
+            days = 7;
+        }
+        if (days > 30) {
+            days = 30;
+        }
+        return statsMapper.getLoginTrend(days);
     }
 
     private Integer toInt(Object obj) {

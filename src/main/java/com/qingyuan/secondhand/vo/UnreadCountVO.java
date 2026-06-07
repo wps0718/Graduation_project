@@ -7,4 +7,5 @@ public class UnreadCountVO {
     private Long total;
     private Long trade;
     private Long system;
+    private Long pickup;
 }

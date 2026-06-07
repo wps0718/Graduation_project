@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingyuan.secondhand.mapper.PickupOrderMapper">
+
+    <resultMap id="PickupOrderListVOMap" type="com.qingyuan.secondhand.vo.PickupOrderListVO">
+        <id column="id" property="id"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="pickup_location" property="pickupLocation"/>
+        <result column="delivery_location" property="deliveryLocation"/>
+        <result column="proposed_price" property="proposedPrice"/>
+        <result column="agreed_price" property="agreedPrice"/>
+        <result column="status" property="status"/>
+        <result column="expected_delivery_time" property="expectedDeliveryTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="requester_id" property="requesterId"/>
+        <result column="requester_nick_name" property="requesterNickName"/>
+        <result column="requester_avatar" property="requesterAvatar"/>
+        <result column="picker_id" property="pickerId"/>
+        <result column="picker_nick_name" property="pickerNickName"/>
+        <result column="picker_avatar" property="pickerAvatar"/>
+    </resultMap>
+
+    <resultMap id="PickupPoolVOMap" type="com.qingyuan.secondhand.vo.PickupPoolVO">
+        <id column="id" property="id"/>
+        <result column="order_no" property="orderNo"/>
+        <result column="pickup_location" property="pickupLocation"/>
+        <result column="pickup_detail" property="pickupDetail"/>
+        <result column="delivery_location" property="deliveryLocation"/>
+        <result column="proposed_price" property="proposedPrice"/>
+        <result column="expected_delivery_time" property="expectedDeliveryTime"/>
+        <result column="create_time" property="createTime"/>
+        <result column="campus_name" property="campusName"/>
+        <result column="requester_id" property="requesterId"/>
+        <result column="requester_nick_name" property="requesterNickName"/>
+        <result column="requester_avatar" property="requesterAvatar"/>
+    </resultMap>
+
+    <select id="getAvailableOrderList" resultMap="PickupOrderListVOMap">
+        SELECT
+            o.id,
+            o.order_no,
+            o.pickup_location,
+            o.delivery_location,
+            o.proposed_price,
+            o.agreed_price,
+            o.status,
+            o.expected_delivery_time,
+            o.create_time,
+            o.requester_id,
+            u.nick_name AS requester_nick_name,
+            u.avatar_url AS requester_avatar,
+            o.picker_id
+        FROM pickup_order o
+        LEFT JOIN user u ON o.requester_id = u.id
+        <where>
+            o.status = 0
+            AND o.is_deleted = 0
+        </where>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="getPickupOrderList" resultMap="PickupOrderListVOMap">
+        SELECT
+            o.id,
+            o.order_no,
+            o.pickup_location,
+            o.delivery_location,
+            o.proposed_price,
+            o.agreed_price,
+            o.status,
+            o.expected_delivery_time,
+            o.create_time,
+            o.requester_id,
+            ur.nick_name AS requester_nick_name,
+            ur.avatar_url AS requester_avatar,
+            o.picker_id,
+            up.nick_name AS picker_nick_name,
+            up.avatar_url AS picker_avatar
+        FROM pickup_order o
+        LEFT JOIN user ur ON o.requester_id = ur.id
+        LEFT JOIN user up ON o.picker_id = up.id
+        <where>
+            o.is_deleted = 0
+            <if test="role == 'requester'">
+                AND o.requester_id = #{userId}
+            </if>
+            <if test="role == 'picker'">
+                AND o.picker_id = #{userId}
+            </if>
+            <if test="statuses != null and statuses.size() > 0">
+                AND o.status IN
+                <foreach collection="statuses" item="s" open="(" separator="," close=")">#{s}</foreach>
+            </if>
+        </where>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="getAdminPickupPage" resultMap="PickupOrderListVOMap">
+        SELECT
+            o.id,
+            o.order_no,
+            o.pickup_location,
+            o.delivery_location,
+            o.proposed_price,
+            o.agreed_price,
+            o.status,
+            o.expected_delivery_time,
+            o.create_time,
+            o.requester_id,
+            ur.nick_name AS requester_nick_name,
+            ur.avatar_url AS requester_avatar,
+            o.picker_id,
+            up.nick_name AS picker_nick_name,
+            up.avatar_url AS picker_avatar
+        FROM pickup_order o
+        LEFT JOIN user ur ON o.requester_id = ur.id
+        LEFT JOIN user up ON o.picker_id = up.id
+        <where>
+            o.is_deleted = 0
+            <if test="status != null">
+                AND o.status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (o.order_no LIKE CONCAT('%', #{keyword}, '%')
+                     OR ur.nick_name LIKE CONCAT('%', #{keyword}, '%')
+                     OR up.nick_name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <select id="getOrderDetail" resultType="com.qingyuan.secondhand.vo.PickupOrderDetailVO">
+        SELECT
+            o.id,
+            o.order_no,
+            o.requester_id,
+            o.picker_id,
+            o.pickup_code,
+            o.pickup_location,
+            o.pickup_detail,
+            o.delivery_location,
+            o.proposed_price,
+            o.agreed_price,
+            o.price_proposer_id,
+            o.picker_price_confirmed,
+            o.price_deadline,
+            o.expected_delivery_time,
+            o.delivery_deadline,
+            o.evidence_images,
+            o.requester_confirmed,
+            o.picker_confirmed,
+            o.status,
+            o.cancel_reason,
+            o.cancel_by,
+            o.confirm_deadline,
+            o.complete_time,
+            o.create_time,
+            o.update_time,
+            ur.nick_name AS requester_nick_name,
+            ur.avatar_url AS requester_avatar,
+            ur.phone AS requester_phone,
+            up.nick_name AS picker_nick_name,
+            up.avatar_url AS picker_avatar,
+            up.phone AS picker_phone,
+            up.pickup_score AS picker_score
+        FROM pickup_order o
+        LEFT JOIN user ur ON o.requester_id = ur.id
+        LEFT JOIN user up ON o.picker_id = up.id
+        WHERE o.id = #{id}
+    </select>
+
+    <select id="getPoolList" resultMap="PickupPoolVOMap">
+        SELECT
+            o.id,
+            o.order_no,
+            o.pickup_location,
+            o.pickup_detail,
+            o.delivery_location,
+            o.proposed_price,
+            o.expected_delivery_time,
+            o.create_time,
+            c.name AS campus_name,
+            o.requester_id,
+            u.nick_name AS requester_nick_name,
+            u.avatar_url AS requester_avatar
+        FROM pickup_order o
+        LEFT JOIN user u ON o.requester_id = u.id
+        LEFT JOIN campus c ON o.campus_id = c.id
+        <where>
+            o.status = 0
+            AND o.is_deleted = 0
+            AND o.expected_delivery_time &gt; NOW()
+            <if test="campusId != null">
+                AND o.campus_id = #{campusId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (o.pickup_location LIKE CONCAT('%', #{keyword}, '%')
+                     OR o.delivery_location LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="minPrice != null">
+                AND o.proposed_price &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND o.proposed_price &lt;= #{maxPrice}
+            </if>
+            <if test="expectedTime == '1h'">
+                AND o.expected_delivery_time &lt;= DATE_ADD(NOW(), INTERVAL 1 HOUR)
+            </if>
+            <if test="expectedTime == 'today'">
+                AND o.expected_delivery_time &lt;= CURDATE() + INTERVAL 1 DAY
+            </if>
+        </where>
+        <choose>
+            <when test="sortBy == 'price'">
+                ORDER BY o.proposed_price DESC, o.expected_delivery_time ASC
+            </when>
+            <when test="sortBy == 'newest'">
+                ORDER BY o.create_time DESC
+            </when>
+            <otherwise>
+                ORDER BY o.expected_delivery_time ASC, o.proposed_price DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <update id="fixEvidenceImages">
+        UPDATE pickup_order SET evidence_images = #{evidenceImages} WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -180,4 +180,105 @@
             (SELECT COUNT(*) FROM report WHERE status = 0) AS pendingReports
         FROM dual
     </select>
+
+    <select id="getLoginMethodStats" resultType="com.qingyuan.secondhand.vo.StatsLoginMethodVO">
+        SELECT
+            CASE login_method
+                WHEN 'wechat' THEN '微信登录'
+                WHEN 'account' THEN '手机号密码登录'
+                WHEN 'sms' THEN '短信验证码登录'
+                WHEN 'pc' THEN 'PC端管理后台'
+                ELSE login_method
+            END AS methodName,
+            COUNT(*) AS count
+        FROM login_log
+        <where>
+            <if test="startDate != null and startDate != ''">
+                AND login_time &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND login_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+            </if>
+        </where>
+        GROUP BY login_method
+        ORDER BY count DESC
+    </select>
+
+    <select id="getLoginTimeStats" resultType="com.qingyuan.secondhand.vo.StatsLoginTimeVO">
+        SELECT
+            time_slots.timeSlot,
+            COALESCE(pc.cnt, 0) AS pcCount,
+            COALESCE(mini.cnt, 0) AS miniCount
+        FROM (
+            SELECT '0:00-1:59' AS timeSlot, 0 AS hourStart UNION ALL
+            SELECT '2:00-3:59', 2 UNION ALL
+            SELECT '4:00-5:59', 4 UNION ALL
+            SELECT '6:00-7:59', 6 UNION ALL
+            SELECT '8:00-9:59', 8 UNION ALL
+            SELECT '10:00-11:59', 10 UNION ALL
+            SELECT '12:00-13:59', 12 UNION ALL
+            SELECT '14:00-15:59', 14 UNION ALL
+            SELECT '16:00-17:59', 16 UNION ALL
+            SELECT '18:00-19:59', 18 UNION ALL
+            SELECT '20:00-21:59', 20 UNION ALL
+            SELECT '22:00-23:59', 22
+        ) AS time_slots
+        LEFT JOIN (
+            SELECT HOUR(login_time) DIV 2 * 2 AS hourStart, COUNT(*) AS cnt
+            FROM login_log
+            WHERE login_method = 'pc'
+            <if test="startDate != null and startDate != ''">
+                AND login_time &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND login_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+            </if>
+            GROUP BY HOUR(login_time) DIV 2 * 2
+        ) AS pc ON time_slots.hourStart = pc.hourStart
+        LEFT JOIN (
+            SELECT HOUR(login_time) DIV 2 * 2 AS hourStart, COUNT(*) AS cnt
+            FROM login_log
+            WHERE login_method IN ('wechat', 'account', 'sms')
+            <if test="startDate != null and startDate != ''">
+                AND login_time &gt;= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND login_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
+            </if>
+            GROUP BY HOUR(login_time) DIV 2 * 2
+        ) AS mini ON time_slots.hourStart = mini.hourStart
+        ORDER BY time_slots.hourStart
+    </select>
+
+    <select id="getLoginTrend" resultType="com.qingyuan.secondhand.vo.StatsLoginTrendVO">
+        SELECT
+            DATE_FORMAT(d.date, '%Y-%m-%d') AS date,
+            COALESCE(l.loginCount, 0) AS loginCount,
+            COALESCE(r.registerCount, 0) AS registerCount
+        FROM (
+            SELECT DATE_SUB(CURDATE(), INTERVAL n DAY) AS date
+            FROM (
+                SELECT 0 AS n UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
+                UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9
+                UNION SELECT 10 UNION SELECT 11 UNION SELECT 12 UNION SELECT 13 UNION SELECT 14
+                UNION SELECT 15 UNION SELECT 16 UNION SELECT 17 UNION SELECT 18 UNION SELECT 19
+                UNION SELECT 20 UNION SELECT 21 UNION SELECT 22 UNION SELECT 23 UNION SELECT 24
+                UNION SELECT 25 UNION SELECT 26 UNION SELECT 27 UNION SELECT 28 UNION SELECT 29
+            ) AS nums
+            WHERE n &lt; #{days}
+        ) AS d
+        LEFT JOIN (
+            SELECT DATE(login_time) AS date, COUNT(*) AS loginCount
+            FROM login_log
+            WHERE login_time &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+            GROUP BY DATE(login_time)
+        ) AS l ON d.date = l.date
+        LEFT JOIN (
+            SELECT DATE(create_time) AS date, COUNT(*) AS registerCount
+            FROM user
+            WHERE create_time &gt;= DATE_SUB(CURDATE(), INTERVAL #{days} DAY)
+            GROUP BY DATE(create_time)
+        ) AS r ON d.date = r.date
+        ORDER BY d.date ASC
+    </select>
 </mapper>

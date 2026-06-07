@@ -9,6 +9,7 @@ import com.qingyuan.secondhand.dto.EmployeeDTO;
 import com.qingyuan.secondhand.dto.EmployeeLoginDTO;
 import com.qingyuan.secondhand.entity.Employee;
 import com.qingyuan.secondhand.mapper.EmployeeMapper;
+import com.qingyuan.secondhand.mapper.LoginLogMapper;
 import com.qingyuan.secondhand.vo.EmployeeLoginVO;
 import com.qingyuan.secondhand.vo.EmployeeVO;
 import org.junit.jupiter.api.AfterEach;
@@ -37,7 +38,7 @@ class EmployeeServiceImplTest {
         EmployeeMapper employeeMapper = Mockito.mock(EmployeeMapper.class);
         BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
         JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
-        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil);
+        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil, Mockito.mock(LoginLogMapper.class));
 
         Employee employee = buildEmployee(1L, "admin", "hash", "管理员", "13800000000", 1, 1);
         Mockito.when(employeeMapper.selectOne(Mockito.any(LambdaQueryWrapper.class))).thenReturn(employee);
@@ -65,7 +66,7 @@ class EmployeeServiceImplTest {
         EmployeeMapper employeeMapper = Mockito.mock(EmployeeMapper.class);
         BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
         JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
-        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil);
+        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil, Mockito.mock(LoginLogMapper.class));
 
         Employee employee = buildEmployee(2L, "admin", "hash", "管理员", "13800000000", 1, 1);
         Mockito.when(employeeMapper.selectOne(Mockito.any(LambdaQueryWrapper.class))).thenReturn(employee);
@@ -85,7 +86,7 @@ class EmployeeServiceImplTest {
         EmployeeMapper employeeMapper = Mockito.mock(EmployeeMapper.class);
         BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
         JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
-        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil);
+        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil, Mockito.mock(LoginLogMapper.class));
 
         Employee employee = buildEmployee(3L, "admin", "hash", "管理员", "13800000000", 1, 0);
         Mockito.when(employeeMapper.selectOne(Mockito.any(LambdaQueryWrapper.class))).thenReturn(employee);
@@ -103,7 +104,7 @@ class EmployeeServiceImplTest {
         EmployeeMapper employeeMapper = Mockito.mock(EmployeeMapper.class);
         BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
         JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
-        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil);
+        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil, Mockito.mock(LoginLogMapper.class));
 
         UserContext.setCurrentUserId(9L);
         Employee operator = buildEmployee(9L, "ops", "hash", "普通", null, 2, 1);
@@ -124,7 +125,7 @@ class EmployeeServiceImplTest {
         EmployeeMapper employeeMapper = Mockito.mock(EmployeeMapper.class);
         BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
         JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
-        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil);
+        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil, Mockito.mock(LoginLogMapper.class));
 
         UserContext.setCurrentUserId(1L);
         Employee admin = buildEmployee(1L, "admin", "hash", "超级管理员", null, 1, 1);
@@ -152,7 +153,7 @@ class EmployeeServiceImplTest {
         EmployeeMapper employeeMapper = Mockito.mock(EmployeeMapper.class);
         BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
         JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
-        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil);
+        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil, Mockito.mock(LoginLogMapper.class));
 
         UserContext.setCurrentUserId(1L);
         Employee admin = buildEmployee(1L, "admin", "hash", "超级管理员", null, 1, 1);
@@ -178,7 +179,7 @@ class EmployeeServiceImplTest {
         EmployeeMapper employeeMapper = Mockito.mock(EmployeeMapper.class);
         BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
         JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
-        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil);
+        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil, Mockito.mock(LoginLogMapper.class));
 
         UserContext.setCurrentUserId(1L);
         Employee admin = buildEmployee(1L, "admin", "hash", "超级管理员", null, 1, 1);
@@ -200,7 +201,7 @@ class EmployeeServiceImplTest {
         EmployeeMapper employeeMapper = Mockito.mock(EmployeeMapper.class);
         BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
         JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
-        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil);
+        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil, Mockito.mock(LoginLogMapper.class));
 
         UserContext.setCurrentUserId(7L);
         Employee employee = buildEmployee(7L, "ops", "hash", "员工", "13800000002", 2, 1);
@@ -217,7 +218,7 @@ class EmployeeServiceImplTest {
         EmployeeMapper employeeMapper = Mockito.mock(EmployeeMapper.class);
         BCryptPasswordEncoder passwordEncoder = Mockito.mock(BCryptPasswordEncoder.class);
         JwtUtil jwtUtil = Mockito.mock(JwtUtil.class);
-        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil);
+        EmployeeServiceImpl service = new EmployeeServiceImpl(employeeMapper, passwordEncoder, jwtUtil, Mockito.mock(LoginLogMapper.class));
 
         Page<Employee> page = new Page<>(1, 10);
         page.setTotal(1);

@@ -2,7 +2,7 @@
   <view class="chat-detail">
     <!-- ====== 顶部商品信息栏 ====== -->
       <view v-if="product" class="chat-product">
-        <image class="chat-product__image" :src="product.coverImage" mode="aspectFill" @click="goProductDetail" />
+        <image class="chat-product__image" :src="resolveImageUrl(product.coverImage)" mode="aspectFill" @click="goProductDetail" />
         <view class="chat-product__info" @click="goProductDetail">
           <text class="chat-product__title">{{ product.title }}</text>
           <view class="chat-product__meta">
@@ -63,7 +63,7 @@
         class="chat-message"
         :class="{
           'is-compact': item.compact,
-          'is-card': item.type === 'product-card'
+          'is-card': item.type === 'product-card' || item.type === 'pickup-card'
         }"
       >
         <view v-if="item.showTime" class="chat-time">
@@ -80,7 +80,53 @@
           @confirm-ship="handleConfirmShip"
           @seller-confirm-receive="handleSellerConfirmReceive"
           @buyer-confirm-receive="handleBuyerConfirmReceive"
+          @cancel-order="handleCancelOrder"
         />
+
+        <!-- 代拿价格协商卡片 -->
+        <view v-else-if="item.type === 'pickup-card'" class="chat-bubble" :class="{ 'is-self': item.isSelf }">
+          <view v-if="!item.isSelf" class="chat-bubble__avatar-col" @click="goPeerProfile">
+            <UserAvatar
+              v-if="!item.compact"
+              :avatar-url="peer.avatarUrl"
+              :nick-name="peer.nickName"
+              :auth-status="peer.authStatus"
+              size="sm"
+            />
+          </view>
+          <view class="pickup-card">
+            <view class="pickup-card__header">
+              <text class="pickup-card__title">💰 价格协商</text>
+            </view>
+            <view class="pickup-card__body">
+              <view class="pickup-card__row">
+                <text class="pickup-card__label">提议报酬</text>
+                <text class="pickup-card__price">¥{{ Number(item.pickupPrice || 0).toFixed(2) }}</text>
+              </view>
+              <view class="pickup-card__row">
+                <text class="pickup-card__label">期望送达</text>
+                <text class="pickup-card__time">{{ item.pickupExpectedTime || '待协商' }}</text>
+              </view>
+            </view>
+            <view v-if="!item.isSelf && !item.pickupConfirmed" class="pickup-card__footer">
+              <view class="pickup-card__agree-btn" @click="agreePickupPrice(item)">
+                <text class="pickup-card__agree-text">同意该价格</text>
+              </view>
+            </view>
+            <view v-else-if="item.pickupConfirmed" class="pickup-card__footer pickup-card__footer--done">
+              <text class="pickup-card__confirmed">✅ 已确认</text>
+            </view>
+          </view>
+          <view v-if="item.isSelf" class="chat-bubble__avatar-col">
+            <UserAvatar
+              v-if="item.selfShowAvatar"
+              :avatar-url="selfUser.avatarUrl"
+              :nick-name="selfUser.nickName"
+              size="sm"
+              :show-auth="false"
+            />
+          </view>
+        </view>
 
         <view v-else class="chat-bubble" :class="{ 'is-self': item.isSelf }">
           <!-- 对方头像列（compact 时隐藏头像但保留占位） -->
@@ -96,7 +142,7 @@
 
           <view v-if="item.type === 'product-card'" class="chat-bubble__content" @click="goProductDetail">
             <view class="chat-bubble__card">
-              <image class="chat-bubble__card-image" :src="item.productImage" mode="aspectFill" />
+              <image class="chat-bubble__card-image" :src="resolveImageUrl(item.productImage)" mode="aspectFill" />
               <view class="chat-bubble__card-info">
                 <text class="chat-bubble__card-title">{{ item.productTitle }}</text>
                 <view class="chat-bubble__card-price-row">
@@ -196,6 +242,7 @@
 import { ref, computed, nextTick } from 'vue'
 import { onLoad, onShareAppMessage } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
+import { resolveImageUrl } from '@/utils/image'
 import { QUICK_REPLIES } from '@/utils/constant'
 import { useUserStore } from '@/store'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
@@ -502,6 +549,77 @@ async function handleBuyerConfirmReceive(item) {
   })
 }
 
+async function handleCancelOrder(item) {
+  if (!item || !item.orderId) return
+  uni.showModal({
+    title: '取消订单',
+    editable: true,
+    placeholderText: '请输入取消原因（必填）',
+    confirmText: '确认取消',
+    cancelText: '再想想',
+    success: async (res) => {
+      if (!res || !res.confirm) return
+      const reason = (res.content || '').trim()
+      if (!reason) {
+        showToast('请填写取消原因')
+        return
+      }
+      try {
+        await post('/mini/order/cancel', {
+          orderId: item.orderId,
+          cancelReason: reason
+        }, { showLoading: true })
+        uni.showToast({ title: '订单已取消', icon: 'success' })
+        appendSystemMessage('订单已取消')
+        // 发送系统消息到聊天，触发对方 WebSocket 推送刷新
+        try {
+          await post('/mini/chat/message/send', {
+            sessionKey: sessionKey.value,
+            type: 4,
+            content: '订单已取消'
+          }, { showLoading: false })
+        } catch (e) {
+          // 系统消息发送失败不影响取消结果
+        }
+        fetchMessages()
+      } catch (error) {
+        showToast(error?.message || '取消失败，请稍后重试')
+      }
+    }
+  })
+}
+
+async function agreePickupPrice(item) {
+  if (!item || !item.pickupOrderId) return
+  uni.showModal({
+    title: '确认价格',
+    content: `确认同意报酬 ¥${Number(item.pickupPrice || 0).toFixed(2)}，\n期望送达 ${item.pickupExpectedTime || ''}？`,
+    confirmText: '同意',
+    cancelText: '再想想',
+    success: async (res) => {
+      if (!res || !res.confirm) return
+      try {
+        await post('/mini/pickup/confirm-price', { orderId: item.pickupOrderId }, { showLoading: true })
+        showToast('价格已确认')
+
+        // 发送确认系统消息
+        try {
+          await post('/mini/chat/message/send', {
+            sessionKey: sessionKey.value,
+            type: 1,
+            content: `✅ 价格已确认：报酬 ¥${Number(item.pickupPrice || 0).toFixed(2)}，送达 ${item.pickupExpectedTime || ''}`
+          }, { showLoading: false })
+        } catch (e) {
+          // 消息发送失败不影响确认结果
+        }
+        fetchMessages()
+      } catch (error) {
+        showToast(error?.message || '确认失败，请稍后重试')
+      }
+    }
+  })
+}
+
 function onInput(event) {
   inputValue.value = event && event.detail ? event.detail.value : ''
 }
@@ -660,17 +778,11 @@ async function fetchMessages() {
       pageSize: 50
     })
     if (data && data.records) {
-      // Preserve locally-updated order card state (e.g. status changed by confirmShip/confirmReceive)
-      const oldOrderState = {}
-      messages.value.forEach(m => {
-        if (m.type === 'order-card' && m.id) {
-          oldOrderState[m.id] = { orderStatus: m.orderStatus, buyerId: m.buyerId, sellerId: m.sellerId, sellerConfirmed: m.sellerConfirmed, buyerConfirmed: m.buyerConfirmed }
-        }
-      })
       const list = data.records.map(m => {
         let type = 'text'
         if (m.msgType === 2) type = 'product-card'
         else if (m.msgType === 3) type = 'order-card'
+        else if (m.msgType === 10) type = 'pickup-card'
         const parsed = {
           id: m.msgId,
           from: m.senderId,
@@ -680,15 +792,8 @@ async function fetchMessages() {
           time: new Date(m.createTime.replace(/-/g, '/')).getTime(),
           isRead: m.isRead,
           ...parseProductCardContent(m.content, m.msgType),
-          ...parseOrderCardContent(m.content, m.msgType)
-        }
-        // Preserve locally-updated order status from polling overwrite
-        if (type === 'order-card' && oldOrderState[m.msgId]) {
-          parsed.orderStatus = oldOrderState[m.msgId].orderStatus
-          parsed.buyerId = oldOrderState[m.msgId].buyerId
-          parsed.sellerId = oldOrderState[m.msgId].sellerId
-          parsed.sellerConfirmed = oldOrderState[m.msgId].sellerConfirmed
-          parsed.buyerConfirmed = oldOrderState[m.msgId].buyerConfirmed
+          ...parseOrderCardContent(m.content, m.msgType),
+          ...parsePickupCardContent(m.content, m.msgType)
         }
         return parsed
       })
@@ -730,6 +835,21 @@ function parseOrderCardContent(content, type) {
       sellerId: data.sellerId,
       sellerConfirmed: data.sellerConfirmed === 1,
       buyerConfirmed: data.buyerConfirmed === 1
+    }
+  } catch (e) {
+    return {}
+  }
+}
+
+function parsePickupCardContent(content, type) {
+  if (type !== 10) return {}
+  try {
+    const data = JSON.parse(content)
+    return {
+      pickupOrderId: data.orderId,
+      pickupPrice: data.proposedPrice,
+      pickupExpectedTime: data.expectedTime,
+      pickupConfirmed: !!data.confirmed
     }
   } catch (e) {
     return {}
@@ -1231,6 +1351,89 @@ onShareAppMessage(() => {
 .chat-input__send-text {
   font-size: var(--font-sm);
   color: var(--text-white);
+  font-weight: 600;
+}
+
+/* ====== 代拿协商卡片 ====== */
+.pickup-card {
+  max-width: 480rpx;
+  background-color: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+  border: 1rpx solid #e5e7eb;
+}
+.chat-bubble.is-self .pickup-card {
+  border-color: transparent;
+}
+
+.pickup-card__header {
+  padding: 16rpx 24rpx;
+  background: #f0f9ff;
+  border-bottom: 1rpx solid #e0f2fe;
+}
+
+.pickup-card__title {
+  font-size: 26rpx;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.pickup-card__body {
+  padding: 20rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.pickup-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pickup-card__label {
+  font-size: 24rpx;
+  color: #9ca3af;
+}
+
+.pickup-card__price {
+  font-size: 32rpx;
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.pickup-card__time {
+  font-size: 26rpx;
+  color: #f97316;
+}
+
+.pickup-card__footer {
+  padding: 16rpx 24rpx;
+  border-top: 1rpx solid #f3f4f6;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pickup-card__footer--done {
+  justify-content: center;
+}
+
+.pickup-card__agree-btn {
+  padding: 12rpx 32rpx;
+  background: linear-gradient(135deg, #10b981, #059669);
+  border-radius: 12rpx;
+}
+
+.pickup-card__agree-text {
+  font-size: 24rpx;
+  color: #fff;
+  font-weight: 600;
+}
+
+.pickup-card__confirmed {
+  font-size: 24rpx;
+  color: #059669;
   font-weight: 600;
 }
 </style>

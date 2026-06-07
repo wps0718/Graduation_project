@@ -65,6 +65,20 @@ const routes = [
         name: 'ReportManage',
         meta: { title: '举报处理' }
       },
+      // 业务管理 - 代拿订单
+      {
+        path: 'pickup',
+        component: () => import('@/views/pickup/PickupList.vue'),
+        name: 'PickupList',
+        meta: { title: '代拿订单' }
+      },
+      // 业务管理 - 纠纷管理
+      {
+        path: 'dispute',
+        component: () => import('@/views/dispute/DisputeList.vue'),
+        name: 'DisputeList',
+        meta: { title: '纠纷管理' }
+      },
       // 内容管理
       {
         path: 'content',

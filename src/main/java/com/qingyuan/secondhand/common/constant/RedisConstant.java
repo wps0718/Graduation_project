@@ -26,4 +26,6 @@ public class RedisConstant {
     public static final String FOLLOW_STATS = "follow:stats:";
     public static final String FOLLOW_CHECK = "follow:check:";
     public static final String PRODUCT_DETAIL = "product:detail:";
+    public static final String PICKUP_ORDER_LOCK = "pickup:order:lock:";
+    public static final String PICKUP_PRICE_LOCK = "pickup:price:lock:";
 }

@@ -289,7 +289,7 @@
               <template v-if="publisherInfo">
                 <!-- 顶部头像+昵称区域 -->
                 <div style="display: flex; align-items: center; margin-bottom: 20px;">
-                  <el-avatar :size="64" :src="publisherInfo.avatarUrl" />
+                  <el-avatar :size="64" :src="getImageUrl(publisherInfo.avatarUrl)" />
                   <div style="margin-left: 16px;">
                     <div style="font-size: 18px; font-weight: bold;">{{ publisherInfo.nickName }}</div>
                     <div style="margin-top: 4px;">
@@ -532,7 +532,7 @@ const formatTime = (value) => {
 }
 
 const getOrderStatusType = (status) => {
-  const map = { 1: 'warning', 2: 'info', 3: 'success', 4: '', 5: 'danger' }
+  const map = { 1: 'warning', 2: 'info', 3: 'success', 4: 'success', 5: 'danger' }
   return map[status] ?? 'info'
 }
 
@@ -564,8 +564,8 @@ const getStatusText = (status) => {
 }
 
 const getStatusType = (status) => {
-  const map = { 0: 'warning', 1: 'success', 2: 'info', 3: '', 4: 'danger' }
-  return map[status] || ''
+  const map = { 0: 'warning', 1: 'success', 2: 'info', 3: 'info', 4: 'danger' }
+  return map[status] || 'info'
 }
 
 const getAuthStatusText = (status) => {
@@ -575,7 +575,7 @@ const getAuthStatusText = (status) => {
 
 const getAuthStatusType = (status) => {
   const map = { 0: 'info', 1: 'warning', 2: 'success', 3: 'danger' }
-  return map[status] || ''
+  return map[status] || 'info'
 }
 
 const buildListParams = () => {

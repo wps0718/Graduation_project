@@ -91,13 +91,13 @@
                   <image
                     v-if="item.raw.productId && item.raw.productImage"
                     class="chat-avatar-img"
-                    :src="item.raw.productImage"
+                    :src="resolveImageUrl(item.raw.productImage)"
                     mode="aspectFill"
                   />
                   <image
                     v-else
                     class="chat-avatar-img"
-                    :src="item.raw.avatarUrl || '/static/pic/校徽.png'"
+                    :src="resolveImageUrl(item.raw.avatarUrl, { fallback: '/static/pic/校徽.png' })"
                     mode="aspectFill"
                   />
                 </view>
@@ -182,7 +182,7 @@
               >
                 <image
                   class="interact-avatar"
-                  :src="item.raw.fromAvatarUrl || '/static/pic/校徽.png'"
+                  :src="resolveImageUrl(item.raw.fromAvatarUrl, { fallback: '/static/pic/校徽.png' })"
                   mode="aspectFill"
                 />
                 <view class="interact-info">
@@ -230,6 +230,7 @@
 import { ref, computed } from 'vue'
 import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import { get, post } from '@/utils/request'
+import { resolveImageUrl } from '@/utils/image'
 import { useUserStore } from '@/store'
 import { showToast } from '@/utils/nav'
 

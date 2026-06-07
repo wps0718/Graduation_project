@@ -15,7 +15,9 @@ import com.qingyuan.secondhand.dto.SmsLoginDTO;
 import com.qingyuan.secondhand.dto.SmsSendDTO;
 import com.qingyuan.secondhand.dto.UserUpdateDTO;
 import com.qingyuan.secondhand.dto.WxLoginDTO;
+import com.qingyuan.secondhand.entity.LoginLog;
 import com.qingyuan.secondhand.entity.User;
+import com.qingyuan.secondhand.mapper.LoginLogMapper;
 import com.qingyuan.secondhand.mapper.UserMapper;
 import com.qingyuan.secondhand.service.FollowService;
 import com.qingyuan.secondhand.service.UserService;
@@ -65,6 +67,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final BCryptPasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
     private final FollowService followService;
+    private final LoginLogMapper loginLogMapper;
 
     @Override
     public LoginVO wxLogin(WxLoginDTO dto) {
@@ -98,6 +101,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             updateById(user);
         }
 
+        saveLoginLog(user.getId(), "wechat");
         return buildLoginVO(user, isNew);
     }
 
@@ -149,6 +153,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setUpdateTime(now);
         updateById(user);
 
+        saveLoginLog(user.getId(), "account");
         return buildLoginVO(user, false);
     }
 
@@ -222,6 +227,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setUpdateTime(now);
         updateById(user);
 
+        saveLoginLog(user.getId(), "sms");
         return buildLoginVO(user, isNew);
     }
 
@@ -761,6 +767,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Long ttl = stringRedisTemplate.getExpire(key, TimeUnit.SECONDS);
         if (ttl == null || ttl < 0) {
             stringRedisTemplate.expire(key, 15, TimeUnit.MINUTES);
+        }
+    }
+
+    private void saveLoginLog(Long userId, String loginMethod) {
+        try {
+            LoginLog log = new LoginLog();
+            log.setUserId(userId);
+            log.setLoginMethod(loginMethod);
+            log.setLoginTime(LocalDateTime.now());
+            loginLogMapper.insert(log);
+        } catch (Exception e) {
+            log.warn("记录登录日志失败: userId={}, method={}", userId, loginMethod, e);
         }
     }
 }

@@ -39,6 +39,7 @@ The mini program is a uni-app project built for WeChat. Uses HBuilderX for devel
 ```bash
 cd miniapp
 npm install          # Install dependencies (sharp for image processing)
+npm test             # Run Jest unit tests
 ```
 Open the `miniapp` folder in HBuilderX, then run to WeChat dev tools.
 
@@ -99,7 +100,7 @@ admin/src/
 └── views/          # Page components (dashboard, login, user, product, order, report, etc.)
 ```
 
-- Dev server on port 3000, proxies `/api` → `http://localhost:8080`
+- Dev server on port 3000, proxies `/api` → `http://localhost:3576` (strips `/api` prefix)
 - Route guard in `router/index.js` checks auth token before navigation
 
 ### Mini Program (uni-app + Vue 3 + Pinia)
@@ -132,7 +133,61 @@ SQL scripts in `sql/init.sql`.
 
 ### Key Infrastructure
 - **MySQL** (primary database)
-- **Redis** (caching, used via `RedisConfig`)
+- **Redis** (caching, distributed locks for orders, SMS codes, login fail counting, IM online tracking)
 - **WebSocket** (real-time chat, custom protocol with message types: chat, read receipt, ping/pong)
 - **File uploads**: Local file storage configured via `upload.path`, served via static resource handler
 - **WeChat integration**: `WxConfig` for mini-program login/code exchange
+
+## Development Configuration
+
+The app uses Spring profiles. Default profile is `dev`. Key environment variables (all have dev defaults):
+
+| Variable | Default (dev) | Purpose |
+|----------|---------------|---------|
+| `SERVER_PORT` | 3576 | Backend server port |
+| `SPRING_PROFILES_ACTIVE` | dev | Spring profile |
+| `DB_URL` | jdbc:mysql://localhost:3306/secondhand | Database connection |
+| `DB_USERNAME` / `DB_PASSWORD` | root / (see application-dev.yml) | Database credentials |
+| `REDIS_HOST` / `REDIS_PORT` | localhost / 6379 | Redis connection |
+| `JWT_SECRET` | changeme-dev-jwt-secret | JWT signing key |
+| `UPLOAD_PATH` | G:/Code/Graduation_project/uploads/ | File upload directory |
+| `WX_APP_ID` / `WX_APP_SECRET` | (see application-dev.yml) | WeChat mini-program credentials |
+
+Scheduled tasks can be individually toggled via `task.enabled.*` properties in `application.yml`.
+
+## Business Flows
+
+### Order State Machine
+```
+1(待接单) → 3(已完成)  [seller confirms, within 7 days]
+1(待接单) → 5(已取消)  [buyer cancels or 72h expire]
+3(已完成) → 4(已评价)  [buyer submits review or auto-review after 7 days]
+```
+- Order creation uses Redis distributed lock to prevent duplicate orders on the same product.
+- `TradeOrder.expire_time` = 72h after creation → scheduled task auto-cancels.
+- `TradeOrder.confirm_deadline` = 7d after completion → scheduled task auto-creates review.
+
+### Product Status Flow
+```
+0(待审核) → 1(在售)  [admin approves]
+0(待审核) → 4(已拒绝) [admin rejects]
+1(在售)   → 2(已下架) [seller takes off-shelf]
+1(在售)   → 3(已售出) [order completes]
+2(已下架) → 1(在售)   [seller re-lists]
+(any)     → 2(已下架) [scheduled auto-off after auto_off_time]
+```
+- `Product.is_deleted` uses `@TableLogic` — deletes are soft deletes.
+
+### Admin Authentication Flow
+- Admin logs in via `/admin/employee/login` → receives JWT token.
+- `AdminJwtInterceptor` validates token on all `/admin/**` paths (except login).
+- Token passed in `Authorization` header.
+
+### Mini Program Auth Flow
+- WeChat login: client sends `code` → backend exchanges for `openid` via WeChat API → creates/returns user + JWT.
+- Phone+password login: direct credential check → JWT.
+- `JwtInterceptor` validates token on all `/mini/**` paths (except login/register).
+
+## Testing
+
+Backend tests use JUnit 5 + Mockito + MockMvc, located in `src/test/java/com/qingyuan/secondhand/`. Test commands are listed in the Commands section above.

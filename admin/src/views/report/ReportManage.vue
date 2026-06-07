@@ -485,7 +485,7 @@ const productStatusText = (s) => {
   return map[s] ?? '未知'
 }
 const productStatusTagType = (s) => {
-  const map = { 0: 'warning', 1: 'success', 2: 'info', 3: '', 4: 'danger' }
+  const map = { 0: 'warning', 1: 'success', 2: 'info', 3: 'info', 4: 'danger' }
   return map[s] ?? 'info'
 }
 

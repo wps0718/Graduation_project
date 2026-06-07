@@ -7,7 +7,8 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum NotificationCategory {
     TRANSACTION(1, "交易"),
-    SYSTEM(2, "系统");
+    SYSTEM(2, "系统"),
+    PICKUP(3, "代拿订单");
 
     private final Integer code;
     private final String description;

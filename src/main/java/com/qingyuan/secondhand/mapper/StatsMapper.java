@@ -2,6 +2,9 @@ package com.qingyuan.secondhand.mapper;
 
 import com.qingyuan.secondhand.vo.StatsCampusVO;
 import com.qingyuan.secondhand.vo.StatsCategoryVO;
+import com.qingyuan.secondhand.vo.StatsLoginMethodVO;
+import com.qingyuan.secondhand.vo.StatsLoginTimeVO;
+import com.qingyuan.secondhand.vo.StatsLoginTrendVO;
 import com.qingyuan.secondhand.vo.StatsTrendVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -43,4 +46,10 @@ public interface StatsMapper {
     Map<String, Object> getOverviewAggregates();
 
     Map<String, Object> getPendingCounts();
+
+    List<StatsLoginMethodVO> getLoginMethodStats(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    List<StatsLoginTimeVO> getLoginTimeStats(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+    List<StatsLoginTrendVO> getLoginTrend(@Param("days") Integer days);
 }

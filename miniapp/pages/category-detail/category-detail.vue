@@ -132,7 +132,7 @@
               </view>
             </view>
             <view class="card-seller" v-if="item.sellerNickName">
-              <image v-if="item.sellerAvatarUrl" :src="item.sellerAvatarUrl" class="seller-avatar" mode="aspectFill" />
+              <image v-if="item.sellerAvatarUrl" :src="resolveImageUrl(item.sellerAvatarUrl)" class="seller-avatar" mode="aspectFill" />
               <view v-else class="seller-avatar avatar-placeholder">{{ item.sellerNickName[0] }}</view>
               <text class="seller-name">{{ item.sellerNickName }}</text>
             </view>
@@ -176,7 +176,7 @@
               </view>
             </view>
             <view class="card-seller" v-if="item.sellerNickName">
-              <image v-if="item.sellerAvatarUrl" :src="item.sellerAvatarUrl" class="seller-avatar" mode="aspectFill" />
+              <image v-if="item.sellerAvatarUrl" :src="resolveImageUrl(item.sellerAvatarUrl)" class="seller-avatar" mode="aspectFill" />
               <view v-else class="seller-avatar avatar-placeholder">{{ item.sellerNickName[0] }}</view>
               <text class="seller-name">{{ item.sellerNickName }}</text>
             </view>

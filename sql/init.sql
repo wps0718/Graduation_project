@@ -1,7 +1,14 @@
 -- =====================================================
 -- 轻院二手交易平台 - 完整数据库初始化脚本
--- 适用于 MySQL 5.7
+-- 适用于 MySQL 8.0+
+-- 版本: 2026-05-24 (汇总所有 update 补充)
+-- 包含: 20张建表 + 必备基础数据
 -- =====================================================
+
+-- =====================================================
+-- 第一部分：建表（按依赖关系排序）
+-- =====================================================
+
 -- -----------------------------------------------------
 -- 1. 用户表（user）
 -- -----------------------------------------------------
@@ -34,8 +41,9 @@ CREATE TABLE IF NOT EXISTS `user` (
   KEY `idx_status` (`status`),
   KEY `idx_auth_status` (`auth_status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10000 DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+
 -- -----------------------------------------------------
--- 1.1 用户关注表（user_follow）
+-- 2. 用户关注表（user_follow）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `user_follow` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -48,8 +56,9 @@ CREATE TABLE IF NOT EXISTS `user_follow` (
   KEY `idx_followee_id` (`followee_id`),
   KEY `idx_follower_id` (`follower_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户关注表';
+
 -- -----------------------------------------------------
--- 2. 管理员表（employee）
+-- 3. 管理员表（employee）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `employee` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -64,11 +73,9 @@ CREATE TABLE IF NOT EXISTS `employee` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='管理员表';
--- 默认管理员账号 admin / 123456
-INSERT INTO `employee` (`id`, `username`, `password`, `name`, `role`, `status`, `create_time`, `update_time`)
-VALUES (1, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '超级管理员', 1, 1, NOW(), NOW());
+
 -- -----------------------------------------------------
--- 3. 学院表（college）
+-- 4. 学院表（college）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `college` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -79,8 +86,9 @@ CREATE TABLE IF NOT EXISTS `college` (
   `update_time` datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学院表';
+
 -- -----------------------------------------------------
--- 4. 校区表（campus）
+-- 5. 校区表（campus）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `campus` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -93,12 +101,9 @@ CREATE TABLE IF NOT EXISTS `campus` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='校区表';
-INSERT INTO `campus` (`name`, `code`, `sort`, `status`, `create_time`, `update_time`) VALUES
-('南海北', 'nanhai_north', 1, 1, NOW(), NOW()),
-('南海南', 'nanhai_south', 2, 1, NOW(), NOW()),
-('新港', 'xingang', 3, 1, NOW(), NOW());
+
 -- -----------------------------------------------------
--- 5. 面交地点表（meeting_point）
+-- 6. 面交地点表（meeting_point）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `meeting_point` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -111,16 +116,9 @@ CREATE TABLE IF NOT EXISTS `meeting_point` (
   PRIMARY KEY (`id`),
   KEY `idx_campus_id` (`campus_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='面交地点表';
-INSERT INTO `meeting_point` (`campus_id`, `name`, `sort`, `status`, `create_time`, `update_time`) VALUES
-(1, '南海北校区-宿舍楼A', 1, 1, NOW(), NOW()),
-(1, '南海北校区-图书馆', 2, 1, NOW(), NOW()),
-(1, '南海北校区-食堂', 3, 1, NOW(), NOW()),
-(2, '南海南校区-宿舍楼B', 1, 1, NOW(), NOW()),
-(2, '南海南校区-食堂', 2, 1, NOW(), NOW()),
-(3, '新港校区-教学楼', 1, 1, NOW(), NOW()),
-(3, '新港校区-图书馆', 2, 1, NOW(), NOW());
+
 -- -----------------------------------------------------
--- 6. 商品分类表（category）
+-- 7. 商品分类表（category）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `category` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -132,15 +130,9 @@ CREATE TABLE IF NOT EXISTS `category` (
   `update_time` datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品分类表';
-INSERT INTO `category` (`name`, `sort`, `status`, `create_time`, `update_time`) VALUES
-('书籍', 1, 1, NOW(), NOW()),
-('服饰', 2, 1, NOW(), NOW()),
-('生活', 3, 1, NOW(), NOW()),
-('电子设备', 4, 1, NOW(), NOW()),
-('运动设备', 5, 1, NOW(), NOW()),
-('潮玩娱乐', 6, 1, NOW(), NOW());
+
 -- -----------------------------------------------------
--- 7. 校园认证表（campus_auth）
+-- 8. 校园认证表（campus_auth）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `campus_auth` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -161,8 +153,9 @@ CREATE TABLE IF NOT EXISTS `campus_auth` (
   KEY `idx_status` (`status`),
   UNIQUE KEY `idx_student_no` (`student_no`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='校园认证表';
+
 -- -----------------------------------------------------
--- 8. 校园认证历史表（campus_auth_history）
+-- 9. 校园认证历史表（campus_auth_history）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `campus_auth_history` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -184,8 +177,9 @@ CREATE TABLE IF NOT EXISTS `campus_auth_history` (
   KEY `idx_auth_id` (`auth_id`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='校园认证历史表';
+
 -- -----------------------------------------------------
--- 9. 商品表（product）
+-- 10. 商品表（product）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `product` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -220,8 +214,9 @@ CREATE TABLE IF NOT EXISTS `product` (
   KEY `idx_status_campus_category_create` (`status`, `campus_id`, `category_id`, `create_time`),
   KEY `idx_status_price` (`status`, `price`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品表';
+
 -- -----------------------------------------------------
--- 10. 收藏表（favorite）
+-- 11. 收藏表（favorite）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `favorite` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -232,8 +227,9 @@ CREATE TABLE IF NOT EXISTS `favorite` (
   UNIQUE KEY `idx_user_product` (`user_id`, `product_id`),
   KEY `idx_product_id` (`product_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='收藏表';
+
 -- -----------------------------------------------------
--- 11. 订单表（trade_order）
+-- 12. 订单表（trade_order）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `trade_order` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -267,8 +263,9 @@ CREATE TABLE IF NOT EXISTS `trade_order` (
   KEY `idx_confirm_deadline` (`confirm_deadline`),
   KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='交易订单表';
+
 -- -----------------------------------------------------
--- 12. 评价表（review）
+-- 13. 评价表（review）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `review` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -285,8 +282,9 @@ CREATE TABLE IF NOT EXISTS `review` (
   UNIQUE KEY `idx_order_reviewer` (`order_id`, `reviewer_id`),
   KEY `idx_target_id` (`target_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='评价表';
+
 -- -----------------------------------------------------
--- 12. 举报表（report）
+-- 14. 举报表（report）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `report` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -308,8 +306,9 @@ CREATE TABLE IF NOT EXISTS `report` (
   KEY `idx_status` (`status`),
   UNIQUE KEY `idx_reporter_target` (`reporter_id`, `target_type`, `target_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='举报表';
+
 -- -----------------------------------------------------
--- 13. 消息通知表（notification）
+-- 15. 消息通知表（notification）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `notification` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -327,8 +326,9 @@ CREATE TABLE IF NOT EXISTS `notification` (
   KEY `idx_user_read_category` (`user_id`, `is_read`, `category`),
   KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='消息通知表';
+
 -- -----------------------------------------------------
--- 14. Banner表（banner）
+-- 16. Banner表（banner）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `banner` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -348,8 +348,9 @@ CREATE TABLE IF NOT EXISTS `banner` (
   KEY `idx_campus_id` (`campus_id`),
   KEY `idx_status_campus` (`status`, `campus_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Banner表';
+
 -- -----------------------------------------------------
--- 15. 搜索热词表（search_keyword）
+-- 17. 搜索热词表（search_keyword）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `search_keyword` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -364,8 +365,9 @@ CREATE TABLE IF NOT EXISTS `search_keyword` (
   UNIQUE KEY `idx_keyword` (`keyword`),
   KEY `idx_is_hot` (`is_hot`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='搜索热词表';
+
 -- -----------------------------------------------------
--- 16. 系统公告表（notice）
+-- 18. 系统公告表（notice）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `notice` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -380,8 +382,9 @@ CREATE TABLE IF NOT EXISTS `notice` (
   KEY `idx_status` (`status`),
   KEY `idx_type` (`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='系统公告表';
+
 -- -----------------------------------------------------
--- 17. 会话-商品关联表（chat_session）
+-- 19. 会话-商品关联表（chat_session）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `chat_session` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -401,8 +404,9 @@ CREATE TABLE IF NOT EXISTS `chat_session` (
   KEY `idx_user_last_time` (`user_id`, `last_time`),
   KEY `idx_product_id` (`product_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='会话-商品关联表';
+
 -- -----------------------------------------------------
--- 18. 聊天消息表（chat_message）
+-- 20. 聊天消息表（chat_message）
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `chat_message` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
@@ -421,6 +425,108 @@ CREATE TABLE IF NOT EXISTS `chat_message` (
   KEY `idx_sender_id` (`sender_id`),
   KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='聊天消息表';
+
+-- -----------------------------------------------------
+-- 21. 商品留言表（product_comment）
+-- 来源: sql/update/2026-04-10_f08_product_comment.sql
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `product_comment` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `product_id` bigint(20) NOT NULL COMMENT '商品ID',
+  `user_id` bigint(20) NOT NULL COMMENT '留言用户ID',
+  `parent_id` bigint(20) DEFAULT NULL COMMENT '父留言ID（回复哪条留言）',
+  `root_id` bigint(20) DEFAULT NULL COMMENT '根留言ID（所属的第一层留言）',
+  `reply_to_user_id` bigint(20) DEFAULT NULL COMMENT '被回复用户ID',
+  `content` varchar(500) NOT NULL COMMENT '留言内容',
+  `is_read` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否已读（针对被回复人）',
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否逻辑删除 0-否 1-是',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_product_id` (`product_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_parent_id` (`parent_id`),
+  KEY `idx_root_id` (`root_id`),
+  KEY `idx_reply_to_user_id_read` (`reply_to_user_id`, `is_read`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品留言表';
+
+-- -----------------------------------------------------
+-- 22. 浏览历史表（browse_history）
+-- 来源: sql/update/2026-05-17_f11_browse_history.sql
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `browse_history` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `user_id` bigint(20) NOT NULL COMMENT '浏览用户ID',
+  `product_id` bigint(20) NOT NULL COMMENT '浏览的商品ID',
+  `is_deleted` tinyint(4) NOT NULL DEFAULT 0 COMMENT '逻辑删除 0-未删除 1-已删除',
+  `create_time` datetime DEFAULT NULL COMMENT '浏览时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_product` (`user_id`, `product_id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_product_id` (`product_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='浏览历史表';
+
+
+CREATE TABLE IF NOT EXISTS `login_log` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `user_id` bigint(20) DEFAULT NULL COMMENT '用户ID（小程序端，管理员登录时为空）',
+  `employee_id` bigint(20) DEFAULT NULL COMMENT '管理员ID（PC端，用户登录时为空）',
+  `login_method` varchar(16) NOT NULL COMMENT '登录方式：wechat-微信登录 account-手机号密码 sms-短信验证码 pc-PC端管理后台',
+  `login_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '登录时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_employee_id` (`employee_id`),
+  KEY `idx_login_method` (`login_method`),
+  KEY `idx_login_time` (`login_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='登录日志表';
+
+
 -- =====================================================
--- 执行完成！
+-- 第二部分：基础数据（使用 INSERT IGNORE 防止重复执行报错）
+-- =====================================================
+
+-- 默认管理员账号 admin / 123456
+INSERT IGNORE INTO `employee` (`id`, `username`, `password`, `name`, `role`, `status`, `create_time`, `update_time`)
+VALUES (1, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '超级管理员', 1, 1, NOW(), NOW());
+
+-- 校区数据
+INSERT IGNORE INTO `campus` (`name`, `code`, `sort`, `status`, `create_time`, `update_time`) VALUES
+('南海北', 'nanhai_north', 1, 1, NOW(), NOW()),
+('南海南', 'nanhai_south', 2, 1, NOW(), NOW()),
+('新港', 'xingang', 3, 1, NOW(), NOW());
+
+-- 面交地点数据
+INSERT IGNORE INTO `meeting_point` (`campus_id`, `name`, `sort`, `status`, `create_time`, `update_time`) VALUES
+(1, '南海北校区-宿舍楼A', 1, 1, NOW(), NOW()),
+(1, '南海北校区-图书馆', 2, 1, NOW(), NOW()),
+(1, '南海北校区-食堂', 3, 1, NOW(), NOW()),
+(2, '南海南校区-宿舍楼B', 1, 1, NOW(), NOW()),
+(2, '南海南校区-食堂', 2, 1, NOW(), NOW()),
+(3, '新港校区-教学楼', 1, 1, NOW(), NOW()),
+(3, '新港校区-图书馆', 2, 1, NOW(), NOW());
+
+-- 商品分类数据
+INSERT IGNORE INTO `category` (`name`, `sort`, `status`, `create_time`, `update_time`) VALUES
+('书籍', 1, 1, NOW(), NOW()),
+('服饰', 2, 1, NOW(), NOW()),
+('生活', 3, 1, NOW(), NOW()),
+('电子设备', 4, 1, NOW(), NOW()),
+('运动设备', 5, 1, NOW(), NOW()),
+('潮玩娱乐', 6, 1, NOW(), NOW());
+
+-- 学院数据（广东轻工职业技术大学常用学院）
+INSERT IGNORE INTO `college` (`name`, `sort`, `status`, `create_time`, `update_time`) VALUES
+('信息技术学院', 1, 1, NOW(), NOW()),
+('轻化工技术学院', 2, 1, NOW(), NOW()),
+('机电技术学院', 3, 1, NOW(), NOW()),
+('汽车技术学院', 4, 1, NOW(), NOW()),
+('艺术设计学院', 5, 1, NOW(), NOW()),
+('经济管理学院', 6, 1, NOW(), NOW()),
+('食品与生物技术学院', 7, 1, NOW(), NOW()),
+('财贸学院', 8, 1, NOW(), NOW()),
+('旅游管理学院', 9, 1, NOW(), NOW()),
+('应用外语学院', 10, 1, NOW(), NOW());
+
+-- =====================================================
+-- 执行完成！共 22 张表，5 类基础数据。
 -- =====================================================

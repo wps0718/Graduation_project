@@ -225,7 +225,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         if (type == null) {
             throw new BusinessException("消息类型不能为空");
         }
-        if (type < 1 || type > 11) {
+        if (type < 1 || type > 25) {
             throw new BusinessException("消息类型不正确");
         }
         if (!StringUtils.hasText(title)) {
@@ -234,7 +234,7 @@ public class NotificationServiceImpl extends ServiceImpl<NotificationMapper, Not
         if (!StringUtils.hasText(content)) {
             throw new BusinessException("消息内容不能为空");
         }
-        if (category == null || (category != 1 && category != 2)) {
+        if (category == null || (category != 1 && category != 2 && category != 3)) {
             throw new BusinessException("消息分类不正确");
         }
         if (relatedType != null && (relatedType < 1 || relatedType > 4)) {

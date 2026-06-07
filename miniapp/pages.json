@@ -110,6 +110,20 @@
 			"pages": [
 				{"path": "web-view/web-view"}
 			]
+		},
+		{
+			"root": "pages/pickup-sub",
+			"name": "pickup",
+			"pages": [
+				{"path": "index/index", "style": {"navigationBarTitleText": "代拿快递"}},
+				{"path": "publish/publish", "style": {"navigationBarTitleText": "发布代拿需求"}},
+				{"path": "detail/detail", "style": {"navigationBarTitleText": "订单详情"}},
+				{"path": "my-published/my-published", "style": {"navigationBarTitleText": "我发布的"}},
+				{"path": "my-picked/my-picked", "style": {"navigationBarTitleText": "我接单的"}},
+				{"path": "dispute-submit/dispute-submit", "style": {"navigationBarTitleText": "发起纠纷"}},
+				{"path": "dispute-respond/dispute-respond", "style": {"navigationBarTitleText": "纠纷回应"}},
+					{"path": "price-confirm/price-confirm", "style": {"navigationBarTitleText": "修改报酬"}}
+			]
 		}
 	],
 	"globalStyle": {

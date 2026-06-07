@@ -21,7 +21,7 @@
         >
           <view v-if="!item.isRead" class="favorites-item__dot"></view>
           <view class="favorites-item__avatar">
-            <UserAvatar :src="item.avatarUrl" :size="96" />
+            <UserAvatar :avatar-url="item.avatarUrl" :size="96" />
           </view>
           <view class="favorites-item__content">
             <view class="favorites-item__header">
@@ -31,7 +31,7 @@
             <text class="favorites-item__time">{{ formatTime(item.createTime) }}</text>
           </view>
           <view class="favorites-item__product">
-            <image class="favorites-item__product-img" :src="item.productImage" mode="aspectFill" />
+            <image class="favorites-item__product-img" :src="resolveImageUrl(item.productImage)" mode="aspectFill" />
             <view class="favorites-item__product-info">
               <text class="favorites-item__product-title">{{ item.productTitle }}</text>
               <text class="favorites-item__product-price">￥{{ item.productPrice }}</text>
@@ -51,6 +51,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { post, get } from '@/utils/request'
+import { resolveImageUrl } from '@/utils/image'
 import UserAvatar from '@/components/user-avatar/user-avatar.vue'
 import EmptyState from '@/components/empty-state/empty-state.vue'
 import { useNavBar } from '@/utils/useNavBar'
